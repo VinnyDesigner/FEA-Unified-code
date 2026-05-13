@@ -51,7 +51,7 @@ const CustomXAxisTick = ({ x, y, payload }) => {
   );
 };
 
-const TemperatureChart = ({ activeTab }) => {
+const TemperatureChart = ({ activeTab, isMobile = false }) => {
   const isWeather = activeTab === 'Weather';
   const rawData = isWeather ? weatherData : sondeData;
   const currentData = rawData.map(d => ({ ...d, label: `${d.time},\n${d.hour}` }));
@@ -61,19 +61,19 @@ const TemperatureChart = ({ activeTab }) => {
       className="flex flex-col h-full relative"
       style={{
         background: 'rgba(255, 255, 255, 0.45)',
-        borderRadius: '24px',
-        padding: '16px 20px',
+        borderRadius: isMobile ? '20px' : '24px',
+        padding: isMobile ? '12px 14px' : '16px 20px',
         boxShadow: '0 4px 24px rgba(0,0,0,0.03)',
         border: '1px solid rgba(255,255,255,0.7)',
         backdropFilter: 'blur(8px)'
       }}
     >
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-[19px] font-bold text-[#072227] tracking-tight">
+      <div className={`flex justify-between items-start ${isMobile ? 'mb-2' : 'mb-4'}`}>
+        <h3 className={`${isMobile ? 'text-[15px]' : 'text-[19px]'} font-bold text-[#072227] tracking-tight`}>
           {isWeather ? 'Air Temperature' : 'Water Temperature'} (°c)
         </h3>
         <button className="text-gray-400 hover:text-[#009FAC] transition-all p-1 bg-white/60 rounded-lg shadow-sm border border-white/40">
-          <Maximize2 size={12} />
+          <Maximize2 size={10} />
         </button>
       </div>
 

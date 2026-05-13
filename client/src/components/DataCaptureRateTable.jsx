@@ -68,96 +68,185 @@ const captureRateData = [
   }
 ];
 
-const DataCaptureRateTable = () => {
+const DataCaptureRateTable = ({ isMobile = false, activeTab = 'Data Capture Rate' }) => {
+  const isValidMode = activeTab === 'Valid Data Capture Rate';
+
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Frame Container - Compact Padding & Hidden Scrollbar */}
-      <div className="flex-1 flex min-h-0 mb-4">
-        
-        {/* 1. Left Fixed Column */}
-        <div className="flex-shrink-0 flex flex-col border-r border-white/10 w-[180px]">
-          <div className="px-6 py-3 text-white text-[14px] font-bold border-b border-white/10 flex items-center gap-2 h-[50px] leading-tight sticky top-0 z-10 bg-transparent">
-            Station Name <ArrowUpDown size={14} className="text-white/60 flex-shrink-0" />
-          </div>
-          <div className="flex-1">
-            {captureRateData.map((row, index) => (
-              <div key={index} className="px-6 py-3 text-white/90 text-[14px] font-bold border-b border-white/10 h-[50px] flex items-center whitespace-nowrap">
-                {row.station}
+      {/* --- MOBILE VIEW: Data Capture Cards (< 768px) --- */}
+      <div className="flex md:hidden flex-col gap-4 w-full">
+        {captureRateData.map((row, index) => (
+          <div 
+            key={index} 
+            className="flex flex-col gap-[14px] p-[18px] relative overflow-hidden"
+            style={{
+              borderRadius: '20px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            {/* Header: Station */}
+            <div className="pb-3 border-b border-white/10">
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/50 uppercase tracking-wide">Station</span>
+                <span className="text-[18px] font-bold text-white">{row.station}</span>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* 2. Middle Scrollable Columns - Table Auto for dynamic width */}
-        <div className="flex-1 overflow-x-auto scrollbar-hide flex flex-col min-w-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <style dangerouslySetInnerHTML={{__html: `
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none;
-            }
-          `}} />
-          <table className="w-full border-collapse table-auto">
-            <thead>
-              <tr className="border-b border-white/10 h-[50px]">
-                {[
-                  'Specific Conductivity',
-                  'Water Temperature',
-                  'Salinity',
-                  'Chlorophyll',
-                  'Oxygen Saturation',
-                  'Dissolved Oxygen',
-                  'Turbidity',
-                  'pH',
-                  'Depth',
-                  'Blue Green Algae',
-                  'Expected Records',
-                  'Received Records'
-                ].map((label, idx) => (
-                  <th key={idx} className="px-6 py-3 text-white text-[14px] font-bold text-left whitespace-nowrap leading-tight sticky top-0 z-10 bg-transparent">
-                    <div className="flex items-center gap-2">
-                      {label} <ArrowUpDown size={14} className="text-white/60 flex-shrink-0" />
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+            {/* Parameter Grid (Conductivity to Algae) */}
+            <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-white/60">Conductivity</span>
+                <span className="text-[14px] font-bold text-white/90">{row.conductivity}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-white/60">Water Temp</span>
+                <span className="text-[14px] font-bold text-white/90">{row.temp}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-white/60">Salinity</span>
+                <span className="text-[14px] font-bold text-white/90">{row.salinity}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-white/60">Chlorophyll</span>
+                <span className="text-[14px] font-bold text-white/90">{row.chlorophyll}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-white/60">Oxygen Sat</span>
+                <span className="text-[14px] font-bold text-white/90">{row.oxygenSat}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-white/60">Dissolved Oxygen</span>
+                <span className="text-[14px] font-bold text-white/90">{row.dissolvedOxygen}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-white/60">Turbidity</span>
+                <span className="text-[14px] font-bold text-white/90">{row.turbidity}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-white/60">pH</span>
+                <span className="text-[14px] font-bold text-white/90">{row.ph}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-white/60">Depth</span>
+                <span className="text-[14px] font-bold text-white/90">{row.depth}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-white/60">Blue Green Algae</span>
+                <span className="text-[14px] font-bold text-white/90">{row.algae}</span>
+              </div>
+            </div>
+
+            {/* Performance Metrics Section */}
+            <div className="mt-2 pt-3 border-t border-white/10 grid grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/70">Expected Records</span>
+                <span className="text-[16px] font-bold text-white">{row.expected}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/70">{isValidMode ? 'Valid Records' : 'Received Records'}</span>
+                <span className="text-[16px] font-bold text-white">{row.received}</span>
+              </div>
+              <div className="col-span-2 flex flex-col pt-1">
+                <span className="text-[12px] font-medium text-white/70">{isValidMode ? 'Valid Data Capture Rate' : 'Data Capture Rate'}</span>
+                <span className="text-[20px] font-bold text-[#1DCDDD]">{row.rate}%</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* --- TABLET/DESKTOP VIEW: Table (>= 768px) --- */}
+      <div className="hidden md:flex flex-1 flex-col min-h-0">
+        <div className="flex-1 flex min-h-0 mb-4">
+          
+          {/* 1. Left Fixed Column */}
+          <div className="flex-shrink-0 flex flex-col border-r border-white/10 w-[180px]">
+            <div className="px-6 py-3 text-white text-[14px] font-bold border-b border-white/10 flex items-center gap-2 h-[50px] leading-tight sticky top-0 z-10 bg-transparent">
+              Station Name <ArrowUpDown size={14} className="text-white/60 flex-shrink-0" />
+            </div>
+            <div className="flex-1">
               {captureRateData.map((row, index) => (
-                <tr key={index} className="border-b border-white/10 h-[50px] hover:bg-white/5 transition-colors">
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.conductivity}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.temp}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.salinity}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.chlorophyll}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.oxygenSat}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.dissolvedOxygen}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.turbidity}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.ph}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.depth}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.algae}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.expected}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.received}</td>
-                </tr>
+                <div key={index} className="px-6 py-3 text-white/90 text-[14px] font-bold border-b border-white/10 h-[50px] flex items-center whitespace-nowrap">
+                  {row.station}
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 3. Right Fixed Column */}
-        <div className="flex-shrink-0 flex flex-col border-l border-white/10 w-[180px]">
-          <div className="px-6 py-3 text-white text-[14px] font-bold border-b border-white/10 flex items-center gap-2 h-[50px] leading-tight sticky top-0 z-10 bg-transparent">
-            Data Capture Rate <ArrowUpDown size={14} className="text-white/60 flex-shrink-0" />
+            </div>
           </div>
-          <div className="flex-1">
-            {captureRateData.map((row, index) => (
-              <div key={index} className="px-6 py-3 text-white/90 text-[14px] font-bold border-b border-white/10 h-[50px] flex items-center">
-                {row.rate}%
-              </div>
-            ))}
+
+          {/* 2. Middle Scrollable Columns - Table Auto for dynamic width */}
+          <div className="flex-1 overflow-x-auto scrollbar-hide flex flex-col min-w-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <style dangerouslySetInnerHTML={{__html: `
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+              }
+            `}} />
+            <table className="w-full border-collapse table-auto">
+              <thead>
+                <tr className="border-b border-white/10 h-[50px]">
+                  {[
+                    'Specific Conductivity',
+                    'Water Temperature',
+                    'Salinity',
+                    'Chlorophyll',
+                    'Oxygen Saturation',
+                    'Dissolved Oxygen',
+                    'Turbidity',
+                    'pH',
+                    'Depth',
+                    'Blue Green Algae',
+                    'Expected Records',
+                    isValidMode ? 'Valid Records' : 'Received Records'
+                  ].map((label, idx) => (
+                    <th key={idx} className="px-6 py-3 text-white text-[14px] font-bold text-left whitespace-nowrap leading-tight sticky top-0 z-10 bg-transparent">
+                      <div className="flex items-center gap-2">
+                        {label} <ArrowUpDown size={14} className="flex-shrink-0 text-white/60" />
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {captureRateData.map((row, index) => (
+                  <tr key={index} className="border-b border-white/10 h-[50px] hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.conductivity}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.temp}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.salinity}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.chlorophyll}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.oxygenSat}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.dissolvedOxygen}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.turbidity}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.ph}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.depth}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.algae}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.expected}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.received}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 3. Right Fixed Column */}
+          <div className="flex-shrink-0 flex flex-col border-l border-white/10 w-[180px]">
+            <div className="px-6 py-3 text-white text-[14px] font-bold border-b border-white/10 flex items-center gap-2 h-[50px] leading-tight sticky top-0 z-10 bg-transparent">
+              {isValidMode ? 'Valid Data Capture Rate' : 'Data Capture Rate'} <ArrowUpDown size={14} className="text-white/60 flex-shrink-0" />
+            </div>
+            <div className="flex-1">
+              {captureRateData.map((row, index) => (
+                <div key={index} className="px-6 py-3 text-white/90 text-[14px] font-bold border-b border-white/10 h-[50px] flex items-center">
+                  {row.rate}%
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
       
       {/* Pagination Footer */}
-      <div className="flex justify-end items-center gap-2 mt-4">
+      <div className="flex justify-center md:justify-end items-center gap-2 mt-auto pt-6 pb-3">
         <button 
           className="w-10 h-10 flex items-center justify-center transition-all hover:brightness-110 active:scale-95"
           style={{

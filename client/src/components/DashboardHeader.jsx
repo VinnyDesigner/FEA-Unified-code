@@ -1,21 +1,21 @@
 import React from 'react';
 
-const DashboardHeader = ({ activeTab, setActiveTab }) => {
+const DashboardHeader = ({ activeTab, setActiveTab, isMobile = false }) => {
   return (
-    <div className="flex items-start justify-between w-full m-0 p-0">
-      <div>
-        <h2 className="text-lg font-bold text-[#072227] leading-tight">Marine Water Quality Monitoring Dashboard</h2>
-        <p className="text-xs text-gray-500 mt-1">Real-time coastal water insights for smarter environmental protection.</p>
+    <div className={`flex ${isMobile ? 'flex-col items-center gap-4' : 'items-start justify-between'} w-full m-0 p-0`}>
+      <div className={isMobile ? 'text-center' : ''}>
+        <h2 className={`${isMobile ? 'text-[17px]' : 'text-lg'} font-bold text-[#072227] leading-tight`}>Marine Water Quality Monitoring Dashboard</h2>
+        <p className={`${isMobile ? 'text-[11px]' : 'text-xs'} text-gray-500 mt-1 px-4`}>Real-time coastal water insights for smarter environmental protection.</p>
       </div>
       
-      <div className="flex gap-3 flex-shrink-0 ml-4">
+      <div className={`flex gap-3 flex-shrink-0 ${isMobile ? '' : 'ml-4'}`}>
         {['Sonde', 'Weather'].map((tab) => {
           const isActive = activeTab === tab;
           return (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className="px-7 py-2 text-xs transition-all duration-300"
+              className={`${isMobile ? 'px-6 h-[38px]' : 'px-7 py-2'} text-xs transition-all duration-300`}
               style={
                 isActive
                   ? {

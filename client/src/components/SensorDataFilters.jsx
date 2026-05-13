@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Calendar } from 'lucide-react';
 
-const SensorDataFilters = () => {
+const SensorDataFilters = ({ isMobile = false }) => {
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const dateBtnRef = useRef(null);
@@ -11,10 +11,17 @@ const SensorDataFilters = () => {
   const updateDropdownPos = useCallback(() => {
     if (dateBtnRef.current) {
       const rect = dateBtnRef.current.getBoundingClientRect();
-      setDropdownPos({
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.right + window.scrollX - 380 // Align to right of button (approx width 380)
-      });
+      if (window.innerWidth < 1024) {
+        setDropdownPos({
+          top: rect.bottom + window.scrollY + 8,
+          left: window.innerWidth > 400 ? (window.innerWidth - 380) / 2 : 16
+        });
+      } else {
+        setDropdownPos({
+          top: rect.bottom + window.scrollY + 8,
+          left: rect.right + window.scrollX - 380
+        });
+      }
     }
   }, []);
 
@@ -47,54 +54,48 @@ const SensorDataFilters = () => {
     'Last One Month', 'Last Two Months', 'Last Three Months', 'Choose Period'
   ];
 
+  const filterStyle = {
+    borderRadius: '24px',
+    border: '1px solid rgba(255, 255, 255, 0.30)',
+    background: 'radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.25) 100%)',
+    boxShadow: '0 4px 4px 0 rgba(255, 255, 255, 0.25) inset',
+    color: '#FFFFFF',
+    fontWeight: '400',
+    backdropFilter: 'blur(10px)'
+  };
+
   return (
-    <div className="flex items-center gap-3">
+    <div className={`grid grid-cols-2 lg:flex lg:flex-row items-center gap-3 w-full lg:w-auto`}>
       {/* Sonde Information Dropdown */}
       <button 
-        className="flex items-center gap-2 px-4 py-2 text-xs transition-all hover:brightness-110 active:scale-95"
-        style={{
-          borderRadius: '24px',
-          border: '1px solid rgba(255, 255, 255, 0.30)',
-          background: 'radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.25) 100%)',
-          boxShadow: '0 4px 4px 0 rgba(255, 255, 255, 0.25) inset',
-          color: '#FFFFFF',
-          fontWeight: '400',
-          backdropFilter: 'blur(10px)'
-        }}
+        className="flex items-center gap-2 px-4 py-2 text-[11px] md:text-xs transition-all hover:brightness-110 active:scale-95 w-full lg:w-auto justify-center lg:justify-start"
+        style={filterStyle}
       >
-        Sonde Information
-        <ChevronDown size={14} className="text-white/70" />
+        <span className="whitespace-nowrap text-ellipsis overflow-hidden">Sonde Information</span>
+        <ChevronDown size={14} className="text-white/70 flex-shrink-0" />
       </button>
 
       {/* Date Selector */}
       <button 
         ref={dateBtnRef}
         onClick={() => setIsDateOpen(!isDateOpen)}
-        className="flex items-center gap-2 px-4 py-2 text-xs transition-all hover:brightness-110 active:scale-95"
-        style={{
-          borderRadius: '24px',
-          border: '1px solid rgba(255, 255, 255, 0.30)',
-          background: 'radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.25) 100%)',
-          boxShadow: '0 4px 4px 0 rgba(255, 255, 255, 0.25) inset',
-          color: '#FFFFFF',
-          fontWeight: '400',
-          backdropFilter: 'blur(10px)'
-        }}
+        className="flex items-center gap-2 px-4 py-2 text-[11px] md:text-xs transition-all hover:brightness-110 active:scale-95 w-full lg:w-auto justify-center lg:justify-start"
+        style={filterStyle}
       >
-        <Calendar size={14} className="text-white/70" />
-        Today
-        <ChevronDown size={14} className={`transition-transform duration-300 ${isDateOpen ? 'rotate-180' : ''} text-white/70`} />
+        <Calendar size={14} className="text-white/70 flex-shrink-0" />
+        <span className="whitespace-nowrap">Today</span>
+        <ChevronDown size={14} className={`transition-transform duration-300 ${isDateOpen ? 'rotate-180' : ''} text-white/70 flex-shrink-0`} />
       </button>
 
       {/* Date Range Menu via Portal */}
       {isDateOpen && createPortal(
         <div 
           ref={dropdownRef}
-          className="fixed z-[9999] p-8 flex flex-col gap-5 shadow-2xl"
+          className="fixed z-[9999] p-6 md:p-8 flex flex-col gap-5 shadow-2xl"
           style={{
             top: dropdownPos.top,
             left: dropdownPos.left,
-            width: '380px',
+            width: window.innerWidth < 400 ? 'calc(100% - 32px)' : '380px',
             borderRadius: '20px',
             border: '1px solid rgba(255, 255, 255, 0.08)',
             background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.40) 100%), radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.24) 100%)',
@@ -114,7 +115,7 @@ const SensorDataFilters = () => {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-8 mt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-4 sm:gap-8 mt-4">
             <button 
               onClick={() => setIsDateOpen(false)}
               className="text-white text-[16px] font-semibold hover:text-[#19D9F3] transition-colors"
@@ -122,7 +123,7 @@ const SensorDataFilters = () => {
               Cancel
             </button>
             <button 
-              className="px-10 h-[44px] text-white text-[15px] font-bold tracking-wide flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full sm:w-auto px-10 h-[44px] text-white text-[15px] font-bold tracking-wide flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
               style={{
                 background: 'radial-gradient(50% 50% at 50% 50%, #1DCDDD 0%, #009FAC 100%)',
                 borderRadius: '29.455px',

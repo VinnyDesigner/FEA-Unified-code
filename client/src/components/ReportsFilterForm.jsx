@@ -66,20 +66,20 @@ const ReportsFilterForm = () => {
 
   return (
     <div 
-      className="p-8 rounded-[30px] border border-white/10"
+      className="p-5 md:p-8 rounded-[24px] md:rounded-[30px] border border-white/10"
       style={{
         background: 'radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.14) 100%)',
         backdropFilter: 'blur(10px)',
       }}
     >
-      <div className="flex flex-col gap-8">
-        {/* Row 1: 4 Dropdowns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-30">
+      <div className="flex flex-col gap-6 md:gap-8">
+        {/* Row 1: 4 Dropdowns - Responsive Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 relative z-30">
           <div className="flex flex-col relative">
             <label className={labelClass}>Station</label>
             <button 
               ref={stationBtnRef}
-              className={dropdownClass}
+              className={`${dropdownClass} h-[52px] md:h-[56px] mt-2`}
               onClick={() => setIsStationOpen(!isStationOpen)}
             >
               {formData.station}
@@ -120,21 +120,21 @@ const ReportsFilterForm = () => {
           </div>
           <div className="flex flex-col">
             <label className={labelClass}>Monitoring Type</label>
-            <button className={dropdownClass}>
+            <button className={`${dropdownClass} h-[52px] md:h-[56px] mt-2`}>
               {formData.monitoringType}
               <ChevronDown size={14} className="text-white/70" />
             </button>
           </div>
           <div className="flex flex-col">
             <label className={labelClass}>Parameters</label>
-            <button className={dropdownClass}>
+            <button className={`${dropdownClass} h-[52px] md:h-[56px] mt-2`}>
               {formData.parameter}
               <ChevronDown size={14} className="text-white/70" />
             </button>
           </div>
           <div className="flex flex-col">
             <label className={labelClass}>Type</label>
-            <button className={dropdownClass}>
+            <button className={`${dropdownClass} h-[52px] md:h-[56px] mt-2`}>
               {formData.type}
               <ChevronDown size={14} className="text-white/70" />
             </button>
@@ -142,16 +142,16 @@ const ReportsFilterForm = () => {
         </div>
 
         {/* Row 2: Date Pickers & Actions */}
-        <div className="flex flex-col lg:flex-row items-end justify-between gap-6 relative z-10">
-          <div className="flex flex-col md:flex-row gap-6 flex-1 w-full lg:max-w-[50%]">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:flex lg:flex-row gap-5 md:gap-6 flex-1 w-full lg:max-w-[50%]">
             <div className="flex flex-col flex-1">
               <label className={labelClass}>Start Date</label>
-              <div className="relative mt-1.5">
+              <div className="relative mt-2">
                 <input 
                   type="text" 
                   value="1 Jan 2026" 
                   readOnly
-                  className="w-full px-4 py-3.5 pl-12 bg-white/5 backdrop-blur-xl rounded-[12px] border border-white/20 text-white text-[14px] font-medium outline-none cursor-default"
+                  className="w-full h-[52px] md:h-[56px] px-4 pl-12 bg-white/5 backdrop-blur-xl rounded-[12px] border border-white/20 text-white text-[14px] font-medium outline-none cursor-default"
                 />
                 <Calendar size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70" />
               </div>
@@ -163,7 +163,7 @@ const ReportsFilterForm = () => {
                   type="text" 
                   value="30 Jan 2026" 
                   readOnly
-                  className="w-full px-4 py-3.5 pl-12 bg-white/5 backdrop-blur-xl rounded-[12px] border border-white/20 text-white text-[14px] font-medium outline-none cursor-default"
+                  className="w-full h-[52px] md:h-[56px] px-4 pl-12 bg-white/5 backdrop-blur-xl rounded-[12px] border border-white/20 text-white text-[14px] font-medium outline-none cursor-default"
                 />
                 <Calendar size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70" />
               </div>
@@ -171,7 +171,7 @@ const ReportsFilterForm = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-8 pb-0.5">
+          <div className="flex flex-row items-center justify-end gap-6 md:gap-8 pt-4 md:pt-0 border-t border-white/5 md:border-none">
             <button 
               onClick={handleReset}
               className="text-white text-[16px] font-semibold hover:text-[#19D9F3] transition-colors"
@@ -179,10 +179,10 @@ const ReportsFilterForm = () => {
               Cancel
             </button>
             <button 
-              className="px-10 h-[44px] text-white text-[15px] font-bold tracking-wide flex items-center justify-center gap-1 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="px-6 md:px-10 h-[48px] md:h-[44px] text-white text-[14px] md:text-[15px] font-bold tracking-wide flex items-center justify-center gap-1 transition-transform hover:scale-[1.02] active:scale-[0.98]"
               style={{
                 background: 'radial-gradient(50% 50% at 50% 50%, #1DCDDD 0%, #009FAC 100%)',
-                borderRadius: '29.455px',
+                borderRadius: '999px',
                 boxShadow: '0 0 70px 0 rgba(0, 159, 172, 0.40), 0 0 1px 4px rgba(255, 255, 255, 0.10), 0 -4px 2px 0 rgba(0, 0, 0, 0.25) inset, 0 2px 1px 0 rgba(255, 255, 255, 0.25) inset'
               }}
             >

@@ -40,52 +40,52 @@ const faqData = [
   }
 ];
 
-const FAQAccordion = () => {
+const FAQAccordion = ({ isMobile = false }) => {
   const [openIndex, setOpenIndex] = useState(0);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3.5 md:gap-4 pb-10">
       {faqData.map((item, index) => {
         const isOpen = openIndex === index;
         return (
           <div 
             key={index}
-            className={`transition-all duration-300 rounded-[20px] border ${
+            className={`transition-all duration-300 border ${
               isOpen 
-                ? 'bg-white/10 border-white/20 p-8 shadow-[0_4px_30px_rgba(0,0,0,0.1)]' 
-                : 'bg-transparent border-transparent px-8 py-4'
+                ? 'bg-white/10 border-white/20 p-5 md:p-8 rounded-[20px] md:rounded-[30px] shadow-[0_4px_30px_rgba(0,0,0,0.1)]' 
+                : 'bg-transparent border-transparent p-5 md:px-8 md:py-4 rounded-[20px]'
             }`}
             style={isOpen ? {
-              backdropFilter: 'blur(10px)',
+              backdropFilter: 'blur(20px)',
               background: 'radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.14) 100%)',
             } : {}}
           >
             <button 
               onClick={() => setOpenIndex(isOpen ? -1 : index)}
-              className="w-full flex items-center justify-between text-left group"
+              className="w-full flex items-center justify-between text-left group gap-4"
             >
-              <span className={`text-[15px] font-semibold transition-colors ${
+              <span className={`text-[16px] md:text-[18px] font-bold transition-colors ${
                 isOpen ? 'text-white' : 'text-white/80 group-hover:text-white'
               }`}>
                 {item.question}
               </span>
               {isOpen ? (
-                <ChevronUp size={20} className="text-[#1DCDDD]" />
+                <ChevronUp size={20} className="text-[#1DCDDD] flex-shrink-0" />
               ) : (
-                <ChevronDown size={20} className="text-white/40 group-hover:text-white/60" />
+                <ChevronDown size={20} className="text-white/40 group-hover:text-white/60 flex-shrink-0" />
               )}
             </button>
             
             {isOpen && (
               <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                <p className="text-white/70 text-[14px] leading-relaxed max-w-[90%]">
+                <p className="text-white/70 text-[14px] md:text-[15px] leading-relaxed max-w-[95%] md:max-w-[90%]">
                   {item.answer}
                 </p>
               </div>
             )}
 
             {!isOpen && index !== faqData.length - 1 && (
-              <div className="absolute bottom-0 left-8 right-8 h-px bg-white/5" />
+              <div className="absolute bottom-0 left-5 md:left-8 right-5 md:right-8 h-px bg-white/5 hidden md:block" />
             )}
           </div>
         );

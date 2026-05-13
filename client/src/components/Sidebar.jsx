@@ -14,7 +14,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
 
   return (
-    <aside className="w-[72px] min-w-[72px] max-w-[72px] h-full flex flex-col items-center py-6 justify-between flex-shrink-0 z-[1100] pointer-events-auto">
+    <aside className="hidden md:flex w-[72px] min-w-[72px] max-w-[72px] h-full flex-col items-center py-6 justify-between flex-shrink-0 z-[1100] pointer-events-auto">
       
       {/* Top: Logo */}
       <div className="flex flex-col items-center">

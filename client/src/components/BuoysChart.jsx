@@ -37,11 +37,13 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-const BuoysChart = () => {
+const BuoysChart = ({ isMobile = false }) => {
   return (
-    <div className="w-full h-full flex flex-col">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-[18px] font-bold text-white">Buoys Monthly Overview</h2>
+    <div className={`w-full flex flex-col ${isMobile ? 'min-h-[420px]' : 'h-full'}`}>
+      <div className="flex justify-between items-start mb-6">
+        <h2 className={`text-[18px] font-bold text-white leading-tight ${isMobile ? 'max-w-[160px]' : ''}`}>
+          Buoys Monthly Overview
+        </h2>
         <button 
           className="flex items-center gap-2 px-6 py-2 text-[14px] transition-all hover:brightness-110 active:scale-95"
           style={{
@@ -59,71 +61,88 @@ const BuoysChart = () => {
         </button>
       </div>
 
-      <div className="flex-1 w-full min-h-0">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorWater" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
-              </linearGradient>
-              <linearGradient id="colorAlgae" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#1DCDDD" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="#1DCDDD" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#CACBCE" strokeWidth={1.088} strokeOpacity={0.15} />
-            <XAxis 
-              dataKey="month" 
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 14, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
-              dy={15}
-            />
-            <YAxis 
-              axisLine={false}
-              tickLine={false}
-              ticks={[0, 5000, 10000, 15000, 20000]}
-              tickFormatter={(value) => value === 0 ? '0' : `${value / 1000}K`}
-              tick={{ fontSize: 14, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
-            />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1, strokeDasharray: '3 3' }} />
-            <Legend 
-              verticalAlign="bottom" 
-              height={40} 
-              iconType="circle"
-              iconSize={10}
-              formatter={(value) => <span className="text-[14px] text-white/90 font-medium ml-2">{value}</span>}
-              wrapperStyle={{ paddingTop: '40px' }}
-            />
-            <Area 
-              type="monotone" 
-              dataKey="waterTemp" 
-              name="Al Aqah New (Water Temperature)"
-              stroke="#F59E0B" 
-              strokeWidth={3}
-              fillOpacity={1} 
-              fill="url(#colorWater)" 
-              dot={{ r: 4, fill: '#ffffff', stroke: '#F59E0B', strokeWidth: 2 }}
-              activeDot={{ r: 6, fill: '#ffffff', stroke: '#F59E0B', strokeWidth: 2 }}
-            />
-            <Area 
-              type="monotone" 
-              dataKey="algae" 
-              name="Al Aqah New (Blue Green Algae)"
-              stroke="#1DCDDD" 
-              strokeWidth={3}
-              fillOpacity={1} 
-              fill="url(#colorAlgae)" 
-              dot={{ r: 4, fill: '#ffffff', stroke: '#1DCDDD', strokeWidth: 2 }}
-              activeDot={{ r: 6, fill: '#ffffff', stroke: '#1DCDDD', strokeWidth: 2 }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+      <div className={`flex-1 w-full ${isMobile ? 'min-h-[340px] flex justify-center' : 'min-h-0'}`}>
+        <div className={`${isMobile ? 'w-full h-[320px]' : 'w-full h-full'}`}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 30 } : { top: 10, right: 10, left: -15, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorWater" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorAlgae" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#1DCDDD" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#1DCDDD" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#CACBCE" strokeWidth={1.088} strokeOpacity={0.15} />
+              <XAxis 
+                dataKey="month" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: isMobile ? 12 : 13, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
+                dy={10}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                ticks={[0, 5000, 10000, 15000, 20000]}
+                tickFormatter={(value) => value === 0 ? '0' : `${value / 1000}K`}
+                tick={{ fontSize: isMobile ? 12 : 13, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1, strokeDasharray: '3 3' }} />
+              <Area 
+                type="monotone" 
+                dataKey="waterTemp" 
+                name={isMobile ? "Water Temp" : "Al Aqah New (Water Temp)"}
+                stroke="#F59E0B" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorWater)" 
+                dot={{ r: 4, fill: '#ffffff', stroke: '#F59E0B', strokeWidth: 2 }}
+                activeDot={{ r: 6, fill: '#ffffff', stroke: '#F59E0B', strokeWidth: 2 }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="algae" 
+                name={isMobile ? "Algae" : "Al Aqah New (Algae)"}
+                stroke="#1DCDDD" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorAlgae)" 
+                dot={{ r: 4, fill: '#ffffff', stroke: '#1DCDDD', strokeWidth: 2 }}
+                activeDot={{ r: 6, fill: '#ffffff', stroke: '#1DCDDD', strokeWidth: 2 }}
+              />
+              <Legend 
+                verticalAlign="bottom" 
+                align="center"
+                height={isMobile ? 60 : 40} 
+                iconType="circle"
+                iconSize={10}
+                formatter={(value) => <span className={`text-white/90 font-medium ml-2 ${isMobile ? 'text-[12px] whitespace-normal' : 'text-[13px]'}`}>{value}</span>}
+                wrapperStyle={isMobile ? { 
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                  gap: "10px",
+                  textAlign: "center",
+                  paddingTop: "20px",
+                  width: "100%",
+                  position: "relative"
+                } : { 
+                  paddingTop: '40px',
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
       
       {/* Divider line after graph labels */}
-      <div className="w-full h-px bg-white/10 mt-14 mb-8" />
+      <div className={`w-full h-px bg-white/10 ${isMobile ? 'mt-10' : 'mt-14'} mb-8`} />
     </div>
   );
 };

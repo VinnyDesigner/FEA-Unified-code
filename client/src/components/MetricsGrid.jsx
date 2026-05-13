@@ -23,24 +23,27 @@ const weatherMetrics = [
   { label: 'Pressure (bar)', value: '20.5 bar', icon: '/assets/weather/pressure.png' },
 ];
 
-const MetricsGrid = ({ activeTab }) => {
+const MetricsGrid = ({ activeTab, isMobile = false }) => {
   const currentMetrics = activeTab === 'Weather' ? weatherMetrics : sondeMetrics;
+  // All metrics should be displayed as the bottom sheet is now scrollable
+  const displayMetrics = currentMetrics;
 
   return (
     <div 
-      className="w-full h-full grid gap-[14px] overflow-hidden"
-      style={{
+      className={`w-full ${isMobile ? 'grid grid-cols-2 md:grid-cols-3 gap-[10px] md:gap-[16px]' : 'h-full grid gap-[14px]'}`}
+      style={!isMobile ? {
         gridTemplateColumns: 'repeat(3, 1fr)',
         gridTemplateRows: 'repeat(3, 1fr)'
-      }}
+      } : {}}
     >
-      {currentMetrics.map((metric) => (
+      {displayMetrics.map((metric) => (
         <MetricCard
           key={metric.label}
           label={metric.label}
           value={metric.value}
           icon={metric.icon}
           isSelected={metric.selected}
+          isMobile={isMobile}
         />
       ))}
     </div>

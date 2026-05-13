@@ -60,92 +60,167 @@ const sensorData = [
   }
 ];
 
-const SensorDataTable = () => {
+const SensorDataTable = ({ isMobile = false }) => {
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Frame Container - Compact Padding & Hidden Scrollbar */}
-      <div className="flex-1 flex min-h-0 mb-4">
-        
-        {/* 1. Left Fixed Column */}
-        <div className="flex-shrink-0 flex flex-col border-r border-white/10 w-[180px]">
-          <div className="px-6 py-3 text-white text-[14px] font-bold border-b border-white/10 flex items-center gap-2 h-[50px] leading-tight sticky top-0 z-10 bg-transparent">
-            Station Name <ArrowUpDown size={14} className="text-white/60 flex-shrink-0" />
-          </div>
-          <div className="flex-1">
-            {sensorData.map((row, index) => (
-              <div key={index} className="px-6 py-3 text-white/90 text-[14px] font-bold border-b border-white/10 h-[50px] flex items-center whitespace-nowrap">
-                {row.station}
+      {/* --- MOBILE VIEW: Sensor Data Cards (< 768px) --- */}
+      <div className="flex md:hidden flex-col gap-4 w-full">
+        {sensorData.map((row, index) => (
+          <div 
+            key={index} 
+            className="flex flex-col gap-[14px] p-[18px] relative overflow-hidden"
+            style={{
+              borderRadius: '20px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            {/* Header: Station & Time */}
+            <div className="flex flex-col gap-2 pb-3 border-b border-white/10">
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/50 uppercase tracking-wide">Station</span>
+                <span className="text-[18px] font-bold text-white">{row.station}</span>
               </div>
-            ))}
-          </div>
-        </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/50 uppercase tracking-wide">Date & Time</span>
+                <span className="text-[15px] font-semibold text-[#1DCDDD]">{row.dateTime}</span>
+              </div>
+            </div>
 
-        {/* 2. Middle Scrollable Columns - Table Auto for dynamic width */}
-        <div className="flex-1 overflow-x-auto scrollbar-hide flex flex-col min-w-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <style dangerouslySetInnerHTML={{__html: `
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none;
-            }
-          `}} />
-          <table className="w-full border-collapse table-auto">
-            <thead>
-              <tr className="border-b border-white/10 h-[50px]">
-                {[
-                  'Date & Time',
-                  'Specific Conductivity',
-                  'Water Temperature',
-                  'Salinity',
-                  'Chlorophyll',
-                  'Oxygen Saturation',
-                  'Dissolved Oxygen',
-                  'Turbidity',
-                  'pH',
-                  'Depth'
-                ].map((label, idx) => (
-                  <th key={idx} className="px-6 py-3 text-white text-[14px] font-bold text-left whitespace-nowrap leading-tight sticky top-0 z-10 bg-transparent">
-                    <div className="flex items-center gap-2">
-                      {label} <ArrowUpDown size={14} className="flex-shrink-0 text-white/60" />
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+            {/* Parameter Grid */}
+            <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/60">Specific Conductivity</span>
+                <span className="text-[16px] font-bold text-white/90">{row.conductivity}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/60">Water Temp</span>
+                <span className="text-[16px] font-bold text-white/90">{row.temp}°C</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/60">Salinity</span>
+                <span className="text-[16px] font-bold text-white/90">{row.salinity}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/60">Chlorophyll</span>
+                <span className="text-[16px] font-bold text-white/90">{row.chlorophyll}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/60">Oxygen Saturation</span>
+                <span className="text-[16px] font-bold text-white/90">{row.oxygenSat}%</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/60">Dissolved Oxygen</span>
+                <span className="text-[16px] font-bold text-white/90">{row.dissolvedOxygen}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/60">Turbidity</span>
+                <span className="text-[16px] font-bold text-white/90">{row.turbidity}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/60">pH</span>
+                <span className="text-[16px] font-bold text-white/90">{row.ph}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/60">Depth</span>
+                <span className="text-[16px] font-bold text-white/90">{row.depth}m</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-medium text-white/60">Blue Green Algae</span>
+                <span className="text-[16px] font-bold text-white/90">{row.algae}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* --- TABLET/DESKTOP VIEW: Table (>= 768px) --- */}
+      <div className="hidden md:flex flex-1 flex-col min-h-0">
+        <div className="flex-1 flex min-h-0 mb-4">
+          
+          {/* 1. Left Fixed Column */}
+          <div className="flex-shrink-0 flex flex-col border-r border-white/10 w-[180px]">
+            <div className="px-6 py-3 text-white text-[14px] font-bold border-b border-white/10 flex items-center gap-2 h-[50px] leading-tight sticky top-0 z-10 bg-transparent">
+              Station Name <ArrowUpDown size={14} className="text-white/60 flex-shrink-0" />
+            </div>
+            <div className="flex-1">
               {sensorData.map((row, index) => (
-                <tr key={index} className="border-b border-white/10 h-[50px] hover:bg-white/5 transition-colors">
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap font-medium">{row.dateTime}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.conductivity}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.temp}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.salinity}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.chlorophyll}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.oxygenSat}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.dissolvedOxygen}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.turbidity}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.ph}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.depth}</td>
-                </tr>
+                <div key={index} className="px-6 py-3 text-white/90 text-[14px] font-bold border-b border-white/10 h-[50px] flex items-center whitespace-nowrap">
+                  {row.station}
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 3. Right Fixed Column */}
-        <div className="flex-shrink-0 flex flex-col border-l border-white/10 w-[180px]">
-          <div className="px-6 py-3 text-white text-[14px] font-bold border-b border-white/10 flex items-center gap-2 h-[50px] leading-tight sticky top-0 z-10 bg-transparent">
-            Blue Green Algae <ArrowUpDown size={14} className="text-white/60 flex-shrink-0" />
+            </div>
           </div>
-          <div className="flex-1">
-            {sensorData.map((row, index) => (
-              <div key={index} className="px-6 py-3 text-white/90 text-[14px] border-b border-white/10 h-[50px] flex items-center">
-                {row.algae}
-              </div>
-            ))}
+
+          {/* 2. Middle Scrollable Columns - Table Auto for dynamic width */}
+          <div className="flex-1 overflow-x-auto scrollbar-hide flex flex-col min-w-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <style dangerouslySetInnerHTML={{__html: `
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+              }
+            `}} />
+            <table className="w-full border-collapse table-auto">
+              <thead>
+                <tr className="border-b border-white/10 h-[50px]">
+                  {[
+                    'Date & Time',
+                    'Specific Conductivity',
+                    'Water Temperature',
+                    'Salinity',
+                    'Chlorophyll',
+                    'Oxygen Saturation',
+                    'Dissolved Oxygen',
+                    'Turbidity',
+                    'pH',
+                    'Depth'
+                  ].map((label, idx) => (
+                    <th key={idx} className="px-6 py-3 text-white text-[14px] font-bold text-left whitespace-nowrap leading-tight sticky top-0 z-10 bg-transparent">
+                      <div className="flex items-center gap-2">
+                        {label} <ArrowUpDown size={14} className="flex-shrink-0 text-white/60" />
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sensorData.map((row, index) => (
+                  <tr key={index} className="border-b border-white/10 h-[50px] hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap font-medium">{row.dateTime}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.conductivity}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.temp}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.salinity}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.chlorophyll}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.oxygenSat}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.dissolvedOxygen}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.turbidity}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.ph}</td>
+                    <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.depth}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 3. Right Fixed Column */}
+          <div className="flex-shrink-0 flex flex-col border-l border-white/10 w-[180px]">
+            <div className="px-6 py-3 text-white text-[14px] font-bold border-b border-white/10 flex items-center gap-2 h-[50px] leading-tight sticky top-0 z-10 bg-transparent">
+              Blue Green Algae <ArrowUpDown size={14} className="text-white/60 flex-shrink-0" />
+            </div>
+            <div className="flex-1">
+              {sensorData.map((row, index) => (
+                <div key={index} className="px-6 py-3 text-white/90 text-[14px] border-b border-white/10 h-[50px] flex items-center">
+                  {row.algae}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Pagination */}
-      <div className="flex justify-end mt-4 gap-2">
+      {/* Pagination Footer */}
+      <div className="flex justify-center md:justify-end items-center gap-2 mt-auto pt-6 pb-3">
         <button 
           className="w-10 h-10 flex items-center justify-center transition-all hover:brightness-110 active:scale-95"
           style={{
