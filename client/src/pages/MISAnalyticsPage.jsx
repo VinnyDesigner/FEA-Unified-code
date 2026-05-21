@@ -31,7 +31,7 @@ const MISAnalyticsPage = () => {
       </div>
 
       {/* Main Content Area (Below Header) */}
-      <div className="flex-1 relative h-full flex lg:flex-row flex-col lg:mt-[80px]">
+      <div className="flex-1 relative lg:h-[calc(100vh-80px)] flex lg:flex-row flex-col lg:mt-[80px] min-h-0 overflow-hidden">
         {/* Desktop Sidebar */}
         <Sidebar />
 
