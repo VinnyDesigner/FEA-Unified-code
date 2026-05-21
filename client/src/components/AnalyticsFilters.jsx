@@ -18,6 +18,8 @@ const AnalyticsFilters = ({ isMobile = false, selectedBuoy = 'Al Aqah Buoy', set
   const [tempSelectedBuoy, setTempSelectedBuoy] = useState(selectedBuoy);
 
   // Filter menu selections
+  const [selectedInfoType, setSelectedInfoType] = useState('Sonde Information');
+  const [selectedPredefined, setSelectedPredefined] = useState('Combo of Salinity and pH');
   const [selectedParams, setSelectedParams] = useState(['Bluegreen Algae', 'Water Temperature']);
   const [selectedDuration, setSelectedDuration] = useState('Monthly');
   const [selectedChartType, setSelectedChartType] = useState('Line Chart');
@@ -277,19 +279,41 @@ const AnalyticsFilters = ({ isMobile = false, selectedBuoy = 'Al Aqah Buoy', set
                 width: '380px'
               }}
             >
+              {/* Select Type of Information Dropdown */}
+              <div className="flex flex-col gap-2">
+                <span className="text-white text-[13px] font-bold tracking-wide">Select Type of Information</span>
+                <div className="flex items-center justify-between px-4 py-3 bg-white/5 border border-white/20 rounded-[12px] text-white text-[14px] font-semibold">
+                  <span>{selectedInfoType}</span>
+                  <ChevronDown size={14} className="text-white/70" />
+                </div>
+              </div>
+
+              {/* Pre Defined Parameter Dropdown */}
+              <div className="flex flex-col gap-2">
+                <span className="text-white text-[13px] font-bold tracking-wide">Pre Defined Parameter</span>
+                <div className="flex items-center justify-between px-4 py-3 bg-white/5 border border-white/20 rounded-[12px] text-white text-[14px] font-semibold">
+                  <span>{selectedPredefined}</span>
+                  <ChevronDown size={14} className="text-white/70" />
+                </div>
+              </div>
+
               {/* Parameters Input Chips */}
               <div className="flex flex-col gap-2">
                 <span className="text-white text-[13px] font-bold tracking-wide">Parameters</span>
                 <div className="flex items-center justify-between px-4 py-2 bg-white/5 border border-white/20 rounded-[12px] text-white text-[14px]">
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 items-center">
                     {selectedParams.map((param) => (
-                      <span key={param} className="flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-xs font-semibold select-none">
+                      <span key={param} className="flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-xs font-semibold select-none border border-white/5 text-white/90">
                         {param} 
-                        <X 
-                          size={12} 
-                          className="cursor-pointer text-white/70 hover:text-white" 
-                          onClick={() => setSelectedParams(selectedParams.filter(p => p !== param))}
-                        />
+                        <span 
+                          className="w-4.5 h-4.5 rounded-full bg-white/20 flex items-center justify-center cursor-pointer hover:bg-white/30 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedParams(selectedParams.filter(p => p !== param));
+                          }}
+                        >
+                          <X size={10} className="text-white" />
+                        </span>
                       </span>
                     ))}
                   </div>
