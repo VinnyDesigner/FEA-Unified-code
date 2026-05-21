@@ -30,6 +30,7 @@ const Dashboard = () => {
   
   const { i18n } = useTranslation();
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
+  const [isMetricsCollapsed, setIsMetricsCollapsed] = useState(false);
   const isRtl = i18n.language === 'ar';
 
   // Mobile Bottom Sheet State (Framer Motion)
@@ -219,26 +220,44 @@ const Dashboard = () => {
               backdropFilter: 'blur(15px)',
               WebkitBackdropFilter: 'blur(15px)',
               padding: '0',
-              overflow: 'hidden'  /* Panel itself NEVER scrolls */
+              overflow: 'visible'  /* Allows toggle button to be visible outside borders */
             }}
             initial={{ x: 0 }}
-            animate={{ x: isRightPanelCollapsed ? (isRtl ? -544 : 544) : 0 }}
+            animate={{ x: isRightPanelCollapsed ? (isRtl ? -520 : 520) : 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
             {/* Collapse / Expand Toggle Button */}
             <button
               onClick={() => setIsRightPanelCollapsed(!isRightPanelCollapsed)}
-              className="absolute top-1/2 -translate-y-1/2 z-[20] flex items-center justify-center w-[24px] h-[52px] bg-white/80 backdrop-blur-md border border-white/40 shadow-md cursor-pointer hover:bg-white/90 transition-colors"
+              className="absolute top-1/2 -translate-y-1/2 z-[20] flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03]"
               style={{
-                left: isRtl ? 'auto' : '-24px',
-                right: isRtl ? '-24px' : 'auto',
-                borderRadius: isRtl ? '0 12px 12px 0' : '12px 0 0 12px'
+                width: '28px',
+                height: '76px',
+                left: isRtl ? 'auto' : '-28px',
+                right: isRtl ? '-28px' : 'auto',
+                borderRadius: isRtl ? '0 20px 20px 0' : '20px 0 0 20px',
+                background: 'radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.44) 100%)',
+                borderTop: '1px solid rgba(0, 0, 0, 0.10)',
+                borderBottom: '1px solid rgba(0, 0, 0, 0.10)',
+                borderLeft: isRtl ? 'none' : '1px solid rgba(0, 0, 0, 0.10)',
+                borderRight: isRtl ? '1px solid rgba(0, 0, 0, 0.10)' : 'none',
+                boxShadow: '3px 3px 4px 0 rgba(255, 255, 255, 0.17) inset',
+                backdropFilter: 'blur(7px)',
+                WebkitBackdropFilter: 'blur(7px)'
               }}
             >
               {isRightPanelCollapsed ? (
-                isRtl ? <ChevronRight size={16} className="text-[#072227]" /> : <ChevronLeft size={16} className="text-[#072227]" />
+                isRtl ? (
+                  <svg viewBox="0 0 24 24" className="w-3 h-3 fill-[#072227]"><path d="M8 5v14l11-7z" /></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" className="w-3 h-3 fill-[#072227]"><path d="M16 5v14L5 12z" /></svg>
+                )
               ) : (
-                isRtl ? <ChevronLeft size={16} className="text-[#072227]" /> : <ChevronRight size={16} className="text-[#072227]" />
+                isRtl ? (
+                  <svg viewBox="0 0 24 24" className="w-3 h-3 fill-[#072227]"><path d="M16 5v14L5 12z" /></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" className="w-3 h-3 fill-[#072227]"><path d="M8 5v14l11-7z" /></svg>
+                )
               )}
             </button>
  
@@ -253,29 +272,57 @@ const Dashboard = () => {
               />
             </div>
  
-            {/* ② Metric Cards — independent vertical scrollbar only, fixed portion of the panel */}
-            <div 
-              className="flex-shrink-0 overflow-y-auto overflow-x-hidden panel-metrics-scrollbar px-5"
-              style={{ maxHeight: '264px' }}
+            {/* Scrollbar CSS for metrics section — always visible */}
+            <style>{`
+              .panel-metrics-scrollbar::-webkit-scrollbar { width: 6px; }
+              .panel-metrics-scrollbar::-webkit-scrollbar-track { background: rgba(0,159,172,0.06); border-radius: 10px; }
+              .panel-metrics-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,159,172,0.45); border-radius: 10px; }
+              .panel-metrics-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,159,172,0.7); }
+            `}</style>
+
+            {/* ② Metric Cards — collapsible, independent scrollbar */}
+            <div
+              className="flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out px-5"
+              style={{ maxHeight: isMetricsCollapsed ? '0px' : '290px', opacity: isMetricsCollapsed ? 0 : 1 }}
             >
-              <MetricsGrid 
-                activeTab={activeTab} 
-                selectedMetric={selectedMetric} 
-                setSelectedMetric={setSelectedMetric} 
-                selectedBuoy={selectedBuoy}
-                selectedDateRange={selectedDateRange}
-              />
+              {/* Scrollable Container with 1px padding and always-visible scrollbar */}
+              <div className="overflow-y-auto overflow-x-hidden panel-metrics-scrollbar" style={{ maxHeight: '290px', padding: '1px' }}>
+                <MetricsGrid
+                  activeTab={activeTab}
+                  selectedMetric={selectedMetric}
+                  setSelectedMetric={setSelectedMetric}
+                  selectedBuoy={selectedBuoy}
+                  selectedDateRange={selectedDateRange}
+                />
+              </div>
             </div>
- 
-            {/* Divider */}
-            <div className="mx-5 h-[1.5px] bg-white/20 my-2 flex-shrink-0" />
- 
-            {/* ③ Chart section — takes all remaining height, independent scrollbar */}
+
+            {/* ── Separator with collapse toggle ── */}
+            <div className="flex-shrink-0 flex items-center gap-2 mx-5 my-2">
+              <div className="flex-1 h-[1.5px]" style={{ background: 'rgba(255,255,255,0.25)' }} />
+              <button
+                onClick={() => setIsMetricsCollapsed(!isMetricsCollapsed)}
+                title={isMetricsCollapsed ? 'Expand metrics' : 'Collapse metrics'}
+                className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer"
+                style={{
+                  background: 'rgba(255,255,255,0.18)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  backdropFilter: 'blur(6px)'
+                }}
+              >
+                {isMetricsCollapsed
+                  ? <ChevronDown size={12} className="text-white/80" />
+                  : <ChevronUp size={12} className="text-white/80" />}
+              </button>
+              <div className="flex-1 h-[1.5px]" style={{ background: 'rgba(255,255,255,0.25)' }} />
+            </div>
+
+            {/* ③ Chart section — takes all remaining height */}
             <div className="flex-1 min-h-0 overflow-hidden px-5 pb-5">
-              <TemperatureChart 
-                activeTab={activeTab} 
-                selectedBuoy={selectedBuoy} 
-                selectedMetric={selectedMetric} 
+              <TemperatureChart
+                activeTab={activeTab}
+                selectedBuoy={selectedBuoy}
+                selectedMetric={selectedMetric}
                 setSelectedMetric={setSelectedMetric}
                 selectedDateRange={selectedDateRange}
                 setSelectedDateRange={setSelectedDateRange}

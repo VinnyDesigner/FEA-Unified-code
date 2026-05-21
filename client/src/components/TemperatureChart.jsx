@@ -263,22 +263,57 @@ const TemperatureChart = ({ activeTab, selectedBuoy, selectedMetric, setSelected
     'Pressure (bar)': 'dashboard.pressure'
   };
 
+  // Track which metric the IntersectionObserver last set — prevents scroll loop
+  const observerSetRef = useRef(null);
+
+  // Smooth scroll helper — must be defined BEFORE the useEffects that call it
+  const smoothScrollTo = (targetY, duration) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    isScrollingRef.current = true;
+
+    const startY = container.scrollTop;
+    const distance = targetY - startY;
+    let startTime = null;
+
+    const animation = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const timeElapsed = currentTime - startTime;
+      const progress = Math.min(timeElapsed / duration, 1);
+      // Easing: easeInOutQuad
+      const ease = progress < 0.5
+        ? 2 * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+      container.scrollTop = startY + distance * ease;
+      if (timeElapsed < duration) {
+        requestAnimationFrame(animation);
+      } else {
+        isScrollingRef.current = false;
+      }
+    };
+    requestAnimationFrame(animation);
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (isScrollingRef.current) return;
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const metric = entry.target.getAttribute('data-metric');
-            if (metric && setSelectedMetric) {
-              setSelectedMetric(metric);
-            }
+        // Pick the entry with the highest intersection ratio
+        const best = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (best) {
+          const metric = best.target.getAttribute('data-metric');
+          if (metric && setSelectedMetric) {
+            observerSetRef.current = metric;
+            setSelectedMetric(metric);
           }
-        });
+        }
       },
       {
         root: containerRef.current,
-        threshold: 0.6 // 60% visibility
+        threshold: [0.3, 0.6]
       }
     );
 
@@ -294,149 +329,156 @@ const TemperatureChart = ({ activeTab, selectedBuoy, selectedMetric, setSelected
     };
   }, [metrics, setSelectedMetric]);
 
-  const smoothScrollTo = (targetY, duration) => {
+  // When selectedMetric changes externally (card click), scroll to that chart
+  useEffect(() => {
+    if (!selectedMetric) return;
+    // Skip if this change was triggered by the observer itself
+    if (observerSetRef.current === selectedMetric) return;
+    const el = chartRefs.current[selectedMetric];
     const container = containerRef.current;
-    if (!container) return;
-    
-    isScrollingRef.current = true;
-    
-    const startY = container.scrollTop;
-    const distance = targetY - startY;
-    let startTime = null;
+    if (el && container) {
+      const targetY = el.offsetTop - container.offsetTop;
+      smoothScrollTo(targetY, 500);
+    }
+  }, [selectedMetric]); // eslint-disable-line
 
-    const animation = (currentTime) => {
-      if (!startTime) startTime = currentTime;
-      const timeElapsed = currentTime - startTime;
-      const progress = Math.min(timeElapsed / duration, 1);
-      
-      // Easing function: easeInOutQuad
-      const ease = progress < 0.5 
-        ? 2 * progress * progress 
-        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-
-      container.scrollTop = startY + distance * ease;
-
-      if (timeElapsed < duration) {
-        requestAnimationFrame(animation);
-      } else {
-        isScrollingRef.current = false;
-      }
-    };
-
-    requestAnimationFrame(animation);
-  };
-
-  const activeMetrics = metrics.filter(m => m === selectedMetric);
-  const displayMetrics = activeMetrics.length > 0 ? activeMetrics : [metrics[0]];
+  // Show ALL metrics — vertical scroll through all charts
+  const displayMetrics = metrics;
 
   return (
     <div 
-      ref={containerRef}
-      className="flex flex-col relative overflow-hidden h-full"
+      className="flex flex-col relative h-full"
       style={{
-        background: 'rgba(255, 255, 255, 0.8)',
-        borderRadius: isMobile ? '16px' : '24px',
-        padding: isMobile ? '10px' : '24px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-        border: isMobile ? '1px solid rgba(255,255,255,0.5)' : 'none',
-        backdropFilter: 'blur(8px)',
-        width: '100%'
+        borderRadius: isMobile ? '16px' : '20px',
+        border: '1px solid rgba(255, 255, 255, 0.10)',
+        background: 'rgba(255, 255, 255, 0.60)',
+        boxShadow: '0 4px 4px 0 rgba(255, 255, 255, 0.40) inset',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        width: '100%',
+        overflow: 'hidden'
       }}
     >
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 159, 172, 0.2); border-radius: 2px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0, 159, 172, 0.4); }
+        .chart-scroll-container::-webkit-scrollbar { width: 5px; }
+        .chart-scroll-container::-webkit-scrollbar-track { background: rgba(0,159,172,0.04); border-radius: 10px; }
+        .chart-scroll-container::-webkit-scrollbar-thumb { background: rgba(0, 159, 172, 0.25); border-radius: 10px; transition: background 0.3s; }
+        .chart-scroll-container::-webkit-scrollbar-thumb:hover { background: rgba(0, 159, 172, 0.5); }
       `}</style>
+      {/* Scrollable charts container */}
+      <div
+        ref={containerRef}
+        className="chart-scroll-container flex-1 overflow-y-auto"
+        style={{ 
+          padding: isMobile ? '0 10px' : '0 20px',
+          scrollSnapType: 'y mandatory',
+          scrollPadding: '0px'
+        }}
+      >
 
-      {displayMetrics.map((metric) => {
-        const currentData = getDynamicData(metric);
-        const translatedTitle = metricKeyMap[metric] ? t(metricKeyMap[metric]) : metric;
-        
-        return (
-          <div 
-            key={metric}
-            ref={(el) => (chartRefs.current[metric] = el)}
-            data-metric={metric}
-            className="flex flex-col flex-1 min-h-0"
-          >
-            <div className={`flex justify-between items-center ${isMobile ? 'mb-1' : 'mb-3'}`}>
-              <h3 className={`${isMobile ? 'text-[14px]' : 'text-[16px]'} font-bold text-[#072227] tracking-tight`}>
-                {translatedTitle}
-              </h3>
-              <div className="flex items-center gap-2">
-                {!isMobile && setSelectedDateRange && (
-                  <DateRangeDropdown 
-                    selectedDateRange={selectedDateRange} 
-                    setSelectedDateRange={setSelectedDateRange} 
-                    isMobile={isMobile}
-                  />
-                )}
-                <button 
-                  onClick={() => {
-                    setActiveModalMetric(metric);
-                    setIsModalOpen(true);
-                  }}
-                  className="text-gray-400 hover:text-[#009FAC] transition-all p-1.5 bg-white/60 rounded-lg shadow-sm border border-white/40 cursor-pointer"
-                >
-                  <Maximize2 size={12} />
-                </button>
+        {displayMetrics.map((metric, idx) => {
+          const currentData = getDynamicData(metric);
+          const translatedTitle = metricKeyMap[metric] ? t(metricKeyMap[metric]) : metric;
+          const isActive = metric === selectedMetric;
+          const gradId = `chartGrad_${idx}`;
+
+          return (
+            <React.Fragment key={metric}>
+              <div
+                ref={(el) => (chartRefs.current[metric] = el)}
+                data-metric={metric}
+                className="flex flex-col"
+                style={{
+                  minHeight: isMobile ? '180px' : '230px',
+                  padding: '16px 0px',
+                  transition: 'all 0.3s',
+                  scrollSnapAlign: 'start'
+                }}
+              >
+                {/* Chart header */}
+                <div className={`flex justify-between items-center ${isMobile ? 'mb-1' : 'mb-2'}`}>
+                  <h3
+                    className={`${
+                      isMobile ? 'text-[13px]' : 'text-[14px]'
+                    } font-bold tracking-tight`}
+                    style={{ color: isActive ? '#009FAC' : '#072227' }}
+                  >
+                    {translatedTitle}
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setActiveModalMetric(metric);
+                      setIsModalOpen(true);
+                    }}
+                    className="text-gray-400 hover:text-[#009FAC] transition-all p-1.5 bg-white/60 rounded-lg shadow-sm border border-white/40 cursor-pointer"
+                  >
+                    <Maximize2 size={12} />
+                  </button>
+                </div>
+
+                {/* Chart body */}
+                <div style={{ height: isMobile ? '120px' : '160px', width: '100%' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={currentData} margin={{ top: 6, right: 12, left: -20, bottom: 6 }}>
+                      <defs>
+                        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#1DCDDD" stopOpacity={isActive ? 0.4 : 0.2} />
+                          <stop offset="95%" stopColor="#1DCDDD" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="rgba(0,0,0,0.07)" />
+                      <XAxis
+                        dataKey="label"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={<CustomXAxisTick />}
+                        interval={0}
+                        height={32}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 10, fill: 'rgba(0,0,0,0.4)', fontWeight: 500 }}
+                        domain={['auto', 'auto']}
+                        width={42}
+                      />
+                      <Tooltip
+                        content={<CustomTooltip selectedMetric={metric} />}
+                        cursor={{ stroke: 'rgba(0,159,172,0.2)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke={isActive ? '#009FAC' : '#1DCDDD'}
+                        strokeWidth={isActive ? 2.5 : 1.8}
+                        fillOpacity={1}
+                        fill={`url(#${gradId})`}
+                        dot={{ r: 3, fill: '#ffffff', stroke: isActive ? '#009FAC' : '#1DCDDD', strokeWidth: 2 }}
+                        activeDot={{ r: 5, fill: '#ffffff', stroke: '#009FAC', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-            </div>
 
-            <div className="flex-1 w-full min-h-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={currentData} margin={{ top: 10, right: 15, left: -20, bottom: 10 }}>
-                  <defs>
-                    <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1DCDDD" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#1DCDDD" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="5 5" vertical={true} stroke="rgba(0,0,0,0.1)" strokeOpacity={0.2} />
-                  <XAxis 
-                    dataKey="label" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={<CustomXAxisTick />}
-                    interval={0}
-                    height={35}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 11, fill: "rgba(0,0,0,0.45)", fontWeight: 500 }}
-                    domain={['auto', 'auto']}
-                    width={45}
-                  />
-                  <Tooltip 
-                    content={<CustomTooltip selectedMetric={metric} />} 
-                    cursor={{ stroke: 'rgba(0,159,172,0.2)', strokeWidth: 1, strokeDasharray: '5 5' }} 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="#1DCDDD" 
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#colorTemp)"
-                    dot={{ r: 4, fill: '#ffffff', stroke: '#1DCDDD', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#ffffff', stroke: '#1DCDDD', strokeWidth: 2 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        );
-      })}
-      
+              {/* Horizontal line separator between two graphs */}
+              {idx < displayMetrics.length - 1 && (
+                <div 
+                  className="flex-shrink-0 h-[1.5px] w-full opacity-60" 
+                  style={{ background: 'rgba(255, 255, 255, 0.45)' }} 
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>{/* end scroll container */}
+
       {isModalOpen && createPortal(
-        <ChartModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          metric={activeModalMetric} 
-          data={getDynamicData(activeModalMetric)} 
+        <ChartModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          metric={activeModalMetric}
+          data={getDynamicData(activeModalMetric)}
         />,
         document.body
       )}

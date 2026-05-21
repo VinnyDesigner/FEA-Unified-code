@@ -6,21 +6,26 @@ const MetricCard = ({ label, value, icon: Icon, isSelected, onClick, isMobile = 
     border: isSelected ? '1px solid #009FAC' : '1px solid rgba(255, 255, 255, 0.10)',
     background: isSelected ? '#BBE6E9' : 'rgba(255, 255, 255, 0.60)',
     boxShadow: isSelected 
-      ? '0 4px 24px 0 rgba(0, 159, 172, 0.50) inset' 
-      : '0 4px 4px 0 rgba(255, 255, 255, 0.40) inset',
+      ? 'inset 0 4px 24px 0 rgba(0, 159, 172, 0.50)' 
+      : 'inset 0 4px 4px 0 rgba(255, 255, 255, 0.40)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
-    height: '100%'
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    padding: '12px 14px',
+    gap: '6px'
   };
 
   return (
     <div
       onClick={onClick}
-      className="flex flex-row items-center gap-2 p-2 select-none cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+      className="select-none cursor-pointer transition-all duration-300 hover:scale-[1.02]"
       style={cardStyle}
     >
-      {/* Left Icon Section */}
-      <div className="flex-shrink-0 flex items-center justify-center">
+      {/* Row 1: Icon */}
+      <div className="flex items-center justify-start flex-shrink-0">
         {typeof Icon === 'string' ? (
           <img 
             src={Icon} 
@@ -32,12 +37,26 @@ const MetricCard = ({ label, value, icon: Icon, isSelected, onClick, isMobile = 
         )}
       </div>
 
-      {/* Right Text Section */}
-      <div className="flex flex-col justify-center min-w-0 ltr:text-left rtl:text-right">
-        <p className={`text-[10px] md:text-[11px] font-semibold leading-tight tracking-tight ${isSelected ? 'text-[#072227] font-bold' : 'text-[#585858]'}`}>
+      {/* Row 2 & 3: Text */}
+      <div className="flex flex-col gap-0.5 min-w-0 ltr:text-left rtl:text-right">
+        <p
+          className="font-bold leading-tight tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
+          style={{ 
+            fontSize: '12px',
+            color: isSelected ? '#072227' : '#4A5568'
+          }}
+          title={label}
+        >
           {label}
         </p>
-        <p className={`text-[12px] md:text-[13px] font-bold mt-0.5 leading-none ${isSelected ? 'text-[#072227]' : 'text-[#585858]'}`}>
+        <p 
+          className="font-bold leading-none"
+          style={{
+            fontSize: '14px',
+            marginTop: '2px',
+            color: isSelected ? '#072227' : '#111827'
+          }}
+        >
           {value}
         </p>
       </div>

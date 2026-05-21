@@ -50,8 +50,8 @@ const MetricsGrid = ({ activeTab, selectedMetric, setSelectedMetric, isMobile = 
     <div 
       className={`w-full ${isMobile ? 'grid grid-cols-2 md:grid-cols-3 gap-[10px] md:gap-[16px]' : 'grid gap-[10px]'}`}
       style={!isMobile ? {
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gridAutoRows: '82px'
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+        gridAutoRows: '88px'
       } : {}}
     >
       {displayMetrics.map((metric) => (
