@@ -53,7 +53,7 @@ const MISAnalyticsPage = () => {
               {/* Header Section */}
               <div className="flex flex-col">
                 <h1 className="text-[28px] md:text-[32px] font-bold text-white tracking-tight leading-[1.2]">
-                  Live Data
+                  {`Marine Water Quality Dashboard - ${activeTab === 'Live Data' ? t('analytics.liveData', 'Live Data') : activeTab === 'Buoys Analytics' ? t('analytics.buoysAnalytics', 'Buoys Analytics') : t('analytics.stationHealth', 'Station Health')}`}
                 </h1>
                 <p className="text-[13px] md:text-[15px] text-gray-400 mt-3 max-w-[90%] md:max-w-none">
                   {t('analytics.pageSubtitle')}
@@ -75,7 +75,13 @@ const MISAnalyticsPage = () => {
                       setSelectedView={setSelectedView} 
                     />
                   ) : activeTab === 'Buoys Analytics' ? (
-                    <AnalyticsFilters isMobile={true} />
+                    <AnalyticsFilters 
+                      isMobile={true} 
+                      selectedBuoy={selectedBuoy} 
+                      setSelectedBuoy={setSelectedBuoy} 
+                      selectedView={selectedView} 
+                      setSelectedView={setSelectedView} 
+                    />
                   ) : (
                     <SensorDataFilters isMobile={true} />
                   )}
@@ -110,14 +116,18 @@ const MISAnalyticsPage = () => {
                 ) : activeTab === 'Buoys Analytics' ? (
                   <div className="flex flex-col gap-6">
                     {/* Chart Section */}
-                    <div className="w-full">
-                      <BuoysChart isMobile={true} />
-                    </div>
+                    {selectedView !== 'Table View' && (
+                      <div className="w-full">
+                        <BuoysChart isMobile={true} showHeader={false} />
+                      </div>
+                    )}
 
                     {/* Table Section */}
-                    <div className="w-full">
-                      <AnalyticsTable />
-                    </div>
+                    {selectedView !== 'Graph View' && (
+                      <div className="w-full">
+                        <AnalyticsTable />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <SensorDataTable isMobile={true} selectedBuoy={selectedBuoy} />
@@ -141,7 +151,7 @@ const MISAnalyticsPage = () => {
             {/* Header Section (Inside Panel) */}
             <div className="flex flex-col mb-6">
               <h1 className="text-xl font-bold text-white tracking-tight">
-                Live Data
+                {`Marine Water Quality Monitoring Dashboard - ${activeTab === 'Live Data' ? t('analytics.liveData', 'Live Data') : activeTab === 'Buoys Analytics' ? t('analytics.buoysAnalytics', 'Buoys Analytics') : t('analytics.stationHealth', 'Station Health')}`}
               </h1>
               <p className="text-xs text-gray-400 mt-1">
                 {t('analytics.pageSubtitle')}
@@ -159,7 +169,12 @@ const MISAnalyticsPage = () => {
                   setSelectedView={setSelectedView} 
                 />
               ) : activeTab === 'Buoys Analytics' ? (
-                <AnalyticsFilters />
+                <AnalyticsFilters 
+                  selectedBuoy={selectedBuoy} 
+                  setSelectedBuoy={setSelectedBuoy} 
+                  selectedView={selectedView} 
+                  setSelectedView={setSelectedView} 
+                />
               ) : (
                 <SensorDataFilters />
               )}
@@ -261,12 +276,18 @@ const MISAnalyticsPage = () => {
                     {/* Scrollable body: chart + legend + table */}
                     <div className="flex-1 overflow-y-auto analytics-panel-scroll min-h-0 px-6 pb-6">
                       {/* Chart (no header — handled above) */}
-                      <BuoysChart showHeader={false} />
+                      {selectedView !== 'Table View' && (
+                        <div className="w-full">
+                          <BuoysChart showHeader={false} />
+                        </div>
+                      )}
 
                       {/* Gap + Table */}
-                      <div className="mt-6">
-                        <AnalyticsTable />
-                      </div>
+                      {selectedView !== 'Graph View' && (
+                        <div className="mt-6">
+                          <AnalyticsTable />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (

@@ -3,15 +3,15 @@ import { ArrowUpDown, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const tableData = [
-  { station: 'Al Aqah New', parameter: 'Blue Green Algae', min: '2634', max: '5831', duration: 'February - 2025' },
-  { station: 'Al Aqah New', parameter: 'Blue Green Algae', min: '1973', max: '97496', duration: 'March - 2025' },
-  { station: 'Al Aqah New', parameter: 'Blue Green Algae', min: '1942', max: '890842', duration: 'April - 2025' },
-  { station: 'Al Aqah New', parameter: 'Blue Green Algae', min: '1941', max: '8742915', duration: 'May - 2025' },
+  { dateTime: '10-05-2026, 12:00:00', station: 'Al Aqah New', parameter: 'Blue Green Algae', min: '2634', max: '5831', duration: 'February - 2025' },
+  { dateTime: '10-05-2026, 12:30:00', station: 'Al Aqah New', parameter: 'Blue Green Algae', min: '1973', max: '97496', duration: 'March - 2025' },
+  { dateTime: '10-05-2026, 13:00:00', station: 'Al Aqah New', parameter: 'Blue Green Algae', min: '1942', max: '898042', duration: 'April - 2025' },
+  { dateTime: '10-05-2026, 13:30:00', station: 'Al Aqah New', parameter: 'Blue Green Algae', min: '1941', max: '8742915', duration: 'May - 2025' },
 ];
 
 const AnalyticsTable = ({ isMobile = false }) => {
   const { t } = useTranslation();
-  const gridTemplate = "grid grid-cols-[1.3fr_1.8fr_1.3fr_1.3fr_1.6fr_1fr] items-center w-full";
+  const gridTemplate = "grid grid-cols-[1.5fr_1.1fr_1.3fr_1fr_1fr_1.3fr_0.8fr] items-center w-full";
 
   return (
     <>
@@ -29,27 +29,33 @@ const AnalyticsTable = ({ isMobile = false }) => {
               boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)'
             }}
           >
+            {/* Date & Time */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[13px] font-medium text-white/70 uppercase tracking-wide">{t('analytics.dateTime', 'Date & Time')}</span>
+              <span className="text-[16px] font-bold text-white">{row.dateTime}</span>
+            </div>
+
             {/* Station */}
             <div className="flex flex-col gap-1">
               <span className="text-[13px] font-medium text-white/70 uppercase tracking-wide">{t('analytics.station')}</span>
-              <span className="text-[18px] font-bold text-white">{row.station}</span>
+              <span className="text-[16px] font-bold text-white">{row.station}</span>
             </div>
 
             {/* Parameter */}
             <div className="flex flex-col gap-1">
               <span className="text-[13px] font-medium text-white/70 uppercase tracking-wide">{t('analytics.parameters')}</span>
-              <span className="text-[16px] font-semibold text-white/90">{row.parameter}</span>
+              <span className="text-[15px] font-semibold text-white/90">{row.parameter}</span>
             </div>
 
             {/* Min/Max Values Grid */}
             <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
               <div className="flex flex-col gap-1">
                 <span className="text-[13px] font-medium text-white/70 uppercase tracking-wide">{t('analytics.minValue')}</span>
-                <span className="text-[18px] font-bold text-[#1DCDDD]">{row.min}</span>
+                <span className="text-[16px] font-bold text-[#1DCDDD]">{row.min}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[13px] font-medium text-white/70 uppercase tracking-wide">{t('analytics.maxValue')}</span>
-                <span className="text-[18px] font-bold text-[#1DCDDD]">{row.max}</span>
+                <span className="text-[16px] font-bold text-[#1DCDDD]">{row.max}</span>
               </div>
             </div>
 
@@ -75,6 +81,9 @@ const AnalyticsTable = ({ isMobile = false }) => {
             {/* Fixed Header Frame */}
             <div className={`${gridTemplate} text-left text-white text-[14px] font-bold border-b border-white/10 px-4 py-4 sticky top-0 z-20 bg-transparent flex-shrink-0 ltr:text-left rtl:text-right`}>
               <div className="flex items-center gap-2">
+                {t('analytics.dateTime', 'Date & Time')} <ArrowUpDown size={16} className="text-white/60" />
+              </div>
+              <div className="flex items-center gap-2">
                 {t('analytics.station')} <ArrowUpDown size={16} className="text-white/60" />
               </div>
               <div className="flex items-center gap-2">
@@ -89,7 +98,7 @@ const AnalyticsTable = ({ isMobile = false }) => {
               <div className="flex items-center gap-2">
                 {t('analytics.duration')} <ArrowUpDown size={16} className="text-white/60" />
               </div>
-              <div className="ltr:text-right rtl:text-left">{t('analytics.showMore')}</div>
+              <div className="ltr:text-right rtl:text-left">{t('analytics.details', 'Details')}</div>
             </div>
 
             {/* Scrollable Body Frame */}
@@ -99,7 +108,8 @@ const AnalyticsTable = ({ isMobile = false }) => {
                   key={index} 
                   className={`${gridTemplate} group border-b border-white/5 hover:bg-white/5 transition-colors px-4 py-5 text-[14px]`}
                 >
-                  <div className="text-white/90 font-medium">{row.station}</div>
+                  <div className="text-white/90 font-medium">{row.dateTime}</div>
+                  <div className="text-white/70">{row.station}</div>
                   <div className="text-white/70">{row.parameter}</div>
                   <div className="text-white/90 font-bold">{row.min}</div>
                   <div className="text-white/90 font-bold">{row.max}</div>
