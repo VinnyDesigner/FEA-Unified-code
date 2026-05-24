@@ -136,8 +136,9 @@ const SensorDataTable = ({
     ? paramDefs.filter(def => selectedParams.includes(def.filterName))
     : paramDefs.filter((def, index, self) => self.findIndex(d => d.key === def.key) === index);
 
-  const rowHeightClass = isGraphAndTableView ? 'h-[36px]' : 'h-[50px]';
-  const cellPaddingClass = isGraphAndTableView ? 'px-4 py-1.5' : 'px-5 py-3';
+  const rowHeightClass = isTablet ? 'h-[36px]' : (isGraphAndTableView ? 'h-[36px]' : 'h-[50px]');
+  const cellPaddingClass = isTablet ? 'px-4 py-2' : (isGraphAndTableView ? 'px-4 py-1.5' : 'px-5 py-3');
+  const textClass = isTablet ? 'text-[12px]' : 'text-[14px]';
   const headerBgClass = isGraphAndTableView ? 'backdrop-blur-md bg-[#1a4a4e]/40' : 'bg-transparent';
 
   return (
@@ -220,7 +221,7 @@ const SensorDataTable = ({
               <tr className={`border-b border-white/10 ${rowHeightClass}`}>
                 {/* Sticky Column 1 Header (Date & Time) */}
                 <th 
-                  className="px-5 py-3 text-white text-[14px] font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 left-0 z-30 w-[180px] min-w-[180px] border-b border-white/10"
+                  className={`${cellPaddingClass} text-white ${textClass} font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 left-0 z-30 w-[180px] min-w-[180px] border-b border-white/10`}
                   style={{
                     background: (scrollTop > 0 || scrollLeft > 0) ? 'rgba(20, 58, 62, 0.98)' : 'transparent',
                     backdropFilter: (scrollTop > 0 || scrollLeft > 0) ? 'blur(20px)' : 'none',
@@ -232,7 +233,7 @@ const SensorDataTable = ({
                 </th>
                 {/* Sticky Column 2 Header (Location / Station Name) */}
                 <th 
-                  className="px-5 py-3 text-white text-[14px] font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 left-[180px] z-30 w-[150px] min-w-[150px] border-b border-white/10"
+                  className={`${cellPaddingClass} text-white ${textClass} font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 left-[180px] z-30 w-[150px] min-w-[150px] border-b border-white/10`}
                   style={{
                     background: (scrollTop > 0 || scrollLeft > 0) ? 'rgba(20, 58, 62, 0.98)' : 'transparent',
                     backdropFilter: (scrollTop > 0 || scrollLeft > 0) ? 'blur(20px)' : 'none',
@@ -246,7 +247,7 @@ const SensorDataTable = ({
                 {activeParams.map((param, idx) => (
                   <th 
                     key={idx} 
-                    className="px-6 py-3 text-white text-[14px] font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 z-20 border-b border-white/10"
+                    className={`${cellPaddingClass} text-white ${textClass} font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 z-20 border-b border-white/10`}
                     style={{
                       background: scrollTop > 0 ? 'rgba(20, 58, 62, 0.98)' : 'transparent',
                       backdropFilter: scrollTop > 0 ? 'blur(20px)' : 'none',
@@ -264,17 +265,24 @@ const SensorDataTable = ({
                 <tr key={index} className={`border-b border-white/10 transition-colors ${rowHeightClass}`}>
                   {/* Sticky Column 1 Cell (Date & Time) */}
                   <td 
-                    className="px-5 py-3 text-white/90 text-[14px] font-bold whitespace-nowrap sticky left-0 z-10 w-[180px] min-w-[180px] border-b border-white/10"
+                    className={`${cellPaddingClass} text-white/90 ${textClass} font-bold whitespace-nowrap sticky left-0 z-10 w-[180px] min-w-[180px] border-b border-white/10`}
                     style={{
                       background: scrollLeft > 0 ? 'rgba(20, 58, 62, 0.98)' : 'transparent',
                       backdropFilter: scrollLeft > 0 ? 'blur(20px)' : 'none',
                     }}
                   >
-                    {row.dateTime}
+                    {isTablet && row.dateTime.includes(' ') ? (
+                      <div className="flex flex-col leading-tight">
+                        <span>{row.dateTime.split(' ')[0]}</span>
+                        <span className="opacity-70 text-[10px] mt-0.5">{row.dateTime.split(' ')[1]}</span>
+                      </div>
+                    ) : (
+                      row.dateTime
+                    )}
                   </td>
                   {/* Sticky Column 2 Cell (Location / Station Name) */}
                   <td 
-                    className="px-5 py-3 text-white/90 text-[14px] font-bold whitespace-nowrap sticky left-[180px] z-10 w-[150px] min-w-[150px] border-b border-white/10"
+                    className={`${cellPaddingClass} text-white/90 ${textClass} font-bold whitespace-nowrap sticky left-[180px] z-10 w-[150px] min-w-[150px] border-b border-white/10`}
                     style={{
                       background: scrollLeft > 0 ? 'rgba(20, 58, 62, 0.98)' : 'transparent',
                       backdropFilter: scrollLeft > 0 ? 'blur(20px)' : 'none',
@@ -289,7 +297,7 @@ const SensorDataTable = ({
                     return (
                       <td 
                         key={idx} 
-                        className={`px-6 py-3 text-white/90 text-[14px] whitespace-nowrap border-b border-white/10 ${cellPaddingClass}`}
+                        className={`${cellPaddingClass} text-white/90 ${textClass} whitespace-nowrap border-b border-white/10`}
                       >
                         {displayValue}
                       </td>

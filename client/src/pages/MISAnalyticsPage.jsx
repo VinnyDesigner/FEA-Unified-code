@@ -272,6 +272,7 @@ const MISAnalyticsPage = () => {
                     setSelectedBuoy={setSelectedBuoy}
                     selectedDate={stationHealthDuration}
                     setSelectedDate={setStationHealthDuration}
+                    isTablet={isTablet}
                   />
                 )}
               </div>
