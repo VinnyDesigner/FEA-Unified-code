@@ -47,16 +47,13 @@ const MetricsGrid = ({ activeTab, selectedMetric, setSelectedMetric, isMobile = 
   const displayMetrics = getDynamicMetrics(baseMetrics, selectedBuoy?.id, selectedDateRange);
 
   return (
-    <div 
-      className={`w-full ${!isMobile ? 'overflow-y-auto panel-metrics-scrollbar' : ''}`}
-      style={!isMobile ? { maxHeight: '290px', paddingRight: '4px' } : {}}
-    >
+    <div className="w-full">
       <div 
-        className={`w-full ${isMobile ? 'grid grid-cols-2 md:grid-cols-3 gap-[10px] md:gap-[16px]' : 'grid gap-[10px]'}`}
-        style={!isMobile ? {
+        className="w-full grid gap-[10px] md:gap-[16px]"
+        style={{
           gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
           gridAutoRows: '88px'
-        } : {}}
+        }}
       >
         {displayMetrics.map((metric) => (
           <MetricCard

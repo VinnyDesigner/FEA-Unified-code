@@ -58,14 +58,17 @@ const ReportsPage = () => {
           
           {/* --- RESPONSIVE LAYOUT (Mobile & Tablet < 768px) --- */}
           {isMobile && (
-            <div className="flex-1 flex flex-col w-full min-h-screen bg-transparent overflow-y-auto no-scrollbar pt-[64px]">
+            <div className="flex-1 flex flex-col w-full h-full bg-transparent overflow-hidden p-3 pt-[76px] pb-3">
               <style>{`
                 .no-scrollbar::-webkit-scrollbar { display: none; }
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
               `}</style>
 
-              <div className="p-5 md:p-10 flex-1 flex flex-col gap-10 md:min-h-[calc(100vh-64px)]"
+              <div className="p-5 flex-1 flex flex-col gap-5 min-h-0"
                 style={{
+                  borderRadius: '28px',
+                  border: '1.5px solid rgba(255, 255, 255, 0.20)',
+                  boxShadow: '0 15px 40px rgba(0,0,0,0.3), inset 3px 3px 4px rgba(255,255,255,0.17)',
                   background: 'radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(60, 147, 154, 0.30) 0%, rgba(28, 78, 81, 0.44) 100%)',
                 }}
               >
@@ -98,7 +101,7 @@ const ReportsPage = () => {
                           backdropFilter: 'blur(10px)',
                         }}
                       >
-                        <div className="flex flex-col h-full min-h-0">
+                        <div className="flex flex-col min-h-0">
                           {/* Sticky Header: Title + Download */}
                           <div className="flex-shrink-0 flex justify-between items-center px-4 pt-4 pb-2">
                             <h2 className="text-[16px] md:text-[18px] font-bold text-white leading-tight">{appliedFilters.parameter}</h2>
@@ -106,7 +109,7 @@ const ReportsPage = () => {
                           </div>
 
                           {/* Body: chart + table */}
-                          <div className="flex-1 flex flex-col px-4 pb-4 overflow-y-auto min-h-0">
+                          <div className="flex-1 flex flex-col px-4 pb-4 min-h-0 overflow-y-auto no-scrollbar">
                             <div className="w-full">
                               <BuoysChart 
                                 isMobile={true} 

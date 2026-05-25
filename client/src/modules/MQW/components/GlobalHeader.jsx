@@ -26,8 +26,9 @@ const GlobalHeader = () => {
       className="flex items-center justify-between w-full h-[80px] pl-[16px] pr-[16px] z-50 absolute top-0 left-0 right-0 pointer-events-auto bg-transparent"
     >
       {/* Left: Logo */}
-      <div className="flex items-center w-1/4">
-        <div className="flex items-center justify-start" style={{ height: '76px' }}>
+      {!isMobile && (
+        <div className="flex items-center w-1/4">
+          <div className="flex items-center justify-start" style={{ height: '76px' }}>
           {isTablet ? (
             /* Circular Emblem Logo - Only visible in Tab responsive design (tablet) */
             <img 
@@ -44,16 +45,17 @@ const GlobalHeader = () => {
               className="w-[285px] h-[76px] object-contain" 
             />
           ) : null}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Center: Title */}
-      <div className="flex flex-col items-center justify-center w-2/4 text-center relative">
+      <div className={`flex flex-col justify-center relative ${isMobile ? 'flex-1 items-start text-start' : 'items-center text-center w-2/4'}`}>
         <h1 
           className={`font-bold text-white tracking-wide ${isTablet ? 'whitespace-nowrap' : ''} relative z-10`} 
           style={{ 
-            fontSize: isTablet ? '16px' : '20px', 
-            lineHeight: '1.1', 
+            fontSize: isMobile ? '14px' : isTablet ? '16px' : '20px', 
+            lineHeight: '1.2', 
             textShadow: '0 1px 2px rgba(0,0,0,0.3)' 
           }}
         >
@@ -62,7 +64,7 @@ const GlobalHeader = () => {
       </div>
 
       {/* Right: Language Toggle */}
-      <div className="flex items-center justify-end w-1/4">
+      <div className={`flex items-center justify-end ${isMobile ? 'w-auto' : 'w-1/4'}`}>
         <div 
           className="flex items-center rounded-full p-[4px] cursor-pointer gap-[4px]"
           style={{

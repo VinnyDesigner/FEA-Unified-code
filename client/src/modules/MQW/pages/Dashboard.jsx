@@ -29,12 +29,10 @@ const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const { i18n } = useTranslation();
-  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
   const [isMetricsCollapsed, setIsMetricsCollapsed] = useState(false);
   const isRtl = i18n.language === 'ar';
-
-  // Responsive state for Tablet vs Desktop vs Mobile
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -45,24 +43,12 @@ const Dashboard = () => {
   const isMobile = windowWidth < 768;
   const isTablet = windowWidth >= 768 && windowWidth < 1024;
   const panelWidth = isTablet ? 450 : 520;
-  const currentPanelWidth = isTablet ? windowWidth * 0.8 : panelWidth;
+  const currentPanelWidth = isMobile ? (windowWidth - 48) : (isTablet ? windowWidth * 0.8 : panelWidth);
   const isDesktop = !isMobile && !isTablet;
-
-  // Mobile Bottom Sheet State (Framer Motion)
-  const [isBottomSheetExpanded, setIsBottomSheetExpanded] = useState(false);
 
   useEffect(() => {
     setSelectedMetric(activeTab === 'Sonde' ? 'Water Temperature (°c)' : 'Air Temperature (°c)');
   }, [activeTab]);
-
-  const handleDragEnd = (_, info) => {
-    // Negative offset means dragging up
-    if (info.offset.y < -100) {
-      setIsBottomSheetExpanded(true);
-    } else if (info.offset.y > 100) {
-      setIsBottomSheetExpanded(false);
-    }
-  };
 
   return (
     <div className="w-screen h-screen md:overflow-hidden p-0 flex flex-col bg-transparent relative">
@@ -82,126 +68,30 @@ const Dashboard = () => {
       )}
 
       {/* Main Content Area (Below Header) */}
-      <div className="flex-1 relative md:h-[calc(100vh-80px)] flex md:flex-row flex-col md:mt-[80px] min-h-0 overflow-hidden">
+      <div className="flex-1 relative h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] flex md:flex-row flex-col mt-[64px] md:mt-[80px] min-h-0 overflow-hidden">
         {/* Desktop/Tablet Sidebar */}
         <Sidebar selectedBuoy={selectedBuoy} activeTab={activeTab} />
 
         {/* Main Dashboard Content */}
         <div className="flex-1 relative h-full md:pl-[92px] md:pr-[8px] md:pb-[8px] overflow-hidden">
-        
-        {/* --- RESPONSIVE LAYOUT (Mobile < 768px) --- */}
-        {isMobile && (
-          <div className="fixed inset-0 overflow-hidden bg-transparent">
-            <style>{`
-              .no-scrollbar::-webkit-scrollbar { display: none; }
-              .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-            `}</style>
-
-            {/* Fixed Map Section (Background) */}
-            <div className="fixed top-[64px] left-0 right-0 bottom-0 z-0">
-              <MapView onBuoySelect={setSelectedBuoy} selectedBuoy={selectedBuoy} isMobile={true} />
-            </div>
-
-            {/* Draggable Bottom Sheet */}
-            <motion.div 
-              drag="y"
-              dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={0.15}
-              onDragEnd={handleDragEnd}
-              animate={{
-                y: isBottomSheetExpanded ? "0%" : "65%"
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 260,
-                damping: 32
-              }}
-              className={`fixed left-0 right-0 bottom-0 z-[5000] no-scrollbar pointer-events-auto ${isBottomSheetExpanded ? 'overflow-y-auto' : 'overflow-hidden'}`}
-              style={{
-                height: '90vh',
-                borderRadius: '24px 24px 0 0',
-                border: '1px solid rgba(0, 0, 0, 0.10)',
-                background: 'radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.44) 100%)',
-                boxShadow: '3px 3px 4px 0 rgba(255, 255, 255, 0.17) inset',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                touchAction: 'none'
-              }}
-            >
-              {/* Drag Handle Area */}
-              <div className="w-full flex justify-center pt-3 pb-0 sticky top-0 z-[60] bg-transparent">
-                <div style={{ cursor: 'grab' }} className="text-black/40 transition-opacity">
-                  {isBottomSheetExpanded ? <ChevronDown size={24} strokeWidth={2.5} /> : <ChevronUp size={24} strokeWidth={2.5} />}
-                </div>
-              </div>
-
-              <div 
-                className="pt-2 px-4 flex flex-col gap-6 pb-20 max-w-2xl mx-auto"
-                style={{ touchAction: isBottomSheetExpanded ? 'auto' : 'none' }}
-              >
-                {/* Summary Card */}
-                <BuoyStatusCard activeTab={activeTab} selectedBuoy={selectedBuoy} isMobile={true} />
-
-                {/* Dashboard Content Container */}
-                <div className="flex flex-col gap-6">
-                  <div className="w-full">
-                    <DashboardHeader 
-                      activeTab={activeTab} 
-                      setActiveTab={setActiveTab} 
-                      stations={stations}
-                      selectedBuoy={selectedBuoy}
-                      setSelectedBuoy={setSelectedBuoy}
-                    />
-                  </div>
-
-                  {activeTab === 'Windrose' ? (
-                    <div className="w-full flex justify-center py-4">
-                      <img src="/windrose.png" alt="Windrose" className="max-w-full rounded-2xl shadow-xl" style={{ maxHeight: '400px', objectFit: 'contain' }} />
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-full h-[200px] mb-4">
-                        <TemperatureChart 
-                          activeTab={activeTab} 
-                          selectedBuoy={selectedBuoy} 
-                          selectedMetric={selectedMetric} 
-                          isMobile={true} 
-                          selectedDateRange={selectedDateRange}
-                        />
-                      </div>
-
-                      <MetricsGrid 
-                        activeTab={activeTab} 
-                        selectedMetric={selectedMetric} 
-                        setSelectedMetric={setSelectedMetric} 
-                        isMobile={true} 
-                        selectedBuoy={selectedBuoy}
-                        selectedDateRange={selectedDateRange}
-                      />
-                    </>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-
-        {/* --- DESKTOP & TABLET LAYOUT (>= 768px) --- */}
-        {!isMobile && (
           <div className="w-full h-full relative">
             {/* MapContainer */}
-            <div className="w-full h-full rounded-[28px] overflow-hidden relative" style={{ background: '#f4f3f0' }}>
-              <MapView ref={mapRef} onBuoySelect={setSelectedBuoy} selectedBuoy={selectedBuoy} />
+            <div className="w-full h-full md:rounded-[28px] overflow-hidden relative" style={{ background: '#f4f3f0' }}>
+              <MapView ref={mapRef} onBuoySelect={setSelectedBuoy} selectedBuoy={selectedBuoy} isMobile={isMobile} />
             </div>
 
             {/* Map controls floating to the left/right of the right panel */}
             <div 
               className="absolute flex flex-col gap-2.5 transition-all duration-300"
               style={{
-                zIndex: isTablet ? 10 : 1000,
-                top: isTablet ? '16px' : (isDesktop ? '24px' : '32px'),
-                right: isRtl ? 'auto' : (isTablet ? '16px' : (isRightPanelCollapsed ? (isDesktop ? '24px' : '32px') : `${panelWidth + (isDesktop ? 24 : 32)}px`)),
-                left: isRtl ? (isTablet ? '16px' : (isRightPanelCollapsed ? (isDesktop ? '24px' : '32px') : `${panelWidth + (isDesktop ? 24 : 32)}px`)) : 'auto',
+                zIndex: (isTablet || isMobile) ? 10 : 1000,
+                top: isMobile ? '16px' : (isTablet ? '16px' : (isDesktop ? '24px' : '32px')),
+                right: isMobile 
+                  ? (isRtl ? '16px' : 'auto') 
+                  : (isRtl ? 'auto' : (isTablet ? '16px' : (isRightPanelCollapsed ? (isDesktop ? '24px' : '32px') : `${panelWidth + (isDesktop ? 24 : 32)}px`))),
+                left: isMobile 
+                  ? (isRtl ? 'auto' : '16px') 
+                  : (isRtl ? (isTablet ? '16px' : (isRightPanelCollapsed ? (isDesktop ? '24px' : '32px') : `${panelWidth + (isDesktop ? 24 : 32)}px`)) : 'auto'),
               }}
             >
               {/* Compass/Recenter button */}
@@ -234,20 +124,29 @@ const Dashboard = () => {
               </button>
             </div>
 
-            {/* Buoy Status Card (Floating Left on desktop/tablet) */}
-            {(!isTablet || isRightPanelCollapsed) && (
-              <div className={`absolute ltr:left-[16px] rtl:right-[16px] bottom-[16px] ${isTablet ? 'w-[340px] h-[480px]' : 'w-[250px] h-[360px]'} z-[15]`}>
-                <BuoyStatusCard activeTab={activeTab} selectedBuoy={selectedBuoy} selectedMetric={selectedMetric} isDesktop={isDesktop} />
+            {/* Buoy Status Card (Floating Left when collapsed or on wide screen) */}
+            {(isDesktop || isRightPanelCollapsed) && (
+              <div 
+                className="absolute z-[15] transition-all duration-300"
+                style={{
+                  left: isRtl ? 'auto' : '16px',
+                  right: isRtl ? '16px' : 'auto',
+                  bottom: '16px',
+                  width: isMobile ? 'calc(100% - 32px)' : (isTablet ? '340px' : '250px'),
+                  height: isMobile ? 'auto' : (isTablet ? '480px' : '360px'),
+                }}
+              >
+                <BuoyStatusCard activeTab={activeTab} selectedBuoy={selectedBuoy} selectedMetric={selectedMetric} isDesktop={isDesktop} isMobile={isMobile} />
               </div>
             )}
 
-            {/* Collapsible Vertical Right Panel (Desktop/Tablet) — parent does NOT scroll */}
+            {/* Collapsible Vertical Right Panel (Desktop/Tablet/Mobile) — parent does NOT scroll */}
             <motion.div 
               className="absolute z-[15] flex flex-col"
               style={{
-                top: isTablet ? '10%' : '16px',
-                bottom: isTablet ? 'auto' : '16px',
-                height: isTablet ? '80%' : 'calc(100% - 32px)',
+                top: isMobile ? '16px' : (isTablet ? '10%' : '16px'),
+                bottom: isMobile ? '16px' : (isTablet ? 'auto' : '16px'),
+                height: isMobile ? 'calc(100% - 32px)' : (isTablet ? '80%' : 'calc(100% - 32px)'),
                 width: `${currentPanelWidth}px`,
                 left: isRtl ? '16px' : 'auto',
                 right: isRtl ? 'auto' : '16px',
@@ -269,10 +168,10 @@ const Dashboard = () => {
                 onClick={() => setIsRightPanelCollapsed(!isRightPanelCollapsed)}
                 className="absolute top-1/2 -translate-y-1/2 z-[20] flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-[1.03]"
                 style={{
-                  width: '28px',
+                  width: isMobile ? '32px' : '28px',
                   height: '76px',
-                  left: isRtl ? 'auto' : '-28px',
-                  right: isRtl ? '-28px' : 'auto',
+                  left: isRtl ? 'auto' : (isMobile ? '-32px' : '-28px'),
+                  right: isRtl ? (isMobile ? '-32px' : '-28px') : 'auto',
                   borderRadius: isRtl ? '0 20px 20px 0' : '20px 0 0 20px',
                   background: 'radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.44) 100%)',
                   borderTop: '1px solid rgba(0, 0, 0, 0.10)',
@@ -324,17 +223,17 @@ const Dashboard = () => {
                     .panel-metrics-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,159,172,0.7); }
                   `}</style>
 
-                  {/* ② Metric Cards — collapsible, independent scrollbar */}
+                  {/* ② Metric Cards — collapsible */}
                   <div
                     className="flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out px-5"
-                    style={{ maxHeight: isMetricsCollapsed ? '0px' : '290px', opacity: isMetricsCollapsed ? 0 : 1 }}
+                    style={{ maxHeight: isMetricsCollapsed ? '0px' : '300px', opacity: isMetricsCollapsed ? 0 : 1 }}
                   >
-                    {/* Scrollable Container with 1px padding and always-visible scrollbar */}
-                    <div className="overflow-y-auto overflow-x-hidden panel-metrics-scrollbar" style={{ maxHeight: '290px', padding: '1px' }}>
+                    <div style={{ padding: '1px' }}>
                       <MetricsGrid
                         activeTab={activeTab}
                         selectedMetric={selectedMetric}
                         setSelectedMetric={setSelectedMetric}
+                        isMobile={isMobile}
                         selectedBuoy={selectedBuoy}
                         selectedDateRange={selectedDateRange}
                       />
@@ -368,6 +267,7 @@ const Dashboard = () => {
                       selectedBuoy={selectedBuoy}
                       selectedMetric={selectedMetric}
                       setSelectedMetric={setSelectedMetric}
+                      isMobile={isMobile}
                       selectedDateRange={selectedDateRange}
                       setSelectedDateRange={setSelectedDateRange}
                     />
@@ -376,8 +276,6 @@ const Dashboard = () => {
               )}
             </motion.div>
           </div>
-        )}
-
         </div>
       </div>
     </div>
