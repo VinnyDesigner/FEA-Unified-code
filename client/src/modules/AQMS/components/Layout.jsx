@@ -73,57 +73,125 @@ const Layout = ({ children }) => {
             />
           </div>
 
-          {/* Navigation Tabs */}
-          <nav className={`nav-tabs ${mobileNavOpen ? 'active' : ''}`}>
-            <div className="drawer-header">
-              <h3>Menu</h3>
-              <button className="close-btn" onClick={() => setMobileNavOpen(false)}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-            <NavLink
-              to="/AQMS/live-data"
-              className={({ isActive }) => (isActive ? 'nav-tab active' : 'nav-tab')}
-              onClick={() => setMobileNavOpen(false)}
-            >
-              {t('nav.live_data')}
-            </NavLink>
-            <NavLink
-              to="/AQMS/analytics"
-              className={({ isActive }) => (isActive ? 'nav-tab active' : 'nav-tab')}
-              onClick={() => setMobileNavOpen(false)}
-            >
-              {t('nav.summary')}
-            </NavLink>
-            <NavLink
-              to="/AQMS/data-capture"
-              className={({ isActive }) => (isActive ? 'nav-tab active' : 'nav-tab')}
-              onClick={() => setMobileNavOpen(false)}
-            >
-              {t('nav.data_capture')}
-            </NavLink>
-          </nav>
+          {/* Centered Dashboard Title */}
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <span style={{
+              color: '#111827',
+              fontFamily: lang === 'ar' ? "'Noto Sans Arabic', sans-serif" : "'Roboto', sans-serif",
+              fontSize: lang === 'ar' ? '2.1rem' : '1.9rem',
+              fontWeight: '900',
+              letterSpacing: '-0.5px',
+              textAlign: 'center'
+            }}>
+              {t('nav.dashboard_title', 'Air Quality Monitoring Dashboard')}
+            </span>
+          </div>
 
           {/* Right: User + CTA */}
           <div className="nav-right">
-            <button 
-              onClick={toggleLanguage} 
+            {/* Premium Sliding Language Switcher Toggle */}
+            <div 
+              onClick={toggleLanguage}
               style={{
-                padding: '6px 12px',
-                borderRadius: '20px',
-                border: '1px solid rgba(255,255,255,0.6)',
-                background: 'rgba(255,255,255,0.4)',
-                color: '#374151',
-                fontWeight: '600',
+                width: '108px',
+                height: '44px',
+                borderRadius: '22px',
+                background: 'linear-gradient(135deg, #009fac 0%, #008794 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                position: 'relative',
+                padding: '2px',
                 cursor: 'pointer',
-                marginInlineEnd: '12px'
+                userSelect: 'none',
+                marginInlineEnd: '16px',
+                boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(255, 255, 255, 0.1)',
+                direction: 'ltr' // Always force LTR on language switcher container to match mockup
               }}
+              title="Change Language / تغيير اللغة"
             >
-              {lang === 'en' ? 'AR' : 'EN'}
-            </button>
+              {/* Static background 'ع' when language is English */}
+              {lang === 'en' && (
+                <span 
+                  style={{
+                    position: 'absolute',
+                    left: '2px',
+                    width: '40px',
+                    height: '40px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    color: 'rgba(255, 255, 255, 0.85)',
+                    fontWeight: '500',
+                    fontSize: '18px',
+                    zIndex: 1
+                  }}
+                >
+                  ع
+                </span>
+              )}
+              
+              {/* Static background 'En' when language is Arabic */}
+              {lang === 'ar' && (
+                <span 
+                  style={{
+                    position: 'absolute',
+                    right: '2px',
+                    width: '40px',
+                    height: '40px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    color: 'rgba(255, 255, 255, 0.85)',
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    fontFamily: "'Roboto', sans-serif",
+                    zIndex: 1
+                  }}
+                >
+                  En
+                </span>
+              )}
+
+              {/* Sliding 3D Raised Circular knob button containing active language label */}
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  left: '2px',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #00b8c8 0%, #008c9a 100%)',
+                  border: '1px solid rgba(0, 0, 0, 0.15)',
+                  boxShadow: '0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.4), inset 0 -2px 2px rgba(0, 0, 0, 0.2)',
+                  transition: 'transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  transform: lang === 'en' ? 'translateX(64px)' : 'translateX(0)',
+                  zIndex: 2,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
+              >
+                {/* Centered Active Label inside the knob */}
+                <span 
+                  style={{
+                    color: '#ffffff',
+                    fontWeight: '800',
+                    fontSize: lang === 'en' ? '15px' : '18px',
+                    fontFamily: lang === 'en' ? "'Roboto', sans-serif" : 'inherit',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '100%',
+                    height: '100%',
+                    textAlign: 'center',
+                    lineHeight: 1
+                  }}
+                >
+                  {lang === 'en' ? 'En' : 'ع'}
+                </span>
+              </div>
+            </div>
 
             <div ref={profileRef} className={`dropdown ${profileOpen ? 'active' : ''}`}>
               <div className="user-pill" onClick={() => setProfileOpen(!profileOpen)}>
@@ -132,7 +200,7 @@ const Layout = ({ children }) => {
                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                   </svg>
                 </div>
-                Jahangir Mian
+                <span>{t('profile.user_name', 'Jahangir Mian')}</span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -145,8 +213,6 @@ const Layout = ({ children }) => {
                 </div>
               </div>
             </div>
-
-            <button className="btn-primary" onClick={() => navigate('/AQMS')}>{t('nav.back_to_map')}</button>
           </div>
         </header>
 

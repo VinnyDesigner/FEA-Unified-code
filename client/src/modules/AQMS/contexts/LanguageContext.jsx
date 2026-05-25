@@ -2,7 +2,18 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 
 const translations = {
   en: {
+    'nav.dashboard_title': 'Air Quality Monitoring Dashboard',
     'nav.live_data': 'Live Data',
+    'nav.analytics': 'Analytics',
+    'nav.reports': 'Reports',
+    'nav.data_summary': 'Data Summary',
+    'profile.user_name': 'Jahangir Mian',
+    'filter.title': 'Filter',
+    'filter.select_station': 'Select Station',
+    'filter.all_stations': 'All Stations',
+    'filter.select_parameter': 'Select Parameter',
+    'filter.all_parameters': 'All Parameters',
+    'live.graph_view': 'Graph View',
     'nav.summary': 'Summary',
     'nav.data_capture': 'Data Capture Rate',
     'nav.back_to_map': 'Back To Map',
@@ -110,7 +121,18 @@ const translations = {
     'landing.footer.support': 'Support'
   },
   ar: {
+    'nav.dashboard_title': 'لوحة مراقبة جودة الهواء',
     'nav.live_data': 'البيانات المباشرة',
+    'nav.analytics': 'التحليلات',
+    'nav.reports': 'التقارير',
+    'nav.data_summary': 'ملخص البيانات',
+    'profile.user_name': 'جهانجير ميان',
+    'filter.title': 'تصفية',
+    'filter.select_station': 'اختر المحطة',
+    'filter.all_stations': 'جميع المحطات',
+    'filter.select_parameter': 'اختر المعلمة',
+    'filter.all_parameters': 'جميع المعلمات',
+    'live.graph_view': 'عرض الرسم البياني',
     'nav.summary': 'الملخص',
     'nav.data_capture': 'معدل التقاط البيانات',
     'nav.back_to_map': 'العودة إلى الخريطة',
@@ -225,11 +247,14 @@ const LanguageContext = createContext();
 export const useLanguage = () => useContext(LanguageContext);
 
 export const LanguageProvider = ({ children }) => {
-  const [lang, setLang] = useState('en');
+  const [lang, setLang] = useState(() => {
+    return localStorage.getItem('appLanguage') || 'en';
+  });
 
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    localStorage.setItem('appLanguage', lang);
   }, [lang]);
 
   const toggleLanguage = () => {
