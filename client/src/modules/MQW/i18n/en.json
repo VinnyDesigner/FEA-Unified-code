@@ -178,5 +178,19 @@
     "search": "Search",
     "next": "Next",
     "previous": "Previous"
+  },
+  "chart": {
+    "line": "Line",
+    "stepLine": "Step Line",
+    "dots": "Dots",
+    "stackedLines": "Stacked Lines",
+    "bars": "Bars",
+    "optimize": "Optimize large datasets",
+    "showingAll": "Showing all points",
+    "maxPoints": "Max points (optimized)",
+    "marker": "Marker",
+    "dashes": "Dashes",
+    "dateTooltip": "Date Tooltip",
+    "animation": "Animation"
   }
 }

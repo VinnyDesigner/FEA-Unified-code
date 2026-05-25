@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Filter, X, ChevronDown } from 'lucide-react';
+import { Filter, X, ChevronDown, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const buoys = ['Near Shore Buoy', 'Offshore Buoy', 'Al Aqah Buoy', 'North Dibbah'];
@@ -50,7 +50,18 @@ const AnalyticsFilters = ({
   const predefined = selectedPredefined !== undefined ? selectedPredefined : localPredefined;
   const setPredefined = setSelectedPredefined !== undefined ? setSelectedPredefined : localSetPredefined;
 
-  const [localSelectedParams, localSetSelectedParams] = useState(['Bluegreen Algae', 'Water Temperature']);
+  const [localSelectedParams, localSetSelectedParams] = useState([
+    'Specific Conductivity',
+    'Water Temperature',
+    'Salinity',
+    'Chlorophyll',
+    'Oxygen Saturation',
+    'Dissolved Oxygen',
+    'Turbidity',
+    'pH',
+    'Depth',
+    'Blue-Green Algae'
+  ]);
   const params = selectedParams !== undefined ? selectedParams : localSelectedParams;
   const setParams = setSelectedParams !== undefined ? setSelectedParams : localSetSelectedParams;
 
@@ -164,7 +175,7 @@ const AnalyticsFilters = ({
 
   // Style helpers
   const dropdownClass = `flex items-center justify-between ${
-    isTablet ? 'px-[19.2px] py-[8px] text-[9.6px]' : 'px-5 py-2.5 text-[13px]'
+    isTablet ? 'px-[19.2px] py-[8px] text-[9.6px]' : 'px-6 py-2.5 text-xs'
   } text-white font-semibold w-full transition-all outline-none select-none cursor-pointer whitespace-nowrap`;
   const tabTriggerStyle = {
     borderRadius: '24px',
@@ -205,7 +216,7 @@ const AnalyticsFilters = ({
   };
 
   const viewTypeDropdown = (
-    <div className={`flex-shrink-0 ${isTablet ? 'min-w-[136px]' : 'min-w-[170px]'}`}>
+    <div className={`flex-shrink-0 ${isTablet ? 'min-w-max' : 'min-w-max'}`}>
       <button 
             ref={viewBtnRef}
             onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
@@ -258,14 +269,17 @@ const AnalyticsFilters = ({
   );
 
   const buoyDropdown = (
-    <div className={`flex-shrink-0 ${isTablet ? 'min-w-[136px]' : 'min-w-[170px]'}`}>
+    <div className={`flex-shrink-0 ${isTablet ? 'min-w-max' : 'min-w-max'}`}>
       <button 
             ref={buoyBtnRef}
             onClick={() => setIsBuoyDropdownOpen(!isBuoyDropdownOpen)}
             className={dropdownClass}
             style={tabTriggerStyle}
           >
-            <span>{getBuoyTriggerLabel()}</span>
+            <div className="flex items-center gap-1.5">
+              <MapPin size={isTablet ? 11 : 14} className="text-white/70 flex-shrink-0" />
+              <span>{getBuoyTriggerLabel()}</span>
+            </div>
             <ChevronDown size={isTablet ? 11 : 14} className={`transition-transform duration-300 ${isBuoyDropdownOpen ? 'rotate-180' : ''} text-white/70 ml-2`} />
           </button>
 
@@ -285,6 +299,33 @@ const AnalyticsFilters = ({
               </div>
 
               <div className="flex flex-col gap-4">
+                {isBuoysAnalytics && (
+                  <button
+                    className="flex items-center gap-3.5 text-left outline-none cursor-pointer group w-full border-none bg-transparent"
+                    onClick={() => {
+                      if (setSelectedBuoy) {
+                        if (Array.isArray(selectedBuoy) && selectedBuoy.length === buoys.length) {
+                          setSelectedBuoy([]); // Deselect all
+                        } else {
+                          setSelectedBuoy([...buoys]); // Select all
+                        }
+                      }
+                    }}
+                  >
+                    <div 
+                      className={`w-[17px] h-[17px] rounded-[4px] border-2 transition-all flex items-center justify-center ${
+                        Array.isArray(selectedBuoy) && selectedBuoy.length === buoys.length ? 'border-white bg-white' : 'border-white/40 bg-transparent group-hover:border-white/60'
+                      }`}
+                    >
+                      {Array.isArray(selectedBuoy) && selectedBuoy.length === buoys.length && (
+                        <svg width="8" height="6" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M1 4L3.5 6.5L9 1" stroke="#009FAC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-white text-[13px] font-semibold">All Stations</span>
+                  </button>
+                )}
                 {buoys.map((buoy) => {
                   const isChecked = isBuoysAnalytics && Array.isArray(selectedBuoy)
                     ? selectedBuoy.includes(buoy)
@@ -346,7 +387,7 @@ const AnalyticsFilters = ({
             ref={filterBtnRef}
             onClick={() => setIsFilterOpen(!isFilterOpen)}
             className={`${
-              isTablet ? 'px-[19.2px] py-[8px] text-[9.6px] h-auto' : 'px-6 h-[38px] text-[13px]'
+              isTablet ? 'px-[19.2px] py-[8px] text-[9.6px] h-auto' : 'px-6 py-2.5 text-xs'
             } text-white font-bold tracking-wide flex items-center justify-center gap-1.5 transition-transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer select-none`}
             style={applyButtonStyle}
           >
@@ -473,18 +514,16 @@ const AnalyticsFilters = ({
 
                   {/* Pre Defined Parameter (Active/Disabled toggle) */}
                   <div className="flex flex-col gap-1.5 text-left">
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">Pre Defined Parameter</span>
-                      <button 
-                        onClick={() => setTempFilterSelectionMode('predefined')}
-                        className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded transition-all cursor-pointer border-none outline-none ${
-                          tempFilterSelectionMode === 'predefined' 
-                            ? 'bg-[#1DCDDD] text-white font-bold' 
-                            : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60 font-semibold'
-                        }`}
-                      >
-                        Active
-                      </button>
+                    <div 
+                      className="flex items-center justify-between w-full cursor-pointer group"
+                      onClick={() => setTempFilterSelectionMode('predefined')}
+                    >
+                      <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75 group-hover:opacity-100 transition-opacity">Pre Defined Parameter</span>
+                      <div className={`w-[16px] h-[16px] rounded-full border-2 flex items-center justify-center transition-all ${
+                        tempFilterSelectionMode === 'predefined' ? 'border-white bg-white' : 'border-white/40 bg-transparent group-hover:border-white/60'
+                      }`}>
+                        {tempFilterSelectionMode === 'predefined' && <div className="w-[6px] h-[6px] bg-[#009FAC] rounded-full" />}
+                      </div>
                     </div>
                     <div 
                       onClick={() => {
@@ -493,28 +532,26 @@ const AnalyticsFilters = ({
                         setActiveFilterStep('predefined');
                       }}
                       className={`flex items-center justify-between px-3.5 py-2 bg-white/5 border border-white/10 rounded-[10px] text-white text-[13px] font-semibold cursor-pointer hover:bg-white/10 transition-all select-none ${
-                        tempFilterSelectionMode !== 'predefined' ? 'opacity-30 cursor-not-allowed bg-white/0 border-white/5' : ''
+                        tempFilterSelectionMode !== 'predefined' ? 'opacity-30 border-white/5' : ''
                       }`}
                     >
-                      <span className="truncate">{tempPredefined}</span>
+                      <span className="truncate">{tempFilterSelectionMode === 'predefined' ? tempPredefined : 'Disabled'}</span>
                       <ChevronDown size={13} className="text-white/60 flex-shrink-0 ml-1" />
                     </div>
                   </div>
 
                   {/* Parameters (Active/Disabled toggle) */}
                   <div className="flex flex-col gap-1.5 text-left">
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">Parameters</span>
-                      <button 
-                        onClick={() => setTempFilterSelectionMode('custom')}
-                        className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded transition-all cursor-pointer border-none outline-none ${
-                          tempFilterSelectionMode === 'custom' 
-                            ? 'bg-[#1DCDDD] text-white font-bold' 
-                            : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60 font-semibold'
-                        }`}
-                      >
-                        Active
-                      </button>
+                    <div 
+                      className="flex items-center justify-between w-full cursor-pointer group"
+                      onClick={() => setTempFilterSelectionMode('custom')}
+                    >
+                      <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75 group-hover:opacity-100 transition-opacity">Parameters</span>
+                      <div className={`w-[16px] h-[16px] rounded-full border-2 flex items-center justify-center transition-all ${
+                        tempFilterSelectionMode === 'custom' ? 'border-white bg-white' : 'border-white/40 bg-transparent group-hover:border-white/60'
+                      }`}>
+                        {tempFilterSelectionMode === 'custom' && <div className="w-[6px] h-[6px] bg-[#009FAC] rounded-full" />}
+                      </div>
                     </div>
                     <div 
                       onClick={() => {
@@ -523,29 +560,38 @@ const AnalyticsFilters = ({
                         setActiveFilterStep('parameters');
                       }}
                       className={`flex items-center justify-between px-3.5 py-1.5 bg-white/5 border border-white/10 rounded-[10px] text-white text-[12px] cursor-pointer hover:bg-white/10 transition-all min-h-[38px] ${
-                        tempFilterSelectionMode !== 'custom' ? 'opacity-30 cursor-not-allowed bg-white/0 border-white/5' : ''
+                        tempFilterSelectionMode !== 'custom' ? 'opacity-30 border-white/5' : ''
                       }`}
                     >
                       <div className="flex flex-wrap gap-1.5 items-center max-w-[260px]">
-                        {tempSelectedParams.length === 0 ? (
+                        {tempFilterSelectionMode !== 'custom' ? (
+                          <span className="text-white/40">Disabled</span>
+                        ) : tempSelectedParams.length === 0 ? (
                           <span className="text-white/40">Select Parameters...</span>
                         ) : (
-                          tempSelectedParams.map((param) => (
-                            <span key={param} className="flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-full text-[11px] font-bold border border-white/5 text-white/90">
-                              {param} 
-                              <span 
-                                className="w-3.5 h-3.5 rounded-full bg-white/20 flex items-center justify-center cursor-pointer hover:bg-white/30 transition-colors animate-scaleIn"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (tempFilterSelectionMode === 'custom') {
-                                    setTempSelectedParams(tempSelectedParams.filter(p => p !== param));
-                                  }
-                                }}
-                              >
-                                <X size={8} className="text-white" />
+                          <>
+                            {tempSelectedParams.slice(0, 2).map((param) => (
+                              <span key={param} className="flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-full text-[11px] font-bold border border-white/5 text-white/90">
+                                <span className="truncate max-w-[100px]">{param}</span>
+                                <span 
+                                  className="w-3.5 h-3.5 flex-shrink-0 rounded-full bg-white/20 flex items-center justify-center cursor-pointer hover:bg-white/30 transition-colors animate-scaleIn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (tempFilterSelectionMode === 'custom') {
+                                      setTempSelectedParams(tempSelectedParams.filter(p => p !== param));
+                                    }
+                                  }}
+                                >
+                                  <X size={8} className="text-white" />
+                                </span>
                               </span>
-                            </span>
-                          ))
+                            ))}
+                            {tempSelectedParams.length > 2 && (
+                              <span className="flex items-center gap-1 px-2 py-0.5 bg-white/5 rounded-full text-[10px] font-bold border border-white/5 text-white/60">
+                                +{tempSelectedParams.length - 2}
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                       <ChevronDown size={13} className="text-white/60 ml-1.5 flex-shrink-0" />
@@ -684,20 +730,27 @@ const AnalyticsFilters = ({
                         {tempSelectedParams.length === 0 ? (
                           <span className="text-white/40">Select Parameters...</span>
                         ) : (
-                          tempSelectedParams.map((param) => (
-                            <span key={param} className="flex items-center gap-1 px-2 py-0.5 bg-white/10 rounded-full text-[10.5px] font-semibold border border-white/5 text-white/90 animate-scaleIn">
-                              {param} 
-                              <span 
-                                className="w-3.5 h-3.5 rounded-full bg-white/20 flex items-center justify-center cursor-pointer hover:bg-white/30 transition-colors"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setTempSelectedParams(tempSelectedParams.filter(p => p !== param));
-                                }}
-                              >
-                                <X size={8} className="text-white" />
+                          <>
+                            {tempSelectedParams.slice(0, 2).map((param) => (
+                              <span key={param} className="flex items-center gap-1 px-2 py-0.5 bg-white/10 rounded-full text-[10.5px] font-semibold border border-white/5 text-white/90 animate-scaleIn">
+                                <span className="truncate max-w-[100px]">{param}</span>
+                                <span 
+                                  className="w-3.5 h-3.5 flex-shrink-0 rounded-full bg-white/20 flex items-center justify-center cursor-pointer hover:bg-white/30 transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTempSelectedParams(tempSelectedParams.filter(p => p !== param));
+                                  }}
+                                >
+                                  <X size={8} className="text-white" />
+                                </span>
                               </span>
-                            </span>
-                          ))
+                            ))}
+                            {tempSelectedParams.length > 2 && (
+                              <span className="flex items-center gap-1 px-2 py-0.5 bg-white/5 rounded-full text-[10px] font-bold border border-white/5 text-white/60">
+                                +{tempSelectedParams.length - 2}
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                       <ChevronDown size={13} className="text-white/60 ml-2" />
@@ -973,8 +1026,8 @@ const AnalyticsFilters = ({
 
   if (isTablet) {
     return (
-      <div className="w-full lg:w-auto">
-        <div className="flex flex-row items-center justify-end gap-4">
+      <div className="w-full md:w-auto flex-shrink-0">
+        <div className="flex flex-row items-center justify-end gap-3 md:gap-4">
           {buoyDropdown}
           {filterButton}
         </div>
@@ -983,8 +1036,8 @@ const AnalyticsFilters = ({
   }
 
   return (
-    <div className="w-full lg:w-auto">
-      <div className={`flex ${isMobile ? 'flex-col gap-4 w-full' : 'flex-row items-center gap-4'}`}>
+    <div className={`${isMobile ? 'w-full' : 'w-auto'} flex-shrink-0`}>
+      <div className={`flex ${isMobile ? 'flex-col gap-4 w-full' : 'flex-row items-center justify-end gap-4'}`}>
         {viewTypeDropdown}
         {buoyDropdown}
         {filterButton}

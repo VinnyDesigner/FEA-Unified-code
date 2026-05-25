@@ -29,10 +29,6 @@ const Sidebar = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  if (windowWidth < 768) {
-    return null;
-  }
-
   const toggleProfileDropdown = () => {
     if (!isProfileOpen && profileBtnRef.current) {
       const rect = profileBtnRef.current.getBoundingClientRect();
@@ -59,6 +55,10 @@ const Sidebar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isProfileOpen]);
+
+  if (windowWidth < 768) {
+    return null;
+  }
 
   const pillStyle = {
     borderRadius: '40px',

@@ -471,7 +471,8 @@ const TemperatureChart = ({ activeTab, selectedBuoy, selectedMetric, setSelected
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           metric={activeModalMetric}
-          data={getDynamicData(activeModalMetric)}
+          translatedMetricTitle={metricKeyMap[activeModalMetric] ? t(metricKeyMap[activeModalMetric]) : activeModalMetric}
+          selectedBuoy={selectedBuoy}
         />,
         document.body
       )}

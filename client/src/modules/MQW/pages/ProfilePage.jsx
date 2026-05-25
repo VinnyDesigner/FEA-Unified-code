@@ -103,14 +103,17 @@ const ProfilePage = () => {
           
           {/* --- RESPONSIVE LAYOUT (Mobile & Tablet < 768px) --- */}
           {isMobile && (
-            <div className="flex-1 flex flex-col w-full min-h-screen bg-transparent overflow-y-auto no-scrollbar pt-[64px]">
+            <div className="flex-1 flex flex-col w-full h-full bg-transparent overflow-hidden p-3 pt-[76px] pb-3">
               <style>{`
                 .no-scrollbar::-webkit-scrollbar { display: none; }
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
               `}</style>
 
-              <div className="p-5 md:p-10 flex-grow flex flex-col gap-6 md:min-h-[calc(100vh-64px)]"
+              <div className="p-5 flex-grow flex flex-col gap-5 min-h-0"
                 style={{
+                  borderRadius: '28px',
+                  border: '1.5px solid rgba(255, 255, 255, 0.20)',
+                  boxShadow: '0 15px 40px rgba(0,0,0,0.3), inset 3px 3px 4px rgba(255,255,255,0.17)',
                   background: 'radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(60, 147, 154, 0.30) 0%, rgba(28, 78, 81, 0.44) 100%)',
                 }}
               >
@@ -125,7 +128,7 @@ const ProfilePage = () => {
                 </div>
 
                 {/* Form Container (Mobile) */}
-                <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-6 p-6 rounded-[20px] border border-white/10"
+                <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-6 p-6 rounded-[20px] border border-white/10 min-h-0 overflow-y-auto no-scrollbar"
                   style={{
                     background: 'radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.10) 100%)',
                     backdropFilter: 'blur(10px)',

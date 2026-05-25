@@ -17,7 +17,7 @@ const AnalyticsTabs = ({ activeTab = 'Live Data', onTabChange, isMobile = false,
   };
 
   return (
-    <div className="w-full lg:w-auto">
+    <div className={isMobile ? 'w-full mb-0' : 'flex-1 min-w-[150px] max-w-[60%] lg:max-w-[70%] pr-2 md:pr-4'}>
       <style>{`
         .subtle-scrollbar::-webkit-scrollbar {
           height: 4px;
@@ -39,9 +39,8 @@ const AnalyticsTabs = ({ activeTab = 'Live Data', onTabChange, isMobile = false,
         }
       `}</style>
       <div 
-        className="flex gap-3 w-full overflow-x-auto subtle-scrollbar flex-nowrap"
+        className={`flex overflow-x-auto subtle-scrollbar flex-nowrap ${isMobile ? 'gap-1.5 justify-between w-full pb-2' : (isTablet ? 'gap-2 pb-2' : 'gap-3')}`}
         style={{
-          paddingBottom: '8px',
           WebkitOverflowScrolling: 'touch'
         }}
       >
@@ -51,8 +50,8 @@ const AnalyticsTabs = ({ activeTab = 'Live Data', onTabChange, isMobile = false,
             <button
               key={tab}
               onClick={() => onTabChange?.(tab)}
-              className={`transition-all duration-300 whitespace-nowrap text-center flex-1 min-w-max outline-none cursor-pointer ${
-                isTablet ? 'px-[19.2px] py-[8px] text-[9.6px]' : 'px-6 py-2.5 text-xs'
+              className={`transition-all duration-300 whitespace-nowrap text-center outline-none cursor-pointer ${
+                isMobile ? 'px-2 py-1.5 text-[10px] flex-1' : (isTablet ? 'px-4 py-2 text-[11px] min-w-max' : 'px-6 py-2.5 text-xs min-w-max')
               }`}
               style={
                 isActive

@@ -27,22 +27,15 @@ const SensorDataFilters = ({
   const selectedDate = propSelectedDate !== undefined ? propSelectedDate : localSelectedDate;
   const setSelectedDate = propSetSelectedDate !== undefined ? propSetSelectedDate : localSetSelectedDate;
 
-  const [tempDate, setTempDate] = useState('Today');
+  const [tempDate, setTempDate] = useState(selectedDate || 'Live Data');
   const [tempBuoy, setTempBuoy] = useState(selectedBuoy);
 
   useEffect(() => {
-    if (activeSubTab === 'Battery Health') {
-      if (selectedDate === 'Today' || !['Live Data', 'Last Day', 'Last Week', 'Last Month', 'Last Three Months'].includes(selectedDate)) {
-        setSelectedDate('Last Day');
-        setTempDate('Last Day');
-      }
-    } else {
-      if (selectedDate === 'Last Day' || !['Last Hour', 'Today', 'Last One Week', 'Last Two Week', 'Last One Month', 'Last Two Months', 'Last Three Months', 'Choose Period'].includes(selectedDate)) {
-        setSelectedDate('Today');
-        setTempDate('Today');
-      }
+    if (!['Live Data', 'Last Day', 'Last Week', 'Last Month', 'Last Three Months'].includes(selectedDate)) {
+      setSelectedDate('Live Data');
+      setTempDate('Live Data');
     }
-  }, [activeSubTab, selectedDate, setSelectedDate]);
+  }, [selectedDate, setSelectedDate]);
 
   useEffect(() => {
     if (isFilterOpen) {
@@ -138,12 +131,7 @@ const SensorDataFilters = ({
 
   const subTabs = ['Alarms', 'Battery Health'];
   const buoys = ['All Stations', 'Near Shore Buoy', 'Offshore Buoy', 'Al Aqah Buoy', 'North Dibbah'];
-  const timeRanges = activeSubTab === 'Battery Health' || tempSubTab === 'Battery Health'
-    ? ['Live Data', 'Last Day', 'Last Week', 'Last Month', 'Last Three Months']
-    : [
-        'Last Hour', 'Today', 'Last One Week', 'Last Two Week', 
-        'Last One Month', 'Last Two Months', 'Last Three Months', 'Choose Period'
-      ];
+  const timeRanges = ['Live Data', 'Last Day', 'Last Week', 'Last Month', 'Last Three Months'];
 
   const resolveSelectedArray = (buoyState) => {
     return Array.isArray(buoyState) 
@@ -159,15 +147,17 @@ const SensorDataFilters = ({
   const getBuoyTriggerLabel = (buoyState, isTemp) => {
     const subTabToUse = isTemp ? tempSubTab : activeSubTab;
     if (subTabToUse !== 'Battery Health') {
+      if (!buoyState) return 'Select Station';
       return buoyState === '4 Stations' || buoyState === 'All Stations' ? 'All Stations' : buoyState;
     }
     const arr = isTemp ? tempSelectedArray : selectedArray;
+    if (!arr || arr.length === 0 || (arr.length === 1 && !arr[0])) return 'Select Station';
     const individualStations = ['Near Shore Buoy', 'Offshore Buoy', 'Al Aqah Buoy', 'North Dibbah'];
     const allSelected = individualStations.every(s => arr.includes(s));
     if (allSelected || buoyState === 'All Stations') {
       return 'All Stations';
     }
-    return arr.map(s => s.replace(' Buoy', '')).join(', ');
+    return arr.filter(Boolean).map(s => s.replace(' Buoy', '')).join(', ');
   };
 
   const filterStyle = {
@@ -203,7 +193,7 @@ const SensorDataFilters = ({
   };
 
   return (
-    <div className="flex flex-row items-center gap-2 md:gap-3 w-full lg:w-auto lg:justify-end">
+    <div className={`flex flex-row items-center gap-2 md:gap-3 ${isMobile ? 'w-full' : 'w-auto'} lg:justify-end`}>
       
       {isTablet ? (
         <>

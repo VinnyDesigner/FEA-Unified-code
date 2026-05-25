@@ -3,8 +3,8 @@ import { X, ZoomIn, ZoomOut, RotateCcw, Printer, Menu, Search, Hand, Home, Arrow
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { useTranslation } from 'react-i18next';
 
-const ChartModal = ({ isOpen, onClose, metric }) => {
-  const { t } = useTranslation();
+const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBuoy }) => {
+  const { t, i18n } = useTranslation();
   const [chartType, setChartType] = useState('Line');
   const [showMarkers, setShowMarkers] = useState(true);
   const [showDashes, setShowDashes] = useState(false);
@@ -20,6 +20,7 @@ const ChartModal = ({ isOpen, onClose, metric }) => {
     const data = [];
     const seed = (metric?.length || 0);
     const now = new Date();
+    const locale = i18n.language === 'ar' ? 'ar-AE' : 'en-US';
     
     for (let i = 0; i < 200; i++) {
       const time = new Date(now.getTime() - (200 - i) * 5 * 60000);
@@ -28,15 +29,15 @@ const ChartModal = ({ isOpen, onClose, metric }) => {
       const value = Math.max(0.2, base + noise);
       
       data.push({
-        time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        date: time.toLocaleDateString(),
-        fullLabel: `${time.toLocaleDateString()} ${time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        time: time.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
+        date: time.toLocaleDateString(locale),
+        fullLabel: `${time.toLocaleDateString(locale)} ${time.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`,
         value: parseFloat(value.toFixed(1)),
         value2: parseFloat((value * 0.7).toFixed(1))
       });
     }
     return data;
-  }, [metric]);
+  }, [metric, i18n.language]);
 
   // Zoom State (Index range)
   const [dataRange, setDataRange] = useState([0, fullData.length]);
@@ -89,7 +90,7 @@ const ChartModal = ({ isOpen, onClose, metric }) => {
 
   if (!isOpen) return null;
 
-  const metricLabel = metric ? metric.split('(')[0].trim() : 'Parameter';
+  const metricLabel = translatedMetricTitle || (metric ? metric.split('(')[0].trim() : 'Parameter');
 
   // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }) => {
@@ -99,7 +100,7 @@ const ChartModal = ({ isOpen, onClose, metric }) => {
           <p className="font-medium text-gray-500 mb-1">{label}</p>
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 bg-[#009FAC] rounded-full"></div>
-            <span className="text-gray-700">Value: <strong className="text-gray-900">{payload[0].value}</strong></span>
+            <span className="text-gray-700">{t('analytics.details') || 'Value'}: <strong className="text-gray-900">{payload[0].value}</strong></span>
           </div>
         </div>
       );
@@ -139,7 +140,7 @@ const ChartModal = ({ isOpen, onClose, metric }) => {
       <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#ddd', strokeWidth: 1, strokeDasharray: '3 3' }} />
     );
 
-    const legend = null;
+    const legend = showLegend ? <Legend verticalAlign="top" align="center" height={36} wrapperStyle={{ paddingBottom: '10px' }} /> : null;
 
     if (chartType === 'Bars') {
       return (
@@ -188,27 +189,35 @@ const ChartModal = ({ isOpen, onClose, metric }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" dir="ltr">
       <div className="bg-white w-full max-w-7xl h-[85vh] rounded-lg shadow-2xl flex flex-col overflow-hidden">
         
         {/* Top Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-[#072227]">ATP Site</h2>
+          <h2 className="text-xl font-bold text-[#072227]">
+            {selectedBuoy?.nameKey ? t(`stations.${selectedBuoy.nameKey}`) : (selectedBuoy?.name || 'Station')}
+          </h2>
           
           <div className="flex items-center gap-4">
             {/* Chart Type Buttons */}
             <div className="flex bg-gray-100 rounded-lg p-0.5">
-              {['Line', 'Step Line', 'Dots', 'Stacked Lines', 'Bars'].map((type) => (
+              {[
+                { id: 'Line', key: 'line' },
+                { id: 'Step Line', key: 'stepLine' },
+                { id: 'Dots', key: 'dots' },
+                { id: 'Stacked Lines', key: 'stackedLines' },
+                { id: 'Bars', key: 'bars' }
+              ].map((type) => (
                 <button
-                  key={type}
-                  onClick={() => setChartType(type)}
+                  key={type.id}
+                  onClick={() => setChartType(type.id)}
                   className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-                    chartType === type 
+                    chartType === type.id 
                       ? 'bg-[#009FAC] text-white shadow-sm' 
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  {type}
+                  {t(`chart.${type.key}`)}
                 </button>
               ))}
             </div>
@@ -230,11 +239,7 @@ const ChartModal = ({ isOpen, onClose, metric }) => {
           <div className="flex-1 flex flex-col p-6 bg-white min-w-0">
             
             {/* Chart Toolbar */}
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-[#009FAC] rounded-sm"></div>
-                <span className="text-sm font-medium text-gray-700">{metricLabel}</span>
-              </div>
+            <div className="flex justify-end items-center mb-4">
               
               <div className="flex items-center gap-2 text-gray-400">
                 {/* Zoom In/Out */}
@@ -291,10 +296,10 @@ const ChartModal = ({ isOpen, onClose, metric }) => {
             
             {/* Toggles */}
             <div className="flex flex-col gap-4">
-              <ToggleItem label="Optimize large datasets" checked={optimizeData} onChange={setOptimizeData} subtext="Showing all points" />
+              <ToggleItem label={t('chart.optimize')} checked={optimizeData} onChange={setOptimizeData} subtext={t('chart.showingAll')} />
               
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Max points (optimized)</span>
+                <span className="text-sm text-gray-600">{t('chart.maxPoints')}</span>
                 <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                   <button onClick={() => setMaxPoints(m => Math.max(100, m - 100))} className="px-2.5 py-1 hover:bg-gray-100 text-gray-600 transition-colors">-</button>
                   <span className="w-14 text-center text-sm border-x border-gray-200 py-1 text-gray-700 font-medium">{maxPoints}</span>
@@ -304,10 +309,10 @@ const ChartModal = ({ isOpen, onClose, metric }) => {
               
               <div className="h-[1px] bg-gray-100 my-2"></div>
               
-              <ToggleItem label="Marker" checked={showMarkers} onChange={setShowMarkers} />
-              <ToggleItem label="Dashes" checked={showDashes} onChange={setShowDashes} />
-              <ToggleItem label="Date Tooltip" checked={showTooltip} onChange={setShowTooltip} />
-              <ToggleItem label="Animation" checked={showAnimation} onChange={setShowAnimation} />
+              <ToggleItem label={t('chart.marker')} checked={showMarkers} onChange={setShowMarkers} />
+              <ToggleItem label={t('chart.dashes')} checked={showDashes} onChange={setShowDashes} />
+              <ToggleItem label={t('chart.dateTooltip')} checked={showTooltip} onChange={setShowTooltip} />
+              <ToggleItem label={t('chart.animation')} checked={showAnimation} onChange={setShowAnimation} />
             </div>
           </div>
         </div>
