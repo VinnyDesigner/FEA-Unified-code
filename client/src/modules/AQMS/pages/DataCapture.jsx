@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 
+
 const DataCapture = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ const DataCapture = () => {
           <h1>{showReport ? t('nav.data_summary', 'Data Summary') : t('nav.reports', 'Reports')}</h1>
           <p className="header-date">24 Feb 2026 11:30:42</p>
         </div>
-        
+
         <div className="header-controls-group">
           {/* Pill Switcher Navigation */}
           <div className="pill-tabs-group">
@@ -94,8 +95,8 @@ const DataCapture = () => {
 
           {/* Floating toggle filter button & popover wrapper */}
           <div className="filter-popover-anchor-wrapper">
-            <button 
-              className={`filter-toggle-circle-btn ${filtersOpen ? 'active' : ''}`} 
+            <button
+              className={`filter-toggle-circle-btn ${filtersOpen ? 'active' : ''}`}
               onClick={() => {
                 setFiltersOpen(!filtersOpen);
                 setActiveSubMenu(null);
@@ -110,32 +111,32 @@ const DataCapture = () => {
             {filtersOpen && (
               <div className="filter-dropdown-popover">
                 <div className="popover-header">{t('filter.title', 'Filter')}</div>
-                
+
                 {/* Site Location Dropdown (Multi-select) */}
-                <div 
-                  className="popover-item site-location-row" 
+                <div
+                  className="popover-item site-location-row"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActiveSubMenu(activeSubMenu === 'location' ? null : 'location');
                   }}
                 >
                   <span className="popover-item-label teal-label">
-                    {selectedStations.length === 0 
-                      ? t('filter.select_station', 'Select Station') 
-                      : selectedStations.length === 4 
-                        ? t('filter.all_stations', 'All Stations') 
+                    {selectedStations.length === 0
+                      ? t('filter.select_station', 'Select Station')
+                      : selectedStations.length === 4
+                        ? t('filter.all_stations', 'All Stations')
                         : selectedStations.map(s => {
-                            if (s === 'City Centre' || s === 'City Center') return t('live.city_centre', 'City Centre');
-                            if (s === 'Mobile Station') return t('live.mobile_station', 'Mobile Station');
-                            if (s === 'Qidfa') return t('live.qidfa', 'Qidfa');
-                            if (s === 'Lafarge CEMS' || s === 'Lafarge Cems') return t('live.lafarge_cems', 'Lafarge Cems');
-                            return s;
-                          }).join(', ')}
+                          if (s === 'City Centre' || s === 'City Center') return t('live.city_centre', 'City Centre');
+                          if (s === 'Mobile Station') return t('live.mobile_station', 'Mobile Station');
+                          if (s === 'Qidfa') return t('live.qidfa', 'Qidfa');
+                          if (s === 'Lafarge CEMS' || s === 'Lafarge Cems') return t('live.lafarge_cems', 'Lafarge Cems');
+                          return s;
+                        }).join(', ')}
                   </span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#009fac" strokeWidth="3" className={`popover-arrow-svg ${activeSubMenu === 'location' ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
-                  
+
                   {activeSubMenu === 'location' && (
                     <div className="popover-sub-menu" onClick={(e) => e.stopPropagation()}>
                       {["City Centre", "Mobile Station", "Qidfa", "Lafarge Cems"].map(option => {
@@ -146,8 +147,8 @@ const DataCapture = () => {
                         if (option === 'Qidfa') label = t('live.qidfa', 'Qidfa');
                         if (option === 'Lafarge Cems') label = t('live.lafarge_cems', 'Lafarge Cems');
                         return (
-                          <div 
-                            key={option} 
+                          <div
+                            key={option}
                             className={`popover-sub-item ${isChecked ? 'active' : ''}`}
                             style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                             onClick={() => {
@@ -159,10 +160,10 @@ const DataCapture = () => {
                               }
                             }}
                           >
-                            <input 
-                              type="checkbox" 
+                            <input
+                              type="checkbox"
                               checked={isChecked}
-                              onChange={() => {}}
+                              onChange={() => { }}
                               style={{ accentColor: '#009fac', cursor: 'pointer' }}
                             />
                             <span>{label}</span>
@@ -174,8 +175,8 @@ const DataCapture = () => {
                 </div>
 
                 {/* Date Dropdown */}
-                <div 
-                  className="popover-item date-today-row" 
+                <div
+                  className="popover-item date-today-row"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActiveSubMenu(activeSubMenu === 'date' ? null : 'date');
@@ -183,14 +184,14 @@ const DataCapture = () => {
                 >
                   <span className="popover-item-label neutral-label">
                     {selectedDate === 'Today' ? t('live.today', 'Today') :
-                     selectedDate === 'Daily' ? t('live.daily', 'Daily') :
-                     selectedDate === 'Monthly' ? t('live.monthly', 'Monthly') :
-                     t('live.yearly', 'Yearly')}
+                      selectedDate === 'Daily' ? t('live.daily', 'Daily') :
+                        selectedDate === 'Monthly' ? t('live.monthly', 'Monthly') :
+                          t('live.yearly', 'Yearly')}
                   </span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${activeSubMenu === 'date' ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
-                  
+
                   {activeSubMenu === 'date' && (
                     <div className="popover-sub-menu">
                       {["Today", "Daily", "Monthly", "Yearly"].map(option => {
@@ -200,8 +201,8 @@ const DataCapture = () => {
                         if (option === 'Monthly') label = t('live.monthly', 'Monthly');
                         if (option === 'Yearly') label = t('live.yearly', 'Yearly');
                         return (
-                          <div 
-                            key={option} 
+                          <div
+                            key={option}
                             className={`popover-sub-item ${selectedDate === option ? 'active' : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -219,8 +220,8 @@ const DataCapture = () => {
                 </div>
 
                 {/* View Type Dropdown */}
-                <div 
-                  className="popover-item view-tabular-row" 
+                <div
+                  className="popover-item view-tabular-row"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActiveSubMenu(activeSubMenu === 'view' ? null : 'view');
@@ -232,7 +233,7 @@ const DataCapture = () => {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${activeSubMenu === 'view' ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
-                  
+
                   {activeSubMenu === 'view' && (
                     <div className="popover-sub-menu">
                       {["Graph View", "Tabular View"].map(option => {
@@ -240,8 +241,8 @@ const DataCapture = () => {
                         if (option === 'Graph View') label = t('live.graph_view', 'Graph View');
                         if (option === 'Tabular View') label = t('live.tabular_view', 'Tabular View');
                         return (
-                          <div 
-                            key={option} 
+                          <div
+                            key={option}
                             className={`popover-sub-item ${selectedView === option ? 'active' : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -270,21 +271,21 @@ const DataCapture = () => {
           <>
             <div className="reports-card-header">
               <div className="spacer-element"></div>
-              
+
               {/* Generate Report button */}
-              <button 
-                className="chart-download-dropdown-btn" 
-                style={{ 
-                  background: '#009fac', 
-                  color: 'white', 
+              <button
+                className="chart-download-dropdown-btn"
+                style={{
+                  background: '#009fac',
+                  color: 'white',
                   borderColor: '#009fac',
                   padding: '6px 20px',
                   borderRadius: '20px',
                   fontWeight: '700'
-                }} 
+                }}
                 onClick={() => setShowReport(true)}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{marginRight: '6px'}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ marginRight: '6px' }}>
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
@@ -302,23 +303,23 @@ const DataCapture = () => {
                   setParamOpen(false);
                 }}>
                   <span className="reports-form-value-text">
-                    {stationValue.length === 0 
-                      ? 'Select Station' 
-                      : stationValue.length === 4 
-                        ? 'All Stations' 
+                    {stationValue.length === 0
+                      ? 'Select Station'
+                      : stationValue.length === 4
+                        ? 'All Stations'
                         : stationValue.join(', ')}
                   </span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${stationOpen ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
-                  
+
                   {stationOpen && (
                     <div className="reports-sub-dropdown-menu" onClick={(e) => e.stopPropagation()}>
                       {["City Centre", "Mobile Station", "Qidfa", "Lafarge CEMS"].map(option => {
                         const isChecked = stationValue.includes(option);
                         return (
-                          <div 
-                            key={option} 
+                          <div
+                            key={option}
                             className={`reports-sub-dropdown-item ${isChecked ? 'active' : ''}`}
                             style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                             onClick={() => {
@@ -329,10 +330,10 @@ const DataCapture = () => {
                               }
                             }}
                           >
-                            <input 
-                              type="checkbox" 
+                            <input
+                              type="checkbox"
                               checked={isChecked}
-                              onChange={() => {}}
+                              onChange={() => { }}
                               style={{ accentColor: '#009fac', cursor: 'pointer' }}
                             />
                             <span>{option}</span>
@@ -352,23 +353,23 @@ const DataCapture = () => {
                   setStationOpen(false);
                 }}>
                   <span className="reports-form-value-text">
-                    {paramValue.length === 0 
-                      ? 'Select Parameter' 
-                      : paramValue.length === 7 
-                        ? 'All Parameters' 
+                    {paramValue.length === 0
+                      ? 'Select Parameter'
+                      : paramValue.length === 7
+                        ? 'All Parameters'
                         : paramValue.join(', ')}
                   </span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${paramOpen ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
-                  
+
                   {paramOpen && (
                     <div className="reports-sub-dropdown-menu" onClick={(e) => e.stopPropagation()}>
                       {["SO2", "H2S", "NO2", "CO", "O3", "PM2.5", "PM10"].map(option => {
                         const isChecked = paramValue.includes(option);
                         return (
-                          <div 
-                            key={option} 
+                          <div
+                            key={option}
                             className={`reports-sub-dropdown-item ${isChecked ? 'active' : ''}`}
                             style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                             onClick={() => {
@@ -379,10 +380,10 @@ const DataCapture = () => {
                               }
                             }}
                           >
-                            <input 
-                              type="checkbox" 
+                            <input
+                              type="checkbox"
                               checked={isChecked}
-                              onChange={() => {}}
+                              onChange={() => { }}
                               style={{ accentColor: '#009fac', cursor: 'pointer' }}
                             />
                             <span>{option}</span>
@@ -399,7 +400,7 @@ const DataCapture = () => {
                 <label className="reports-form-label">Start Date</label>
                 <div className="reports-form-input-wrapper">
                   <span className="reports-form-date-inner">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" style={{marginRight: '8px'}}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" style={{ marginRight: '8px' }}>
                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                       <line x1="16" y1="2" x2="16" y2="6"></line>
                       <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -415,7 +416,7 @@ const DataCapture = () => {
                 <label className="reports-form-label">End Date</label>
                 <div className="reports-form-input-wrapper">
                   <span className="reports-form-date-inner">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" style={{marginRight: '8px'}}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" style={{ marginRight: '8px' }}>
                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                       <line x1="16" y1="2" x2="16" y2="6"></line>
                       <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -431,12 +432,12 @@ const DataCapture = () => {
           <>
             <div className="reports-card-header">
               {/* Back to Filters button */}
-              <button 
-                className="chart-parameter-dropdown-btn" 
+              <button
+                className="chart-parameter-dropdown-btn"
                 onClick={() => setShowReport(false)}
-                style={{ 
-                  display: 'inline-flex', 
-                  alignItems: 'center', 
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
                   gap: '6px',
                   fontWeight: '600',
                   color: '#4b5563',
@@ -444,16 +445,16 @@ const DataCapture = () => {
                 }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: 'rotate(90deg)' }}>
-                  <polyline points="6 9 12 15 18 9"/>
+                  <polyline points="6 9 12 15 18 9" />
                 </svg>
                 Back to Filters
               </button>
-              
+
               <div className="spacer-element"></div>
-              
+
               {/* Download Option Dropdown kept separately on this page */}
               <div style={{ position: 'relative' }}>
-                <button 
+                <button
                   className="chart-download-dropdown-btn"
                   onClick={() => {
                     setDownloadOpen(!downloadOpen);
@@ -466,23 +467,23 @@ const DataCapture = () => {
                     fontWeight: '700'
                   }}
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{marginRight: '6px'}}>
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ marginRight: '6px' }}>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
                   </svg>
                   Download
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{marginLeft: '6px'}} className={downloadOpen ? 'open' : ''}>
-                    <polyline points="6 9 12 15 18 9"/>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: '6px' }} className={downloadOpen ? 'open' : ''}>
+                    <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </button>
-                
+
                 {downloadOpen && (
-                  <div 
-                    className="reports-sub-dropdown-menu" 
-                    style={{ 
-                      minWidth: '220px', 
-                      right: 0, 
+                  <div
+                    className="reports-sub-dropdown-menu"
+                    style={{
+                      minWidth: '220px',
+                      right: 0,
                       left: 'auto',
                       overflow: 'visible',
                       padding: '8px 0'
@@ -490,16 +491,16 @@ const DataCapture = () => {
                     onClick={(e) => e.stopPropagation()}
                   >
                     {downloadMenu.map(menu => (
-                      <div 
-                        key={menu.category} 
+                      <div
+                        key={menu.category}
                         className="popover-item"
-                        style={{ 
-                          position: 'relative', 
-                          padding: '10px 16px', 
-                          display: 'flex', 
-                          justifyContent: 'space-between', 
-                          alignItems: 'center', 
-                          cursor: 'pointer' 
+                        style={{
+                          position: 'relative',
+                          padding: '10px 16px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          cursor: 'pointer'
                         }}
                         onMouseEnter={() => setActiveDownloadCategory(menu.category)}
                         onMouseLeave={() => setActiveDownloadCategory(null)}
@@ -507,13 +508,13 @@ const DataCapture = () => {
                       >
                         <span className="popover-item-label neutral-label" style={{ fontSize: '0.85rem' }}>{menu.category}</span>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" style={{ transform: 'rotate(-90deg)', marginLeft: '8px' }}>
-                          <polyline points="6 9 12 15 18 9"/>
+                          <polyline points="6 9 12 15 18 9" />
                         </svg>
-                        
+
                         {activeDownloadCategory === menu.category && (
-                          <div 
-                            className="popover-sub-menu" 
-                            style={{ 
+                          <div
+                            className="popover-sub-menu"
+                            style={{
                               position: 'absolute',
                               top: 0,
                               right: 'calc(100% + 4px)',
@@ -527,8 +528,8 @@ const DataCapture = () => {
                             }}
                           >
                             {menu.items.map(item => (
-                              <div 
-                                key={item} 
+                              <div
+                                key={item}
                                 className="popover-sub-item"
                                 style={{ padding: '8px 16px', fontSize: '0.8rem', cursor: 'pointer' }}
                                 onClick={() => {
@@ -556,37 +557,37 @@ const DataCapture = () => {
                   <tr>
                     <th>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                        S.No 
+                        S.No
                         <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                       </div>
                     </th>
                     <th>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                        Station Name 
+                        Station Name
                         <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                       </div>
                     </th>
                     <th>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                        Parameter 
+                        Parameter
                         <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                       </div>
                     </th>
                     <th>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                        No.Of Expected Records 
+                        No.Of Expected Records
                         <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                       </div>
                     </th>
                     <th>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                        No.Of Valid Records 
+                        No.Of Valid Records
                         <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                       </div>
                     </th>
                     <th>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                        Percent Availability 
+                        Percent Availability
                         <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                       </div>
                     </th>
