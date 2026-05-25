@@ -134,7 +134,8 @@ const BuoyStatusCard = ({ activeTab, selectedBuoy, isMobile = false, isDesktop =
     position: 'absolute',
     transition: 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
     transformStyle: 'preserve-3d',
-    transform: isFlipped ? 'rotateY(180deg)' : 'none',
+    WebkitTransformStyle: 'preserve-3d',
+    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
   };
 
   const faceStyle = {
@@ -147,12 +148,14 @@ const BuoyStatusCard = ({ activeTab, selectedBuoy, isMobile = false, isDesktop =
     borderRadius: '28px',
     overflow: 'hidden',
     boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+    pointerEvents: isFlipped ? 'none' : 'auto',
   };
 
   const backFaceStyle = {
     ...faceStyle,
     transform: 'rotateY(180deg)',
     backgroundColor: '#00161A',
+    pointerEvents: isFlipped ? 'auto' : 'none',
   };
 
   const renderBackFace = (cardHeightClass) => (
@@ -165,7 +168,7 @@ const BuoyStatusCard = ({ activeTab, selectedBuoy, isMobile = false, isDesktop =
       />
       {/* Dark overlay gradient for pristine text readability */}
       <div 
-        className="absolute inset-0"
+        className="absolute inset-0 pointer-events-none"
         style={{
           background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.75) 100%)'
         }}
@@ -173,8 +176,9 @@ const BuoyStatusCard = ({ activeTab, selectedBuoy, isMobile = false, isDesktop =
 
       {/* Printer/Flip Icon in Top Right - Raw White Icon to match mockup exactly */}
       <button 
-        onClick={(e) => { e.stopPropagation(); setIsFlipped(false); }}
-        className="absolute top-6 right-6 z-20 text-white/90 hover:text-white hover:scale-105 active:scale-95 transition-all outline-none bg-transparent border-0 cursor-pointer"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsFlipped(false); }}
+        className="absolute top-6 right-6 z-[100] text-white/90 hover:text-white hover:scale-105 active:scale-95 transition-all outline-none bg-transparent border-0 cursor-pointer"
+        style={{ pointerEvents: 'auto' }}
       >
         <RefreshCw size={20} className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:rotate-180" />
       </button>
@@ -214,8 +218,9 @@ const BuoyStatusCard = ({ activeTab, selectedBuoy, isMobile = false, isDesktop =
                 className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-90"
               />
               <button 
-                onClick={(e) => { e.stopPropagation(); setIsFlipped(true); }}
-                className="absolute top-5 right-5 z-20 text-white/80 hover:text-white hover:scale-105 active:scale-95 transition-all outline-none bg-transparent border-0 cursor-pointer"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsFlipped(true); }}
+                className="absolute top-5 right-5 z-[100] text-white/80 hover:text-white hover:scale-105 active:scale-95 transition-all outline-none bg-transparent border-0 cursor-pointer"
+                style={{ pointerEvents: 'auto' }}
               >
                 <RefreshCw size={20} className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform duration-300 hover:rotate-180" />
               </button>
@@ -282,8 +287,9 @@ const BuoyStatusCard = ({ activeTab, selectedBuoy, isMobile = false, isDesktop =
                 className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-90"
               />
               <button 
-                onClick={(e) => { e.stopPropagation(); setIsFlipped(true); }}
-                className="absolute top-4 right-4 z-20 text-white/80 hover:text-white hover:scale-105 active:scale-95 transition-all outline-none bg-transparent border-0 cursor-pointer"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsFlipped(true); }}
+                className="absolute top-4 right-4 z-[100] text-white/80 hover:text-white hover:scale-105 active:scale-95 transition-all outline-none bg-transparent border-0 cursor-pointer"
+                style={{ pointerEvents: 'auto' }}
               >
                 <RefreshCw size={isDesktop ? 16 : 20} className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform duration-300 hover:rotate-180" />
               </button>

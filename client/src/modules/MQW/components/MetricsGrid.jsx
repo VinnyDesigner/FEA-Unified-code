@@ -48,23 +48,28 @@ const MetricsGrid = ({ activeTab, selectedMetric, setSelectedMetric, isMobile = 
 
   return (
     <div 
-      className={`w-full ${isMobile ? 'grid grid-cols-2 md:grid-cols-3 gap-[10px] md:gap-[16px]' : 'grid gap-[10px]'}`}
-      style={!isMobile ? {
-        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-        gridAutoRows: '88px'
-      } : {}}
+      className={`w-full ${!isMobile ? 'overflow-y-auto panel-metrics-scrollbar' : ''}`}
+      style={!isMobile ? { maxHeight: '290px', paddingRight: '4px' } : {}}
     >
-      {displayMetrics.map((metric) => (
-        <MetricCard
-          key={metric.label}
-          label={metric.labelKey ? t(metric.labelKey) : metric.label}
-          value={metric.value}
-          icon={metric.icon}
-          isSelected={metric.label === selectedMetric}
-          onClick={() => setSelectedMetric(metric.label)}
-          isMobile={isMobile}
-        />
-      ))}
+      <div 
+        className={`w-full ${isMobile ? 'grid grid-cols-2 md:grid-cols-3 gap-[10px] md:gap-[16px]' : 'grid gap-[10px]'}`}
+        style={!isMobile ? {
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gridAutoRows: '88px'
+        } : {}}
+      >
+        {displayMetrics.map((metric) => (
+          <MetricCard
+            key={metric.label}
+            label={metric.labelKey ? t(metric.labelKey) : metric.label}
+            value={metric.value}
+            icon={metric.icon}
+            isSelected={metric.label === selectedMetric}
+            onClick={() => setSelectedMetric(metric.label)}
+            isMobile={isMobile}
+          />
+        ))}
+      </div>
     </div>
   );
 };

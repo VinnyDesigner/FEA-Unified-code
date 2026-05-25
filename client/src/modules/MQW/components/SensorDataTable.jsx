@@ -143,8 +143,9 @@ const SensorDataTable = ({
 
   return (
     <div className={`flex-1 flex flex-col min-h-0 ${isGraphAndTableView ? 'overflow-hidden' : ''}`}>
-      {/* --- MOBILE VIEW: Sensor Data Cards (< 768px) --- */}
-      <div className="flex md:hidden flex-col gap-4 w-full">
+      {/* --- MOBILE VIEW: Sensor Data Cards --- */}
+      {isMobile && (
+        <div className="flex flex-col gap-4 w-full">
         {displayedData.map((row, index) => (
           <div 
             key={index} 
@@ -185,18 +186,14 @@ const SensorDataTable = ({
           </div>
         ))}
       </div>
+      )}
 
-      {/* --- TABLET/DESKTOP VIEW: Table (>= 768px) --- */}
-      <div className={`hidden md:flex flex-1 flex-col min-h-0 ${isGraphAndTableView ? 'overflow-hidden' : ''}`}>
+      {/* --- TABLET/DESKTOP VIEW: Table --- */}
+      {!isMobile && (
+        <div className={`flex flex-1 flex-col min-h-0 ${isGraphAndTableView ? 'overflow-hidden' : ''}`}>
         <div 
           className={`flex-1 overflow-auto custom-scrollbar relative ${isGraphAndTableView ? 'mb-0' : 'mb-4'}`}
           onScroll={handleScroll}
-          style={{
-            borderRadius: '12px',
-            background: 'radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.14) 100%)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(0, 0, 0, 0.10)',
-          }}
         >
           <style dangerouslySetInnerHTML={{__html: `
             .custom-scrollbar::-webkit-scrollbar {
@@ -217,14 +214,13 @@ const SensorDataTable = ({
             }
           `}} />
           <table className="w-full border-collapse table-auto">
-            <thead>
-              <tr className={`border-b border-white/10 ${rowHeightClass}`}>
+            <thead className="sticky top-0 z-50">
+              <tr className={`border-b border-white/10 ${rowHeightClass} ${headerBgClass}`}>
                 {/* Sticky Column 1 Header (Date & Time) */}
                 <th 
-                  className={`${cellPaddingClass} text-white ${textClass} font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 left-0 z-30 w-[180px] min-w-[180px] border-b border-white/10`}
+                  className={`${cellPaddingClass} text-white ${textClass} font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 left-0 z-30 w-[180px] min-w-[180px] border-b border-r border-white/10`}
                   style={{
-                    background: (scrollTop > 0 || scrollLeft > 0) ? 'rgba(20, 58, 62, 0.98)' : 'transparent',
-                    backdropFilter: (scrollTop > 0 || scrollLeft > 0) ? 'blur(20px)' : 'none',
+                    background: '#1C4B50',
                   }}
                 >
                   <div className="flex items-center gap-2">
@@ -233,10 +229,9 @@ const SensorDataTable = ({
                 </th>
                 {/* Sticky Column 2 Header (Location / Station Name) */}
                 <th 
-                  className={`${cellPaddingClass} text-white ${textClass} font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 left-[180px] z-30 w-[150px] min-w-[150px] border-b border-white/10`}
+                  className={`${cellPaddingClass} text-white ${textClass} font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 left-[180px] z-30 w-[150px] min-w-[150px] border-b border-r border-white/10`}
                   style={{
-                    background: (scrollTop > 0 || scrollLeft > 0) ? 'rgba(20, 58, 62, 0.98)' : 'transparent',
-                    backdropFilter: (scrollTop > 0 || scrollLeft > 0) ? 'blur(20px)' : 'none',
+                    background: '#1C4B50',
                   }}
                 >
                   <div className="flex items-center gap-2">
@@ -247,10 +242,9 @@ const SensorDataTable = ({
                 {activeParams.map((param, idx) => (
                   <th 
                     key={idx} 
-                    className={`${cellPaddingClass} text-white ${textClass} font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 z-20 border-b border-white/10`}
+                    className={`${cellPaddingClass} text-white ${textClass} font-bold ltr:text-left rtl:text-right whitespace-nowrap leading-tight sticky top-0 z-20 border-b border-r border-white/10`}
                     style={{
-                      background: scrollTop > 0 ? 'rgba(20, 58, 62, 0.98)' : 'transparent',
-                      backdropFilter: scrollTop > 0 ? 'blur(20px)' : 'none',
+                      background: '#1C4B50',
                     }}
                   >
                     <div className="flex items-center gap-2">
@@ -265,10 +259,9 @@ const SensorDataTable = ({
                 <tr key={index} className={`border-b border-white/10 transition-colors ${rowHeightClass}`}>
                   {/* Sticky Column 1 Cell (Date & Time) */}
                   <td 
-                    className={`${cellPaddingClass} text-white/90 ${textClass} font-bold whitespace-nowrap sticky left-0 z-10 w-[180px] min-w-[180px] border-b border-white/10`}
+                    className={`${cellPaddingClass} text-white/90 ${textClass} font-bold whitespace-nowrap sticky left-0 z-10 w-[180px] min-w-[180px] border-b border-r border-white/10`}
                     style={{
-                      background: scrollLeft > 0 ? 'rgba(20, 58, 62, 0.98)' : 'transparent',
-                      backdropFilter: scrollLeft > 0 ? 'blur(20px)' : 'none',
+                      background: '#1C4B50',
                     }}
                   >
                     {isTablet && row.dateTime.includes(' ') ? (
@@ -282,10 +275,9 @@ const SensorDataTable = ({
                   </td>
                   {/* Sticky Column 2 Cell (Location / Station Name) */}
                   <td 
-                    className={`${cellPaddingClass} text-white/90 ${textClass} font-bold whitespace-nowrap sticky left-[180px] z-10 w-[150px] min-w-[150px] border-b border-white/10`}
+                    className={`${cellPaddingClass} text-white/90 ${textClass} font-bold whitespace-nowrap sticky left-[180px] z-10 w-[150px] min-w-[150px] border-b border-r border-white/10`}
                     style={{
-                      background: scrollLeft > 0 ? 'rgba(20, 58, 62, 0.98)' : 'transparent',
-                      backdropFilter: scrollLeft > 0 ? 'blur(20px)' : 'none',
+                      background: '#1C4B50',
                     }}
                   >
                     {row.station}
@@ -297,7 +289,7 @@ const SensorDataTable = ({
                     return (
                       <td 
                         key={idx} 
-                        className={`${cellPaddingClass} text-white/90 ${textClass} whitespace-nowrap border-b border-white/10`}
+                        className={`${cellPaddingClass} text-white/90 ${textClass} whitespace-nowrap border-b border-r border-white/10`}
                       >
                         {displayValue}
                       </td>
@@ -309,6 +301,7 @@ const SensorDataTable = ({
           </table>
         </div>
       </div>
+      )}
 
       {/* Pagination Footer */}
       {!isGraphAndTableView && (

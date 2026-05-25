@@ -178,5 +178,19 @@
     "search": "بحث",
     "next": "التالي",
     "previous": "السابق"
+  },
+  "chart": {
+    "line": "خط",
+    "stepLine": "خط متدرج",
+    "dots": "نقاط",
+    "stackedLines": "خطوط مكدسة",
+    "bars": "أعمدة",
+    "optimize": "تحسين مجموعات البيانات الكبيرة",
+    "showingAll": "إظهار كافة النقاط",
+    "maxPoints": "الحد الأقصى للنقاط (مُحسَّن)",
+    "marker": "علامات",
+    "dashes": "شرطات",
+    "dateTooltip": "تلميح التاريخ",
+    "animation": "حركة"
   }
 }

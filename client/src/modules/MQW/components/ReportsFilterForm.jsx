@@ -3,18 +3,20 @@ import { createPortal } from 'react-dom';
 import { ChevronDown, Calendar, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const ReportsFilterForm = ({ isDesktop = false }) => {
+const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
   const { t } = useTranslation();
   
   const initialState = {
-    station: 'Al Aqah New',
-    monitoringType: 'Sonde Information',
-    parameter: 'Blue-Green Algae',
-    startDate: '2026-01-01',
-    endDate: '2026-01-30'
+    station: '',
+    monitoringType: '',
+    parameter: '',
+    startDate: '',
+    endDate: ''
   };
 
   const [formData, setFormData] = useState(initialState);
+  
+  const isFormValid = formData.station && formData.monitoringType && formData.parameter && formData.startDate && formData.endDate;
   
   // Dropdown visibility states
   const [isStationOpen, setIsStationOpen] = useState(false);
@@ -113,6 +115,7 @@ const ReportsFilterForm = ({ isDesktop = false }) => {
     setIsStationOpen(false);
     setIsMonitoringTypeOpen(false);
     setIsParameterOpen(false);
+    if (onApply) onApply(null);
   };
 
   const dropdownClass = "flex items-center justify-between px-4 py-2 bg-white/5 backdrop-blur-xl rounded-[12px] border border-white/20 text-white text-[14px] font-medium w-full mt-2 transition-all hover:bg-white/10 hover:border-white/30 outline-none cursor-pointer";
@@ -136,8 +139,8 @@ const ReportsFilterForm = ({ isDesktop = false }) => {
       }}
     >
       <div className="flex flex-col gap-6 md:gap-8">
-        {/* Row 1: 3 Dropdowns - Responsive Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 relative z-30">
+        {/* Filters Row: 6 Columns on Desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 relative z-30 items-end">
           
           {/* Station dropdown */}
           <div className="flex flex-col relative">
@@ -151,7 +154,7 @@ const ReportsFilterForm = ({ isDesktop = false }) => {
                 setIsStationOpen(!isStationOpen);
               }}
             >
-              <span>{formData.station === 'Al Aqah New' ? t('analytics.stationName') : formData.station}</span>
+              <span>{formData.station ? (formData.station === 'Al Aqah New' ? t('analytics.stationName') : formData.station) : 'Select Station'}</span>
               <ChevronDown size={14} className={`transition-transform duration-300 ${isStationOpen ? 'rotate-180' : ''} text-white/70`} />
             </button>
 
@@ -196,7 +199,7 @@ const ReportsFilterForm = ({ isDesktop = false }) => {
                 setIsMonitoringTypeOpen(!isMonitoringTypeOpen);
               }}
             >
-              <span>{formData.monitoringType === 'Sonde Information' ? t('analytics.sondeInformation') : formData.monitoringType}</span>
+              <span className="truncate">{formData.monitoringType ? (formData.monitoringType === 'Sonde Information' ? t('analytics.sondeInformation') : formData.monitoringType) : 'Select Type'}</span>
               <ChevronDown size={14} className={`transition-transform duration-300 ${isMonitoringTypeOpen ? 'rotate-180' : ''} text-white/70`} />
             </button>
 
@@ -241,7 +244,7 @@ const ReportsFilterForm = ({ isDesktop = false }) => {
                 setIsParameterOpen(!isParameterOpen);
               }}
             >
-              <span className="truncate">{formData.parameter}</span>
+              <span className="truncate">{formData.parameter || 'Select Parameter'}</span>
               <ChevronDown size={14} className={`transition-transform duration-300 ${isParameterOpen ? 'rotate-180' : ''} text-white/70`} />
             </button>
 
@@ -274,13 +277,7 @@ const ReportsFilterForm = ({ isDesktop = false }) => {
             )}
           </div>
 
-        </div>
-
-        {/* Row 2: Date Pickers & Actions */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:flex lg:flex-row gap-5 md:gap-6 flex-1 w-full lg:max-w-[50%]">
-            
-            {/* Start Date */}
+          {/* Start Date */}
             <div className="flex flex-col flex-1">
               <label className={labelClass}>{t('reports.startDate', 'Start Date')}</label>
               <div className="relative mt-2">
@@ -310,28 +307,22 @@ const ReportsFilterForm = ({ isDesktop = false }) => {
               </div>
             </div>
 
-          </div>
+            {/* Apply Button */}
+            <div className="flex flex-col">
+              <button 
+                className={`w-full h-[38px] md:h-[40px] text-white text-[13px] md:text-[14px] font-bold tracking-wide flex items-center justify-center gap-1 transition-transform outline-none border-none ${isFormValid ? 'hover:scale-[1.02] active:scale-[0.98] cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+                style={{
+                  background: 'radial-gradient(50% 50% at 50% 50%, #1DCDDD 0%, #009FAC 100%)',
+                  borderRadius: '12px',
+                  boxShadow: '0 0 70px 0 rgba(0, 159, 172, 0.40), 0 0 1px 4px rgba(255, 255, 255, 0.10), 0 -4px 2px 0 rgba(0, 0, 0, 0.25) inset, 0 2px 1px 0 rgba(255, 255, 255, 0.25) inset'
+                }}
+                disabled={!isFormValid}
+                onClick={() => isFormValid && onApply && onApply(formData)}
+              >
+                {t('common.apply', 'Apply')}
+              </button>
+            </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-row items-center justify-end gap-6 md:gap-8 pt-4 md:pt-0 border-t border-white/5 md:border-none">
-            <button 
-              onClick={handleReset}
-              className="text-white text-[16px] font-semibold hover:text-[#19D9F3] transition-colors bg-transparent border-none outline-none cursor-pointer"
-            >
-              {t('common.cancel')}
-            </button>
-            <button 
-              className="px-6 md:px-10 h-[40px] text-white text-[14px] md:text-[15px] font-bold tracking-wide flex items-center justify-center gap-1 transition-transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer outline-none border-none"
-              style={{
-                background: 'radial-gradient(50% 50% at 50% 50%, #1DCDDD 0%, #009FAC 100%)',
-                borderRadius: '29.455px',
-                boxShadow: '0 0 70px 0 rgba(0, 159, 172, 0.40), 0 0 1px 4px rgba(255, 255, 255, 0.10), 0 -4px 2px 0 rgba(0, 0, 0, 0.25) inset, 0 2px 1px 0 rgba(255, 255, 255, 0.25) inset'
-              }}
-            >
-              {t('reports.downloadReport', 'Download Report')}
-              <ChevronRight size={18} strokeWidth={2.5} className="rtl:rotate-180" />
-            </button>
-          </div>
         </div>
       </div>
     </div>

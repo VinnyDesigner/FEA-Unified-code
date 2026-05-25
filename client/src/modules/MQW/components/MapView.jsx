@@ -25,40 +25,29 @@ const createBuoyIcon = (temp, colorKey, isActive) => {
   const displayTemp = temp.split('.')[0] + '°';
   const color = buoyColors[colorKey] || buoyColors.cyan;
 
+  // Active state styling
+  const wrapperScale = isActive ? 1.15 : 0.85;
+  const wrapperOpacity = isActive ? 1 : 0.7;
+  const zIndex = isActive ? 100 : 5;
+  const imgFilter = `${color.filter} ${isActive ? `drop-shadow(0 0 10px ${color.main})` : ''}`;
+
   return L.divIcon({
     className: 'custom-buoy-marker',
     html: `
       <div style="position:relative; width:80px; height:80px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; pointer-events:none;">
         
-        <!-- Buoy Body (Using high-fidelity PNG) -->
-        <div style="position:relative; z-index:5; width:55px; height:55px; pointer-events:auto;">
+        <!-- Buoy Body -->
+        <div style="position:relative; z-index:${zIndex}; width:55px; height:55px; pointer-events:auto; transform: scale(${wrapperScale}); opacity: ${wrapperOpacity}; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
           <img 
             src="/assets/buoy-white.png" 
             style="
               width:100%; 
               height:100%; 
               object-fit:contain; 
-              filter: ${isActive ? color.filter : 'none'};
+              filter: ${imgFilter};
               transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             " 
           />
-          
-          <!-- Temperature Label -->
-          <div style="
-            position:absolute; 
-            top:50%; 
-            left:50%; 
-            transform:translate(-50%, -8%); 
-            color:${isActive ? 'white' : '#072227'}; 
-            font-size:12px; 
-            font-weight:900;
-            text-shadow: ${isActive ? '0 1px 2px rgba(0,0,0,0.6)' : '0 0 2px rgba(255,255,255,1)'};
-            white-space:nowrap;
-            pointer-events:none;
-            transition: color 0.4s ease;
-          ">
-            ${displayTemp}
-          </div>
         </div>
         
       </div>

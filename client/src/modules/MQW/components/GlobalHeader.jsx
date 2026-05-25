@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import logoWide from '../../../assets/logo.png';
 import logoEmblem from '../../../assets/logo-auth.png';
+import logoAr from '../../../assets/logo-ar-new.png';
 
 const GlobalHeader = () => {
   const { t, i18n } = useTranslation();
@@ -38,7 +39,7 @@ const GlobalHeader = () => {
           ) : !isMobile ? (
             /* Full Wide Bilingual Logo - Only visible on Desktop */
             <img 
-              src={logoWide} 
+              src={i18n.language === 'ar' ? logoAr : logoWide} 
               alt="Fujairah Environment Authority Logo" 
               className="w-[285px] h-[76px] object-contain" 
             />
