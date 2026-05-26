@@ -133,7 +133,7 @@ body.aqms-menu-open {
 
 /* Nav Tabs — centered pill group */
 .nav-tabs {
-  display: flex;
+  display: none; /* hidden on desktop */
   gap: 20px;
   align-items: center;
   padding: 4px 6px;
@@ -1094,9 +1094,9 @@ body.aqms-menu-open {
 
 .landing-hero {
   flex: 1;
-  min-height: 100vh;
+  min-height: 80vh;
   position: relative;
-  background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('/assets/AQMS/landingbg.png');
+  background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.25)), url('/assets/AQMS/landingbg_new.png');
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -1227,11 +1227,11 @@ body.aqms-menu-open {
 
 .landing-stat-card {
   display: flex;
-  width: 140px;
-  padding: 16.8px 24.8px 0.8px 24.8px;
+  width: 160px;
+  padding: 14px 16px;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   border-radius: 16px;
   border: 0.8px solid #FFF;
   background: linear-gradient(180deg, rgba(173, 173, 173, 0.42) 0%, rgba(19, 57, 61, 0.42) 100%);
@@ -1239,19 +1239,21 @@ body.aqms-menu-open {
 }
 
 .stat-label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  white-space: nowrap;
 }
 
 .stat-value {
-  font-size: 2.5rem;
+  font-size: 2.1rem;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+  line-height: 1;
 }
 
 .stat-desc {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 500;
 }
 
@@ -1314,7 +1316,7 @@ body.aqms-menu-open {
 
 .landing-arrow-down {
   position: absolute;
-  bottom: 5%;
+  bottom: 12px;
   animation: bounce 2s infinite;
 }
 
@@ -1426,6 +1428,7 @@ body.aqms-menu-open {
   
   /* Off-canvas Drawer */
   .nav-tabs {
+    display: flex;
     position: fixed;
     top: 0;
     left: 0;
