@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
   const { t } = useTranslation();
+  const isRtl = document.documentElement.dir === 'rtl';
 
   const getTransLabel = (val) => {
     if (!val) return val;
@@ -174,6 +175,26 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
         backdropFilter: 'blur(10px)',
       }}
     >
+      <style>{`
+        input[type="date"]::-webkit-calendar-picker-indicator {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+          opacity: 0 !important;
+          background: transparent !important;
+          cursor: pointer;
+          -webkit-appearance: none;
+        }
+        input[type="date"]::-webkit-inner-spin-button,
+        input[type="date"]::-webkit-clear-button {
+          display: none;
+          -webkit-appearance: none;
+        }
+      `}</style>
       <div className="flex flex-col gap-6 md:gap-8">
         {/* Filters Row: 6 Columns on Desktop */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 relative z-30 items-end">
@@ -192,10 +213,10 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
             >
               <span className="truncate">
                 {formData.station.length === 0 
-                  ? 'Select Station' 
+                  ? t('analytics.selectStation', 'Select Station') 
                   : formData.station.length === 1 
-                    ? (formData.station[0] === 'Al Aqah New' ? t('analytics.stationName') : formData.station[0]) 
-                    : `${formData.station.length} Selected`}
+                    ? getTransLabel(formData.station[0]) 
+                    : isRtl ? `${formData.station.length} محددة` : `${formData.station.length} Selected`}
               </span>
               <ChevronDown size={14} className={`transition-transform duration-300 ${isStationOpen ? 'rotate-180' : ''} text-white/70`} />
             </button>
@@ -215,7 +236,7 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                 {stations.map((station) => (
                   <button
                     key={station}
-                    className="flex items-center gap-2 text-left text-white text-[13.5px] font-semibold hover:text-[#1DCDDD] transition-colors bg-transparent border-none outline-none cursor-pointer"
+                    className={`flex items-center gap-2 ${isRtl ? 'text-right' : 'text-left'} text-white text-[13.5px] font-semibold hover:text-[#1DCDDD] transition-colors bg-transparent border-none outline-none cursor-pointer`}
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleSelection('station', station);
@@ -224,7 +245,7 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                     <div className={`w-4 h-4 rounded flex items-center justify-center transition-colors ${formData.station.includes(station) ? 'bg-[#009FAC]' : 'border border-white/40'}`}>
                       {formData.station.includes(station) && <svg viewBox="0 0 14 14" fill="none" className="w-3 h-3 text-white"><path d="M3 7.5L5.5 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
-                    {station === 'Al Aqah New' ? t('analytics.stationName') : station}
+                    {getTransLabel(station)}
                   </button>
                 ))}
               </div>,
@@ -244,7 +265,7 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                 setIsMonitoringTypeOpen(!isMonitoringTypeOpen);
               }}
             >
-              <span className="truncate">{formData.monitoringType ? (formData.monitoringType === 'Sonde Information' ? t('analytics.sondeInformation') : formData.monitoringType) : 'Select Type'}</span>
+              <span className="truncate">{formData.monitoringType ? getTransLabel(formData.monitoringType) : t('analytics.selectPredefinedParameter', 'Select Type')}</span>
               <ChevronDown size={14} className={`transition-transform duration-300 ${isMonitoringTypeOpen ? 'rotate-180' : ''} text-white/70`} />
             </button>
 
@@ -263,13 +284,13 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                 {monitoringTypes.map((type) => (
                   <button
                     key={type}
-                    className="text-left text-white text-[13.5px] font-semibold hover:text-[#1DCDDD] transition-colors bg-transparent border-none outline-none cursor-pointer"
+                    className={`${isRtl ? 'text-right' : 'text-left'} text-white text-[13.5px] font-semibold hover:text-[#1DCDDD] transition-colors bg-transparent border-none outline-none cursor-pointer`}
                     onClick={() => {
                       setFormData({ ...formData, monitoringType: type });
                       setIsMonitoringTypeOpen(false);
                     }}
                   >
-                    {type === 'Sonde Information' ? t('analytics.sondeInformation') : type}
+                    {getTransLabel(type)}
                   </button>
                 ))}
               </div>,
@@ -291,10 +312,10 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
             >
               <span className="truncate">
                 {formData.parameter.length === 0 
-                  ? 'Select Parameter' 
+                  ? t('analytics.selectParametersTitle', 'Select Parameter') 
                   : formData.parameter.length === 1 
-                    ? formData.parameter[0] 
-                    : `${formData.parameter.length} Selected`}
+                    ? getTransLabel(formData.parameter[0]) 
+                    : isRtl ? `${formData.parameter.length} محددة` : `${formData.parameter.length} Selected`}
               </span>
               <ChevronDown size={14} className={`transition-transform duration-300 ${isParameterOpen ? 'rotate-180' : ''} text-white/70`} />
             </button>
@@ -314,7 +335,7 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                 {parameters.map((param) => (
                   <button
                     key={param}
-                    className="flex items-center gap-2 text-left text-white text-[13.5px] font-semibold hover:text-[#1DCDDD] transition-colors bg-transparent border-none outline-none cursor-pointer whitespace-nowrap"
+                    className={`flex items-center gap-2 ${isRtl ? 'text-right' : 'text-left'} text-white text-[13.5px] font-semibold hover:text-[#1DCDDD] transition-colors bg-transparent border-none outline-none cursor-pointer whitespace-nowrap`}
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleSelection('parameter', param);
@@ -323,7 +344,7 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                     <div className={`w-4 h-4 rounded shrink-0 flex items-center justify-center transition-colors ${formData.parameter.includes(param) ? 'bg-[#009FAC]' : 'border border-white/40'}`}>
                       {formData.parameter.includes(param) && <svg viewBox="0 0 14 14" fill="none" className="w-3 h-3 text-white"><path d="M3 7.5L5.5 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
-                    {param}
+                    {getTransLabel(param)}
                   </button>
                 ))}
               </div>,
@@ -340,7 +361,7 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                   value={formData.startDate}
                   onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                   style={{ colorScheme: 'dark' }}
-                  className="w-full h-[38px] md:h-[40px] px-4 ltr:pl-12 rtl:pr-12 bg-white/5 backdrop-blur-xl rounded-[12px] border border-white/20 text-white text-[14px] font-medium outline-none cursor-pointer ltr:text-left rtl:text-right"
+                  className="relative w-full h-[38px] md:h-[40px] px-4 ltr:pl-12 rtl:pr-12 bg-white/5 backdrop-blur-xl rounded-[12px] border border-white/20 text-white text-[14px] font-medium outline-none cursor-pointer ltr:text-left rtl:text-right"
                 />
                 <Calendar size={14} className="absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" />
               </div>
@@ -355,7 +376,7 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                   style={{ colorScheme: 'dark' }}
-                  className="w-full h-[38px] md:h-[40px] px-4 ltr:pl-12 rtl:pr-12 bg-white/5 backdrop-blur-xl rounded-[12px] border border-white/20 text-white text-[14px] font-medium outline-none cursor-pointer ltr:text-left rtl:text-right"
+                  className="relative w-full h-[38px] md:h-[40px] px-4 ltr:pl-12 rtl:pr-12 bg-white/5 backdrop-blur-xl rounded-[12px] border border-white/20 text-white text-[14px] font-medium outline-none cursor-pointer ltr:text-left rtl:text-right"
                 />
                 <Calendar size={14} className="absolute ltr:left-4 rtl:right-4 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" />
               </div>

@@ -66,7 +66,7 @@ const FAQAccordion = ({ isMobile = false }) => {
             } : {}}
           >
             <div 
-              className="w-full flex items-center justify-between text-left group gap-4"
+              className={`w-full flex items-center justify-between ${document.documentElement.dir === 'rtl' ? 'text-right' : 'text-left'} group gap-4`}
             >
               <span className={`text-[14px] font-bold transition-colors ${
                 isOpen ? 'text-white' : 'text-white/80 group-hover:text-white'

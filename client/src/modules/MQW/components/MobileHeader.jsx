@@ -22,7 +22,7 @@ const MobileHeader = ({ onMenuClick }) => {
 
       {/* Center: Logo */}
       <div className="flex items-center gap-2">
-        <img src={logo} alt="FEA Logo" className="h-8 object-contain" />
+        <img src={logo} alt="FEA Logo" className="h-[44px] object-contain" />
       </div>
 
       {/* Right: Spacer for centering */}

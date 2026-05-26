@@ -104,7 +104,9 @@ const ReportsPage = () => {
                         <div className="flex flex-col min-h-[400px]">
                           {/* Sticky Header: Title + Download */}
                           <div className="flex-shrink-0 flex justify-between items-center px-4 pt-4 pb-2">
-                            <h2 className="text-[16px] md:text-[18px] font-bold text-white leading-tight">{appliedFilters.parameter}</h2>
+                            <h2 className="text-[16px] md:text-[18px] font-bold text-white leading-tight">
+                              {t('analytics.buoysOverview', 'Buoys Overview')}
+                            </h2>
                             <DownloadDropdown t={t} onDownload={handleDownloadAction} />
                           </div>
 
@@ -114,8 +116,8 @@ const ReportsPage = () => {
                               <BuoysChart 
                                 isMobile={true} 
                                 showHeader={false} 
-                                selectedParams={[appliedFilters.parameter]} 
-                                selectedBuoy={[appliedFilters.station]} 
+                                selectedParams={appliedFilters.parameter} 
+                                selectedBuoy={appliedFilters.station} 
                                 chartType="Line" 
                                 selectedDuration="Monthly" 
                               />
@@ -124,8 +126,8 @@ const ReportsPage = () => {
                             <div className="w-full">
                               <SensorDataTable 
                                 isMobile={true} 
-                                selectedBuoy={[appliedFilters.station]} 
-                                selectedParams={[appliedFilters.parameter]} 
+                                selectedBuoy={appliedFilters.station} 
+                                selectedParams={appliedFilters.parameter} 
                                 selectedDuration="Monthly" 
                               />
                             </div>
@@ -185,7 +187,9 @@ const ReportsPage = () => {
                         <div className="flex flex-col h-full min-h-0">
                           {/* Sticky Header: Title + Download */}
                           <div className="flex-shrink-0 flex justify-between items-center px-6 pt-3.5 pb-1.5">
-                            <h2 className="text-[18px] font-bold text-white leading-tight">{appliedFilters.parameter}</h2>
+                            <h2 className="text-[18px] font-bold text-white leading-tight">
+                              {t('analytics.buoysOverview', 'Buoys Overview')}
+                            </h2>
                             <DownloadDropdown t={t} onDownload={handleDownloadAction} />
                           </div>
 
@@ -195,8 +199,8 @@ const ReportsPage = () => {
                               <BuoysChart 
                                 isMobile={false} 
                                 showHeader={false} 
-                                selectedParams={[appliedFilters.parameter]} 
-                                selectedBuoy={[appliedFilters.station]} 
+                                selectedParams={appliedFilters.parameter} 
+                                selectedBuoy={appliedFilters.station} 
                                 chartType="Line" 
                                 selectedDuration="Monthly" 
                                 height="150px"
@@ -207,8 +211,8 @@ const ReportsPage = () => {
                             <div className="flex-1 min-h-0 mt-3 flex flex-col overflow-hidden">
                               <SensorDataTable 
                                 isMobile={false} 
-                                selectedBuoy={[appliedFilters.station]} 
-                                selectedParams={[appliedFilters.parameter]} 
+                                selectedBuoy={appliedFilters.station} 
+                                selectedParams={appliedFilters.parameter} 
                                 selectedDuration="Monthly" 
                                 isGraphAndTableView={true}
                                 isTablet={false}

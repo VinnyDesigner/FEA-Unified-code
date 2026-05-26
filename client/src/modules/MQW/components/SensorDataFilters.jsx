@@ -14,6 +14,7 @@ const SensorDataFilters = ({
   setSelectedDate: propSetSelectedDate
 }) => {
   const { t } = useTranslation();
+  const isRtl = document.documentElement.dir === 'rtl';
 
   
   const getTransLabel = (val) => {
@@ -33,6 +34,7 @@ const SensorDataFilters = ({
       'Scatter Plot': 'chart.scatterPlot',
       'Scatter Chart': 'chart.scatterPlot',
       'Sonde Information': 'analytics.sondeInformation',
+      'Weather Information': 'analytics.weatherInformation',
       'Specific Conductivity': 'parameters.specificConductivity',
       'Water Temperature': 'parameters.waterTemperature',
       'Salinity': 'parameters.salinity',
@@ -48,9 +50,40 @@ const SensorDataFilters = ({
       'Last Week': 'analytics.lastWeek',
       'Last Month': 'analytics.lastMonth',
       'Last Three Months': 'analytics.lastThreeMonths',
-      'Last 24 Hours': 'analytics.last24Hours'
+      'Last 24 Hours': 'analytics.last24Hours',
+      'Live Data': 'analytics.liveData',
+      'Alarms': 'analytics.alarms',
+      'Battery Health': 'analytics.batteryHealth',
+      'Select Station': 'analytics.selectPredefinedParameter',
+      'Today': 'common.today'
     };
     return map[val] ? t(map[val], val) : t('analytics.' + val.charAt(0).toLowerCase() + val.slice(1).replace(/ /g, ''), val);
+  };
+
+  const translateStationList = (stationStr) => {
+    if (!stationStr) return '';
+    const stationMap = {
+      'All Stations': 'stations.allStations',
+      'Near Shore Buoy': 'stations.nearShore',
+      'Offshore Buoy': 'stations.offshore',
+      'Al Aqah Buoy': 'stations.alAqah',
+      'North Dibbah': 'stations.northDibbah',
+      'Al Aqah New': 'stations.alAqahNew',
+      'OSB': 'stations.osb',
+      'NSB': 'stations.nsb',
+      'Select Station': 'analytics.selectStation'
+    };
+
+    return stationStr
+      .split(',')
+      .map(part => {
+        const trimmed = part.trim();
+        const withBuoy = trimmed.endsWith('Buoy') ? trimmed : `${trimmed} Buoy`;
+        if (stationMap[trimmed]) return t(stationMap[trimmed]);
+        if (stationMap[withBuoy]) return t(stationMap[withBuoy]);
+        return trimmed;
+      })
+      .join(', ');
   };
 
   
@@ -263,7 +296,7 @@ const SensorDataFilters = ({
               }}
             >
               {/* Select View By (Sub Tab) */}
-              <div className="flex flex-col gap-1.5 relative text-left">
+              <div className={`flex flex-col gap-1.5 relative ${isRtl ? 'text-right' : 'text-left'}`}>
                 <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("analytics.viewBy", "View By")}</span>
                 <div 
                   onClick={() => setOpenSelect(openSelect === 'subtab' ? null : 'subtab')}
@@ -289,7 +322,7 @@ const SensorDataFilters = ({
                         }}
                         className="px-3.5 py-2 hover:bg-white/10 text-white text-[13px] font-medium cursor-pointer transition-colors"
                       >
-                        {opt}
+                        {getTransLabel(opt)}
                       </div>
                     ))}
                   </div>
@@ -297,15 +330,15 @@ const SensorDataFilters = ({
               </div>
 
               {/* Select Station Name */}
-              <div className="flex flex-col gap-1.5 relative text-left">
-                <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">Location</span>
+              <div className={`flex flex-col gap-1.5 relative ${isRtl ? 'text-right' : 'text-left'}`}>
+                <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("analytics.location", "Location")}</span>
                 <div 
                   onClick={() => setOpenSelect(openSelect === 'buoy' ? null : 'buoy')}
                   className="flex items-center justify-between px-3.5 py-2 bg-white/5 border border-white/10 rounded-[10px] text-white text-[13px] font-semibold cursor-pointer hover:bg-white/10 transition-colors select-none"
                 >
                   <div className="flex items-center gap-2 truncate">
                     <MapPin size={13} className="text-white/60 flex-shrink-0" />
-                    <span className="truncate">{getBuoyTriggerLabel(tempBuoy, true)}</span>
+                    <span className="truncate">{translateStationList(getBuoyTriggerLabel(tempBuoy, true))}</span>
                   </div>
                   <ChevronDown size={13} className={`text-white/60 transition-transform ${openSelect === 'buoy' ? 'rotate-180' : ''}`} />
                 </div>
@@ -375,7 +408,7 @@ const SensorDataFilters = ({
               </div>
 
               {/* Select Duration */}
-              <div className="flex flex-col gap-1.5 relative text-left">
+              <div className={`flex flex-col gap-1.5 relative ${isRtl ? 'text-right' : 'text-left'}`}>
                 <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("analytics.duration", "Duration")}</span>
                 <div 
                   onClick={() => setOpenSelect(openSelect === 'date' ? null : 'date')}
@@ -383,7 +416,7 @@ const SensorDataFilters = ({
                 >
                   <div className="flex items-center gap-2">
                     <Calendar size={13} className="text-white/60 flex-shrink-0" />
-                    <span>{tempDate}</span>
+                    <span>{getTransLabel(tempDate)}</span>
                   </div>
                   <ChevronDown size={13} className={`text-white/60 transition-transform ${openSelect === 'date' ? 'rotate-180' : ''}`} />
                 </div>
@@ -434,7 +467,7 @@ const SensorDataFilters = ({
                     setIsFilterOpen(false);
                   }}
                 >
-                  Apply Filters
+                  {t("analytics.applyFilters", "Apply Filters")}
                 </button>
               </div>
 
@@ -451,7 +484,7 @@ const SensorDataFilters = ({
             className="flex items-center justify-between gap-2 px-3 md:px-5 py-2 text-[11px] md:text-xs font-semibold transition-all hover:brightness-110 active:scale-95 flex-1 lg:flex-none lg:w-auto min-w-0 lg:min-w-[140px]"
             style={filterStyle}
           >
-            <span className="whitespace-nowrap text-ellipsis overflow-hidden">{activeSubTab}</span>
+            <span className="whitespace-nowrap text-ellipsis overflow-hidden">{getTransLabel(activeSubTab)}</span>
             <ChevronDown size={14} className={`transition-transform duration-300 ${isSubTabOpen ? 'rotate-180' : ''} text-white/70 flex-shrink-0`} />
           </button>
 
@@ -464,7 +497,7 @@ const SensorDataFilters = ({
           >
             <div className="flex items-center gap-2 text-ellipsis overflow-hidden">
               <MapPin size={14} className="text-white/70 flex-shrink-0" />
-              <span className="whitespace-nowrap text-ellipsis overflow-hidden">{getBuoyTriggerLabel(selectedBuoy, false)}</span>
+              <span className="whitespace-nowrap text-ellipsis overflow-hidden">{translateStationList(getBuoyTriggerLabel(selectedBuoy, false))}</span>
             </div>
             <ChevronDown size={14} className={`transition-transform duration-300 ${isBuoyOpen ? 'rotate-180' : ''} text-white/70 flex-shrink-0`} />
           </button>
@@ -478,7 +511,7 @@ const SensorDataFilters = ({
           >
             <div className="flex items-center gap-2">
               <Calendar size={14} className="text-white/70 flex-shrink-0" />
-              <span className="whitespace-nowrap">{selectedDate}</span>
+              <span className="whitespace-nowrap">{getTransLabel(selectedDate)}</span>
             </div>
             <ChevronDown size={14} className={`transition-transform duration-300 ${isDateOpen ? 'rotate-180' : ''} text-white/70 flex-shrink-0`} />
           </button>
@@ -509,7 +542,7 @@ const SensorDataFilters = ({
                     >
                       {tempSubTab === tab && <div className="w-[10px] h-[10px] bg-[#009FAC] rounded-full" />}
                     </div>
-                    <span className="text-white text-[15px] font-medium">{tab}</span>
+                    <span className="text-white text-[15px] font-medium">{getTransLabel(tab)}</span>
                   </label>
                 ))}
               </div>
@@ -528,7 +561,7 @@ const SensorDataFilters = ({
                   className="px-6 py-2 text-white text-[14px] font-bold tracking-wide flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                   style={applyButtonStyle}
                 >
-                  Apply Filters
+                  {t("analytics.applyFilters", "Apply Filters")}
                 </button>
               </div>
             </div>,
@@ -583,7 +616,7 @@ const SensorDataFilters = ({
                         setIsBuoyOpen(false);
                       }
                     }}
-                    className="w-full text-left outline-none cursor-pointer border-none bg-transparent py-1 group"
+                    className={`w-full ${isRtl ? 'text-right' : 'text-left'} outline-none cursor-pointer border-none bg-transparent py-1 group`}
                   >
                     {isBatteryHealth ? (
                       <div className="flex items-center gap-3.5 w-full">
@@ -658,7 +691,7 @@ const SensorDataFilters = ({
                   className="px-6 py-2 text-white text-[14px] font-bold tracking-wide flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                   style={applyButtonStyle}
                 >
-                  Apply Filter
+                  {t("analytics.applyFilter", "Apply Filter")}
                 </button>
               </div>
             </div>,

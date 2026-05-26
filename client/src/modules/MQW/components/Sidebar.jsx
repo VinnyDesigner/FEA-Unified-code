@@ -138,7 +138,7 @@ const Sidebar = () => {
           </span>
         </button>
 
-        {/* User Profile Trigger Button */}
+        {/* User Profile Trigger Button (Hidden/Commented for future use)
         <button
           ref={profileBtnRef}
           onClick={toggleProfileDropdown}
@@ -156,9 +156,10 @@ const Sidebar = () => {
             {t('nav.userProfile') || 'Profile'}
           </span>
         </button>
+        */}
       </div>
 
-      {/* Profile Dropdown Options Card Portal */}
+      {/* Profile Dropdown Options Card Portal (Hidden/Commented for future use)
       {isProfileOpen && createPortal(
         <div 
           ref={profileDropdownRef}
@@ -170,7 +171,6 @@ const Sidebar = () => {
           }}
         >
           <div className="flex flex-col gap-4">
-            {/* Option 1: My Profile */}
             <button
               onClick={() => {
                 setSelectedOption('My Profile');
@@ -189,7 +189,6 @@ const Sidebar = () => {
               <span className="text-white text-[14.5px] font-semibold leading-none">{t('nav.myProfile')}</span>
             </button>
 
-            {/* Option 2: User Management */}
             <button
               onClick={() => {
                 setSelectedOption('User Management');
@@ -211,6 +210,7 @@ const Sidebar = () => {
         </div>,
         document.body
       )}
+      */}
     </aside>
   );
 };

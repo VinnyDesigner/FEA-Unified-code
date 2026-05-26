@@ -50,7 +50,7 @@ const MQWRoutes = () => {
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>
           <Route path="signin" element={<SignIn />} />
-          <Route path="signup" element={<SignIn />} />
+          <Route path="signup" element={<SignUp />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="verify-otp" element={<OTPVerification />} />
           <Route path="reset-password" element={<ResetPassword />} />
@@ -61,8 +61,10 @@ const MQWRoutes = () => {
         <Route path="mis-analytics" element={<MISAnalyticsPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="faq" element={<FAQPage />} />
+        {/* Profile & User Management Routes (Commented out for future use)
         <Route path="profile" element={<ProfilePage />} />
         <Route path="user-management" element={<UserManagementPage />} />
+        */}
 
         {/* Internal Redirects */}
         <Route path="" element={<Navigate to="dashboard" replace />} />

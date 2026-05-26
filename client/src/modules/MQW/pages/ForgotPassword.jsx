@@ -1,16 +1,18 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import AuthCard from '../components/AuthCard';
 import FormInput from '../components/FormInput';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <AuthCard 
-      title="Forgot Password?" 
-      subtitle="Enter your email to receive a password reset code."
+      title={t('auth.forgotPasswordTitle')} 
+      subtitle={t('auth.forgotPasswordSubtitle')}
     >
       <form 
         className="w-full flex flex-col gap-5" 
@@ -20,7 +22,7 @@ const ForgotPassword = () => {
         }}
       >
         <FormInput 
-          label="Email" 
+          label={t('auth.email')} 
           type="email" 
           placeholder="admin@fea.gov.ae" 
         />
@@ -34,16 +36,16 @@ const ForgotPassword = () => {
             boxShadow: '0 0 70px 0 rgba(0, 159, 172, 0.40), 0 0 1px 4px rgba(255, 255, 255, 0.10), 0 -4px 2px 0 rgba(0, 0, 0, 0.25) inset, 0 2px 1px 0 rgba(255, 255, 255, 0.25) inset'
           }}
         >
-          Send OTP
-          <ChevronRight size={18} strokeWidth={2.5} />
+          {t('auth.sendOtp')}
+          <ChevronRight size={18} strokeWidth={2.5} className="rtl:rotate-180" />
         </button>
 
         <Link 
           to="/MQW/signin" 
           className="flex items-center justify-center gap-2 mt-2 text-xs text-white font-bold tracking-wide hover:text-[#19D9F3] transition-colors"
         >
-          <ArrowLeft size={16} strokeWidth={2.5} />
-          Back to Login
+          <ArrowLeft size={16} strokeWidth={2.5} className="rtl:rotate-180" />
+          {t('auth.backToLogin')}
         </Link>
       </form>
     </AuthCard>

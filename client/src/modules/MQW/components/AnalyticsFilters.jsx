@@ -28,6 +28,7 @@ const AnalyticsFilters = ({
   setThresholdValue
 }) => {
   const { t } = useTranslation();
+  const isRtl = document.documentElement.dir === 'rtl';
 
   
   const getTransLabel = (val) => {
@@ -47,6 +48,7 @@ const AnalyticsFilters = ({
       'Scatter Plot': 'chart.scatterPlot',
       'Scatter Chart': 'chart.scatterPlot',
       'Sonde Information': 'analytics.sondeInformation',
+      'Weather Information': 'analytics.weatherInformation',
       'Specific Conductivity': 'parameters.specificConductivity',
       'Water Temperature': 'parameters.waterTemperature',
       'Salinity': 'parameters.salinity',
@@ -62,7 +64,18 @@ const AnalyticsFilters = ({
       'Last Week': 'analytics.lastWeek',
       'Last Month': 'analytics.lastMonth',
       'Last Three Months': 'analytics.lastThreeMonths',
-      'Last 24 Hours': 'analytics.last24Hours'
+      'Last 24 Hours': 'analytics.last24Hours',
+      'Live Data': 'analytics.liveData',
+      'Daily': 'analytics.lastDay',
+      'Weekly': 'analytics.lastWeek',
+      'Monthly': 'analytics.lastMonth',
+      'Disabled': 'analytics.disabled',
+      'Water Temperature (ºC) - Turbidity (NTU)': `${t('dashboard.waterTemperature')} - ${t('dashboard.turbidity')}`,
+      'Salinity (ppt) - pH': `${t('dashboard.salinity')} - ${t('dashboard.ph')}`,
+      'Depth (m) - Blue Green Algae (ug)': `${t('dashboard.depth')} - ${t('dashboard.blueGreenAlgae')}`,
+      'Dissolved Oxygen (mg/l) - pH': `${t('dashboard.dissolvedOxygen')} - ${t('dashboard.ph')}`,
+      'Specific Conductivity (uS) - Chlorophyll (ug)': `${t('dashboard.specificConductivity')} - ${t('dashboard.chlorophyll')}`,
+      'Oxygen Saturation (%) - Salinity (ppt)': `${t('analytics.oxygenSaturation')} - ${t('dashboard.salinity')}`
     };
     return map[val] ? t(map[val], val) : t('analytics.' + val.charAt(0).toLowerCase() + val.slice(1).replace(/ /g, ''), val);
   };
@@ -251,12 +264,12 @@ const AnalyticsFilters = ({
 
   const getBuoyTriggerLabel = () => {
     if (isBuoysAnalytics && Array.isArray(selectedBuoy)) {
-      if (selectedBuoy.length === 0) return "Select Station...";
-      if (selectedBuoy.length === buoys.length) return "All Stations";
-      if (selectedBuoy.length === 1) return selectedBuoy[0];
-      return `${selectedBuoy.length} Stations`;
+      if (selectedBuoy.length === 0) return t("analytics.selectStation", "Select Station...");
+      if (selectedBuoy.length === buoys.length) return t("stations.allStations", "All Stations");
+      if (selectedBuoy.length === 1) return getTransLabel(selectedBuoy[0]);
+      return isRtl ? `${selectedBuoy.length} محطات` : `${selectedBuoy.length} Stations`;
     }
-    return selectedBuoy;
+    return getTransLabel(selectedBuoy);
   };
 
   const viewTypeDropdown = (
@@ -288,7 +301,7 @@ const AnalyticsFilters = ({
                   return (
                     <button
                       key={type}
-                      className="flex items-center gap-3 text-left outline-none cursor-pointer group"
+                      className={`flex items-center gap-3 ${isRtl ? 'text-right' : 'text-left'} outline-none cursor-pointer group`}
                       onClick={() => {
                         if (setSelectedView) setSelectedView(type);
                         setIsViewDropdownOpen(false);
@@ -322,7 +335,7 @@ const AnalyticsFilters = ({
           >
             <div className="flex items-center gap-1.5">
               <MapPin size={isTablet ? 11 : 14} className="text-white/70 flex-shrink-0" />
-              <span>{getTransLabel(getBuoyTriggerLabel())}</span>
+              <span>{getBuoyTriggerLabel()}</span>
             </div>
             <ChevronDown size={isTablet ? 11 : 14} className={`transition-transform duration-300 ${isBuoyDropdownOpen ? 'rotate-180' : ''} text-white/70 ml-2`} />
           </button>
@@ -345,7 +358,7 @@ const AnalyticsFilters = ({
               <div className="flex flex-col gap-4">
                 {isBuoysAnalytics && (
                   <button
-                    className="flex items-center gap-3.5 text-left outline-none cursor-pointer group w-full border-none bg-transparent"
+                    className={`flex items-center gap-3.5 ${isRtl ? 'text-right' : 'text-left'} outline-none cursor-pointer group w-full border-none bg-transparent`}
                     onClick={() => {
                       if (setSelectedBuoy) {
                         if (Array.isArray(selectedBuoy) && selectedBuoy.length === buoys.length) {
@@ -378,7 +391,7 @@ const AnalyticsFilters = ({
                   return (
                     <button
                       key={buoy}
-                      className="flex items-center gap-3.5 text-left outline-none cursor-pointer group w-full border-none bg-transparent"
+                      className={`flex items-center gap-3.5 ${isRtl ? 'text-right' : 'text-left'} outline-none cursor-pointer group w-full border-none bg-transparent`}
                       onClick={() => {
                         if (isBuoysAnalytics && Array.isArray(selectedBuoy)) {
                           const newSelection = selectedBuoy.includes(buoy)
@@ -443,7 +456,16 @@ const AnalyticsFilters = ({
             <div 
               ref={filterMenuRef}
               className="fixed z-[9999] p-5 flex flex-col gap-4 animate-fadeIn"
-              style={{
+              style={isMobile ? {
+                ...glassDropdownStyle,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 'calc(100vw - 32px)',
+                maxWidth: '350px',
+                maxHeight: '85vh',
+                overflowY: 'auto'
+              } : {
                 ...glassDropdownStyle,
                 top: filterPos.top,
                 left: filterPos.left,
@@ -453,7 +475,7 @@ const AnalyticsFilters = ({
               {activeFilterStep === 'predefined' && isBuoysAnalytics ? (
                 // --- PRE DEFINED PARAMETERS SELECTION VIEW (RADIO LIST MATCHING FigMA SPEC EXACTLY) ---
                 <>
-                  <div className="flex flex-col gap-1.5 mb-1.5 text-left">
+                  <div className={`flex flex-col gap-1.5 mb-1.5 ${isRtl ? 'text-right' : 'text-left'}`}>
                     <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("analytics.selectPredefinedParameter", "Select Predefined Parameter")}</span>
                   </div>
 
@@ -470,7 +492,7 @@ const AnalyticsFilters = ({
                       return (
                         <button
                           key={opt}
-                          className="flex items-center gap-3.5 text-left outline-none cursor-pointer group w-full border-none bg-transparent"
+                          className={`flex items-center gap-3.5 ${isRtl ? 'text-right' : 'text-left'} outline-none cursor-pointer group w-full border-none bg-transparent`}
                           onClick={() => setTempPredefined(opt)}
                         >
                           <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center transition-all ${
@@ -525,13 +547,13 @@ const AnalyticsFilters = ({
                 // --- CUSTOM BUOYS FILTER OPTIONS (WITH PREDEFINED VS CUSTOM TOGGLING) ---
                 <>
                   {/* Select Type of Information */}
-                  <div className="flex flex-col gap-1.5 relative text-left">
-                    <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">Select Type of Information</span>
+                  <div className={`flex flex-col gap-1.5 relative ${isRtl ? 'text-right' : 'text-left'}`}>
+                    <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("reports.monitoringType", "Select Type of Information")}</span>
                     <div 
                       onClick={() => setOpenSelect(openSelect === 'infoType' ? null : 'infoType')}
                       className="flex items-center justify-between px-3.5 py-2 bg-white/5 border border-white/10 rounded-[10px] text-white text-[13px] font-semibold cursor-pointer hover:bg-white/10 transition-colors select-none"
                     >
-                      <span>{tempInfoType}</span>
+                      <span>{getTransLabel(tempInfoType)}</span>
                       <ChevronDown size={13} className={`text-white/60 transition-transform ${openSelect === 'infoType' ? 'rotate-180' : ''}`} />
                     </div>
                     {openSelect === 'infoType' && (
@@ -545,7 +567,7 @@ const AnalyticsFilters = ({
                             }}
                             className="px-3.5 py-2 hover:bg-white/10 text-white text-[13px] font-medium cursor-pointer transition-colors"
                           >
-                            {opt}
+                            {getTransLabel(opt)}
                           </div>
                         ))}
                       </div>
@@ -553,12 +575,12 @@ const AnalyticsFilters = ({
                   </div>
 
                   {/* Pre Defined Parameter (Active/Disabled toggle) */}
-                  <div className="flex flex-col gap-1.5 text-left">
+                  <div className={`flex flex-col gap-1.5 ${isRtl ? 'text-right' : 'text-left'}`}>
                     <div 
                       className="flex items-center justify-between w-full cursor-pointer group"
                       onClick={() => setTempFilterSelectionMode('predefined')}
                     >
-                      <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75 group-hover:opacity-100 transition-opacity">Pre Defined Parameter</span>
+                      <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75 group-hover:opacity-100 transition-opacity">{t("analytics.predefinedParameters", "Pre Defined Parameter")}</span>
                       <div className={`w-[16px] h-[16px] rounded-full border-2 flex items-center justify-center transition-all ${
                         tempFilterSelectionMode === 'predefined' ? 'border-white bg-white' : 'border-white/40 bg-transparent group-hover:border-white/60'
                       }`}>
@@ -575,13 +597,13 @@ const AnalyticsFilters = ({
                         tempFilterSelectionMode !== 'predefined' ? 'opacity-30 border-white/5' : ''
                       }`}
                     >
-                      <span className="truncate">{tempFilterSelectionMode === 'predefined' ? tempPredefined : 'Disabled'}</span>
+                      <span className="truncate">{tempFilterSelectionMode === 'predefined' ? getTransLabel(tempPredefined) : getTransLabel('Disabled')}</span>
                       <ChevronDown size={13} className="text-white/60 flex-shrink-0 ml-1" />
                     </div>
                   </div>
 
                   {/* Parameters (Active/Disabled toggle) */}
-                  <div className="flex flex-col gap-1.5 text-left">
+                  <div className={`flex flex-col gap-1.5 ${isRtl ? 'text-right' : 'text-left'}`}>
                     <div 
                       className="flex items-center justify-between w-full cursor-pointer group"
                       onClick={() => setTempFilterSelectionMode('custom')}
@@ -605,7 +627,7 @@ const AnalyticsFilters = ({
                     >
                       <div className="flex flex-wrap gap-1.5 items-center max-w-[260px]">
                         {tempFilterSelectionMode !== 'custom' ? (
-                          <span className="text-white/40">{t("analytics.disabled", "Disabled")}</span>
+                          <span className="text-white/40">{getTransLabel('Disabled')}</span>
                         ) : tempSelectedParams.length === 0 ? (
                           <span className="text-white/40">{t("analytics.selectParameters", "Select Parameters...")}</span>
                         ) : (
@@ -639,7 +661,7 @@ const AnalyticsFilters = ({
                   </div>
 
                   {/* Duration */}
-                  <div className="flex flex-col gap-1.5 relative text-left">
+                  <div className={`flex flex-col gap-1.5 relative ${isRtl ? 'text-right' : 'text-left'}`}>
                     <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("analytics.duration", "Duration")}</span>
                     <div 
                       onClick={() => {
@@ -648,13 +670,13 @@ const AnalyticsFilters = ({
                       }}
                       className="flex items-center justify-between px-3.5 py-2 bg-white/5 border border-white/10 rounded-[10px] text-white text-[13px] font-semibold cursor-pointer hover:bg-white/10 transition-colors select-none"
                     >
-                      <span>{tempDuration}</span>
+                      <span>{getTransLabel(tempDuration)}</span>
                       <ChevronDown size={13} className="text-white/60" />
                     </div>
                   </div>
 
                   {/* Chart Type Radio */}
-                  <div className="flex flex-col gap-1.5 text-left">
+                  <div className={`flex flex-col gap-1.5 ${isRtl ? 'text-right' : 'text-left'}`}>
                     <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("analytics.chartTypeTitle", "Chart Type")}</span>
                     <div className="flex items-center gap-4">
                       {['Bar Chart', 'Line Chart', 'Scatter Chart'].map((type) => {
@@ -679,7 +701,7 @@ const AnalyticsFilters = ({
 
                   {/* View Type — tablet only, shown inside filter popup */}
                   {isTablet && (
-                    <div className="flex flex-col gap-1.5 text-left">
+                    <div className={`flex flex-col gap-1.5 ${isRtl ? 'text-right' : 'text-left'}`}>
                       <span className="text-white text-[10px] font-bold tracking-wider uppercase opacity-75">View</span>
                       <div className="flex flex-col gap-2.5">
                         {viewTypes.map((type) => {
@@ -687,7 +709,7 @@ const AnalyticsFilters = ({
                           return (
                             <button
                               key={type}
-                              className="flex items-center gap-2.5 text-left outline-none cursor-pointer group border-none bg-transparent"
+                              className={`flex items-center gap-2.5 ${isRtl ? 'text-right' : 'text-left'} outline-none cursor-pointer group border-none bg-transparent`}
                               onClick={() => setTempSelectedView(type)}
                             >
                               <div className={`w-[15px] h-[15px] rounded-full border-2 flex items-center justify-center transition-all ${
@@ -753,8 +775,8 @@ const AnalyticsFilters = ({
                 <>
 
                   {/* Parameters Input Chips */}
-                  <div className="flex flex-col gap-1.5 text-left">
-                    <span className="text-white text-[10px] font-bold tracking-wider uppercase opacity-75">{t("analytics.parameters", "Parameters")}</span>
+                  <div className={`flex flex-col gap-1.5 ${isRtl ? 'text-right' : 'text-left'}`}>
+                    <span className="text-white text-[10px] font-bold tracking-wider opacity-75">{t("analytics.parameters", "Parameters")}</span>
                     <div 
                       onClick={() => {
                         setTempSelectedParams(tempSelectedParams);
@@ -794,7 +816,7 @@ const AnalyticsFilters = ({
                   </div>
 
                   {/* Duration */}
-                  <div className="flex flex-col gap-1.5 relative text-left">
+                  <div className={`flex flex-col gap-1.5 relative ${isRtl ? 'text-right' : 'text-left'}`}>
                     <span className="text-white text-[10px] font-bold tracking-wider uppercase opacity-75">{t("analytics.duration", "Duration")}</span>
                     <div 
                       onClick={() => {
@@ -803,13 +825,13 @@ const AnalyticsFilters = ({
                       }}
                       className="flex items-center justify-between px-3.5 py-2 bg-white/5 border border-white/10 rounded-[10px] text-white text-[13px] font-semibold cursor-pointer hover:bg-white/10 transition-colors select-none"
                     >
-                      <span>{tempDuration}</span>
+                      <span>{getTransLabel(tempDuration)}</span>
                       <ChevronDown size={13} className="text-white/60" />
                     </div>
                   </div>
 
                   {/* Chart Type Radio */}
-                  <div className="flex flex-col gap-1.5 text-left">
+                  <div className={`flex flex-col gap-1.5 ${isRtl ? 'text-right' : 'text-left'}`}>
                     <span className="text-white text-[10px] font-bold tracking-wider uppercase opacity-75">{t("analytics.chartTypeTitle", "Chart Type")}</span>
                     <div className="flex items-center gap-4">
                       {['Bar Chart', 'Line Chart', 'Scatter Chart'].map((type) => {
@@ -834,15 +856,15 @@ const AnalyticsFilters = ({
 
                   {/* View Type — tablet only, shown inside filter popup */}
                   {isTablet && (
-                    <div className="flex flex-col gap-1.5 text-left">
-                      <span className="text-white text-[10px] font-bold tracking-wider uppercase opacity-75">View</span>
+                    <div className={`flex flex-col gap-1.5 ${isRtl ? 'text-right' : 'text-left'}`}>
+                      <span className="text-white text-[10px] font-bold tracking-wider uppercase opacity-75">{t("analytics.viewType", "View")}</span>
                       <div className="flex flex-col gap-2.5">
                         {viewTypes.map((type) => {
                           const isChecked = tempSelectedView === type;
                           return (
                             <button
                               key={type}
-                              className="flex items-center gap-2.5 text-left outline-none cursor-pointer group border-none bg-transparent"
+                              className={`flex items-center gap-2.5 ${isRtl ? 'text-right' : 'text-left'} outline-none cursor-pointer group border-none bg-transparent`}
                               onClick={() => setTempSelectedView(type)}
                             >
                               <div className={`w-[15px] h-[15px] rounded-full border-2 flex items-center justify-center transition-all ${
@@ -886,11 +908,11 @@ const AnalyticsFilters = ({
               ) : activeFilterStep === 'parameters' ? (
                 // --- CUSTOM PARAMETERS LIST SUB-VIEW ---
                 <>
-                  <div className="flex flex-col gap-1 mb-1 text-left">
+                  <div className={`flex flex-col gap-1 mb-1 ${isRtl ? 'text-right' : 'text-left'}`}>
                     <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("analytics.selectParametersTitle", "Select Parameters")}</span>
                   </div>
 
-                  <div className="flex flex-col gap-3 pt-1 max-h-[220px] overflow-y-auto analytics-panel-scroll text-left">
+                  <div className={`flex flex-col gap-3 pt-1 max-h-[220px] overflow-y-auto analytics-panel-scroll ${isRtl ? 'text-right' : 'text-left'}`}>
                     {(() => {
                       const allParams = [
                         'Specific Conductivity',
@@ -909,7 +931,7 @@ const AnalyticsFilters = ({
                         <>
                           <button
                             key="All"
-                            className="flex items-center gap-3 text-left outline-none cursor-pointer group border-none bg-transparent"
+                            className={`flex items-center gap-3 ${isRtl ? 'text-right' : 'text-left'} outline-none cursor-pointer group border-none bg-transparent`}
                             onClick={() => {
                               if (isAllChecked) {
                                 setTempSelectedParams([]);
@@ -937,7 +959,7 @@ const AnalyticsFilters = ({
                             return (
                               <button
                                 key={param}
-                                className="flex items-center gap-3 text-left outline-none cursor-pointer group border-none bg-transparent"
+                                className={`flex items-center gap-3 ${isRtl ? 'text-right' : 'text-left'} outline-none cursor-pointer group border-none bg-transparent`}
                                 onClick={() => {
                                   if (isChecked) {
                                     setTempSelectedParams(tempSelectedParams.filter(p => p !== param));
@@ -989,11 +1011,11 @@ const AnalyticsFilters = ({
               ) : activeFilterStep === 'duration' ? (
                 // --- CUSTOM DURATION SELECTION SUB-VIEW (RADIO LIST MATCHING DESIGN SPEC EXACTLY) ---
                 <>
-                  <div className="flex flex-col gap-1.5 mb-1.5 text-left">
+                  <div className={`flex flex-col gap-1.5 mb-1.5 ${isRtl ? 'text-right' : 'text-left'}`}>
                     <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("analytics.selectTimePeriod", "Select Duration")}</span>
                   </div>
 
-                  <div className="flex flex-col gap-4 py-2 text-left">
+                  <div className={`flex flex-col gap-4 py-2 ${isRtl ? 'text-right' : 'text-left'}`}>
                     {[
                       'Live Data',
                       'Last Day',
@@ -1005,7 +1027,7 @@ const AnalyticsFilters = ({
                       return (
                         <button
                           key={opt}
-                          className="flex items-center gap-3.5 text-left outline-none cursor-pointer group w-full border-none bg-transparent"
+                          className={`flex items-center gap-3.5 ${isRtl ? 'text-right' : 'text-left'} outline-none cursor-pointer group w-full border-none bg-transparent`}
                           onClick={() => setTempDuration(opt)}
                         >
                           <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center transition-all ${
@@ -1014,7 +1036,7 @@ const AnalyticsFilters = ({
                             {isChecked && <div className="w-[8px] h-[8px] bg-[#009FAC] rounded-full" />}
                           </div>
                           <span className="text-white text-[14px] font-bold opacity-80 group-hover:opacity-100 transition-opacity">
-                            {opt}
+                            {getTransLabel(opt)}
                           </span>
                         </button>
                       );
