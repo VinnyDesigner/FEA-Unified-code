@@ -94,20 +94,28 @@ const Layout = ({ children }) => {
         >
           {t('nav.reports', 'Reports')}
         </NavLink>
+
+        {/* Profile under the menu list in Mobile */}
+        <div className="mobile-profile-container">
+          <div className="user-pill-mobile">
+            <div className="user-avatar">
+              <svg viewBox="0 0 24 24" fill="#475569" width="18" height="18">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+            </div>
+            <span>{t('profile.user_name', 'Jahangir Mian')}</span>
+          </div>
+          <div className="mobile-profile-logout" onClick={() => { setMobileNavOpen(false); navigate('/AQMS/login'); }}>
+            {t('profile.logout', 'Logout')}
+          </div>
+        </div>
       </div>
 
       <div className="app-container">
         {/* ── TOP NAV ─────────────────────────────────────── */}
         <header className="top-nav">
-          {/* Logo and Hamburger */}
+          {/* Logo */}
           <div className="logo-container">
-            <button className="hamburger-btn" onClick={() => setMobileNavOpen(true)}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </button>
             <img 
               src="/assets/AQMS/logo-dark.png" 
               alt="Fujairah Environment Authority" 
@@ -115,16 +123,9 @@ const Layout = ({ children }) => {
             />
           </div>
 
-          {/* Centered Dashboard Title */}
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <span style={{
-              color: '#111827',
-              fontFamily: lang === 'ar' ? "'Noto Sans Arabic', sans-serif" : "'Roboto', sans-serif",
-              fontSize: lang === 'ar' ? '2.1rem' : '1.9rem',
-              fontWeight: '900',
-              letterSpacing: '-0.5px',
-              textAlign: 'center'
-            }}>
+          {/* Centered Dashboard Title inside the header on desktop */}
+          <div className="nav-title-header-container">
+            <span className={`nav-title-text ${lang === 'ar' ? 'ar-title' : ''}`}>
               {t('nav.dashboard_title', 'Air Quality Monitoring Dashboard')}
             </span>
           </div>
@@ -133,6 +134,7 @@ const Layout = ({ children }) => {
           <div className="nav-right">
             {/* Premium Sliding Language Switcher Toggle */}
             <div 
+              className={`lang-switcher-container ${lang}`}
               onClick={toggleLanguage}
               style={{
                 width: '108px',
@@ -154,6 +156,7 @@ const Layout = ({ children }) => {
               {/* Static background 'ع' when language is English */}
               {lang === 'en' && (
                 <span 
+                  className="lang-label-bg"
                   style={{
                     position: 'absolute',
                     left: '2px',
@@ -175,6 +178,7 @@ const Layout = ({ children }) => {
               {/* Static background 'En' when language is Arabic */}
               {lang === 'ar' && (
                 <span 
+                  className="lang-label-bg"
                   style={{
                     position: 'absolute',
                     right: '2px',
@@ -196,6 +200,7 @@ const Layout = ({ children }) => {
 
               {/* Sliding 3D Raised Circular knob button containing active language label */}
               <div 
+                className="lang-knob"
                 style={{
                   position: 'absolute',
                   top: '2px',
@@ -216,6 +221,7 @@ const Layout = ({ children }) => {
               >
                 {/* Centered Active Label inside the knob */}
                 <span 
+                  className="lang-knob-text"
                   style={{
                     color: '#ffffff',
                     fontWeight: '800',
@@ -257,6 +263,13 @@ const Layout = ({ children }) => {
             </div>
           </div>
         </header>
+
+        {/* Centered Dashboard Title */}
+        <div className="nav-title-container">
+          <span className={`nav-title-text ${lang === 'ar' ? 'ar-title' : ''}`}>
+            {t('nav.dashboard_title', 'Air Quality Monitoring Dashboard')}
+          </span>
+        </div>
 
         {/* ── MAIN CONTENT ────────────────────────────────── */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>

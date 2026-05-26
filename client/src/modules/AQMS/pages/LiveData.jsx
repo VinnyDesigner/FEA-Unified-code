@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import Dropdown from '../components/Dropdown';
 import Highcharts from 'highcharts';
@@ -23,12 +23,15 @@ const HighchartsReactComponent = (() => {
   return HighchartsReact;
 })();
 
-const createCustomIcon = (value, color) => {
+const createCustomIcon = (value, color, isSelected = false) => {
   const isYellow = (color === '#fcd34d');
   const textColor = isYellow ? '#854d0e' : 'white';
+  const selectedStyle = isSelected 
+    ? 'border: 3px solid #00f3ff; box-shadow: 0 0 15px #00f3ff, 0 0 5px rgba(0,0,0,0.4); transform: scale(1.2); z-index: 999;' 
+    : 'border: 1.5px solid rgba(255,255,255,0.85);';
   return L.divIcon({
     className: 'custom-map-marker-icon',
-    html: `<div class="custom-marker-pill" style="background:${color}; color:${textColor};">${value}</div>`,
+    html: `<div class="custom-marker-pill" style="background:${color}; color:${textColor}; ${selectedStyle}">${value}</div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 15]
   });
@@ -67,30 +70,467 @@ const ChemicalIcon = ({ label }) => (
 
 /* ── Pollutant data ──────────────────────────────────────────── */
 const pollutants = [
-  { icon: <PM25Icon />,                    name: 'PM2.5',         val: '9',    unit: '\u00B5g/m\u00B3', statusColor: '#fcd34d' },
-  { icon: <PM10Icon />,                    name: 'PM10',          val: '18',   unit: '\u00B5g/m\u00B3', statusColor: '#f97316' },
-  { icon: <ChemicalIcon label="CO" />,     name: 'CO',            val: '0.3',  unit: 'ppb',             statusColor: '#84cc16' },
-  { icon: <ChemicalIcon label="O\u2083" />,name: 'O\u2083',       val: '38',   unit: 'ppb',             statusColor: '#fcd34d' },
-  { icon: <ChemicalIcon label="NO\u2082" />,name:'NO\u2082',      val: '12',   unit: 'ppb',             statusColor: '#fcd34d' },
-  { icon: <ChemicalIcon label="SO\u2082" />,name:'SO\u2082',      val: '03',   unit: 'ppb',             statusColor: '#f97316' },
-  { icon: <ChemicalIcon label="CO\u2082" />,name:'CO\u2082',      val: '04',   unit: 'ppm',             statusColor: '#fcd34d' },
-  { icon: <ChemicalIcon label="CH\u2084" />,name:'CH\u2084',      val: '0.1',  unit: 'ppb',             statusColor: '#f97316' },
-  { icon: <ChemicalIcon label="H\u2082S" />,name:'H\u2082S',      val: '0.02', unit: 'ppm',             statusColor: '#fcd34d' },
+  { icon: <img src="/assets/AQMS/pollutants/PM2.5.png" alt="PM2.5" className="p-icon" />, name: 'PM2.5', val: '9', unit: '\u00B5g/m\u00B3', statusColor: '#fcd34d' },
+  { icon: <img src="/assets/AQMS/pollutants/PM10.png" alt="PM10" className="p-icon" />, name: 'PM10', val: '18', unit: '\u00B5g/m\u00B3', statusColor: '#f97316' },
+  { icon: <img src="/assets/AQMS/pollutants/CO.png" alt="CO" className="p-icon" />, name: 'CO', val: '0.3', unit: 'ppb', statusColor: '#84cc16' },
+  { icon: <img src="/assets/AQMS/pollutants/o3.png" alt="O3" className="p-icon" />, name: 'O\u2083', val: '38', unit: 'ppb', statusColor: '#fcd34d' },
+  { icon: <img src="/assets/AQMS/pollutants/No2.png" alt="NO2" className="p-icon" />, name: 'NO\u2082', val: '12', unit: 'ppb', statusColor: '#fcd34d' },
+  { icon: <img src="/assets/AQMS/pollutants/So2.png" alt="SO2" className="p-icon" />, name: 'SO\u2082', val: '03', unit: 'ppb', statusColor: '#f97316' },
+  { icon: <img src="/assets/AQMS/pollutants/Co2.png" alt="CO2" className="p-icon" />, name: 'CO\u2082', val: '04', unit: 'ppm', statusColor: '#fcd34d' },
+  { icon: <img src="/assets/AQMS/pollutants/Ch4.png" alt="CH4" className="p-icon" />, name: 'CH\u2084', val: '0.1', unit: 'ppb', statusColor: '#f97316' },
+  { icon: <img src="/assets/AQMS/pollutants/H2o.png" alt="H2S" className="p-icon" />, name: 'H\u2082S', val: '0.02', unit: 'ppm', statusColor: '#fcd34d' },
 ];
+
+const stationsData = {
+  'City Centre': {
+    name: 'City Centre',
+    lat: 25.1150,
+    lng: 56.3150,
+    aqi: 120,
+    category: 'Unhealthy for Sensitive Groups',
+    aqiColor: '#f97316',
+    pm25: '14',
+    pm10: '28',
+    co: '0.45',
+    o3: '52',
+    no2: '18',
+    so2: '05',
+    co2: '04',
+    ch4: '0.1',
+    h2s: '0.02',
+    nmhc: '1.2',
+    windSpeed: '16',
+    windDirection: '267',
+    windUnit: 'Km/h',
+    windDirText: 'W',
+    windPill: 'Light breeze',
+    temp: '24.59',
+    pressure: '1008',
+    solar: '1632',
+    humidity: '72.2',
+    idealTempText: 'Ideal Temperature',
+    balancedPressureText: 'Balanced Air Pressure',
+    highSolarText: 'High Solar Intensity',
+    humidityNormalText: 'Humidity is normal',
+    chartAqiData: [110, 115, 120, 125, 130, 122, 120, 114, 116, 118, 122, 124, 120],
+    chartConcentrationData: {
+      so2: [25, 28, 30, 32, 35, 30, 28, 25, 24, 26, 28, 30, 27],
+      no2: [35, 38, 40, 42, 45, 40, 38, 35, 34, 36, 38, 40, 37],
+      co: [15, 18, 20, 22, 25, 20, 18, 15, 14, 16, 18, 20, 17],
+      pm10: [45, 48, 50, 52, 55, 50, 48, 45, 44, 46, 48, 50, 47],
+      pm25: [55, 58, 60, 62, 65, 60, 58, 55, 54, 56, 58, 60, 57],
+    },
+    tabular: [
+      { time: '24 Feb 2026 11:30', station: 'City Centre', co: '0.3', co2: '04', o3: '38', no2: '12', so2: '03', pm25: '09', pm10: '18', ch4: '0.1', h2s: '02', nmhc: '1.2', temp: '24.59°C', hum: '72.2%', windSpd: '16 Km/h', windDir: '267° W' },
+      { time: '24 Feb 2026 11:35', station: 'City Centre', co: '0.4', co2: '05', o3: '40', no2: '14', so2: '04', pm25: '10', pm10: '20', ch4: '0.2', h2s: '03', nmhc: '1.5', temp: '24.72°C', hum: '71.8%', windSpd: '18 Km/h', windDir: '270° W' },
+      { time: '24 Feb 2026 11:40', station: 'City Centre', co: '0.5', co2: '06', o3: '42', no2: '15', so2: '05', pm25: '11', pm10: '22', ch4: '0.2', h2s: '04', nmhc: '1.8', temp: '24.90°C', hum: '70.5%', windSpd: '19 Km/h', windDir: '265° W' },
+      { time: '24 Feb 2026 11:45', station: 'City Centre', co: '0.4', co2: '05', o3: '39', no2: '13', so2: '03', pm25: '10', pm10: '21', ch4: '0.1', h2s: '03', nmhc: '1.4', temp: '24.80°C', hum: '73.1%', windSpd: '17 Km/h', windDir: '268° W' },
+      { time: '24 Feb 2026 11:50', station: 'City Centre', co: '0.3', co2: '04', o3: '37', no2: '11', so2: '02', pm25: '08', pm10: '17', ch4: '0.1', h2s: '02', nmhc: '1.1', temp: '24.40°C', hum: '74.0%', windSpd: '15 Km/h', windDir: '266° W' },
+    ]
+  },
+  'Mobile Station': {
+    name: 'Mobile Station',
+    lat: 25.1450,
+    lng: 56.3400,
+    aqi: 45,
+    category: 'Good',
+    aqiColor: '#84cc16',
+    pm25: '5',
+    pm10: '10',
+    co: '0.1',
+    o3: '22',
+    no2: '6',
+    so2: '01',
+    co2: '02',
+    ch4: '0.05',
+    h2s: '0.01',
+    nmhc: '0.6',
+    windSpeed: '12',
+    windDirection: '180',
+    windUnit: 'Km/h',
+    windDirText: 'S',
+    windPill: 'Gentle breeze',
+    temp: '22.10',
+    pressure: '1012',
+    solar: '1200',
+    humidity: '65.4',
+    idealTempText: 'Very Comfortable',
+    balancedPressureText: 'Optimal Pressure',
+    highSolarText: 'Moderate Solar Intensity',
+    humidityNormalText: 'Humidity is optimal',
+    chartAqiData: [40, 42, 45, 48, 50, 47, 45, 42, 43, 45, 46, 44, 45],
+    chartConcentrationData: {
+      so2: [12, 14, 15, 17, 18, 16, 15, 13, 14, 15, 16, 15, 14],
+      no2: [22, 24, 25, 27, 28, 26, 25, 23, 24, 25, 26, 25, 24],
+      co: [8, 9, 10, 11, 12, 10, 9, 8, 9, 10, 11, 10, 9],
+      pm10: [25, 27, 28, 30, 31, 29, 28, 26, 27, 28, 29, 28, 27],
+      pm25: [35, 37, 38, 40, 41, 39, 38, 36, 37, 38, 39, 38, 37],
+    },
+    tabular: [
+      { time: '24 Feb 2026 11:30', station: 'Mobile Station', co: '0.1', co2: '02', o3: '22', no2: '06', so2: '01', pm25: '05', pm10: '10', ch4: '0.05', h2s: '01', nmhc: '0.6', temp: '22.10°C', hum: '65.4%', windSpd: '12 Km/h', windDir: '180° S' },
+      { time: '24 Feb 2026 11:35', station: 'Mobile Station', co: '0.2', co2: '03', o3: '24', no2: '08', so2: '02', pm25: '06', pm10: '12', ch4: '0.06', h2s: '02', nmhc: '0.8', temp: '22.30°C', hum: '64.8%', windSpd: '14 Km/h', windDir: '185° S' },
+      { time: '24 Feb 2026 11:40', station: 'Mobile Station', co: '0.3', co2: '04', o3: '26', no2: '09', so2: '03', pm25: '07', pm10: '14', ch4: '0.07', h2s: '03', nmhc: '0.9', temp: '22.50°C', hum: '63.5%', windSpd: '15 Km/h', windDir: '178° S' },
+    ]
+  },
+  'Qidfa': {
+    name: 'Qidfa',
+    lat: 25.1100,
+    lng: 56.3300,
+    aqi: 120,
+    category: 'Unhealthy for Sensitive Groups',
+    aqiColor: '#f97316',
+    pm25: '15',
+    pm10: '28',
+    co: '0.5',
+    o3: '52',
+    no2: '20',
+    so2: '06',
+    co2: '06',
+    ch4: '0.2',
+    h2s: '0.04',
+    nmhc: '2.0',
+    windSpeed: '22',
+    windDirection: '315',
+    windUnit: 'Km/h',
+    windDirText: 'NW',
+    windPill: 'Strong breeze',
+    temp: '26.80',
+    pressure: '1004',
+    solar: '1850',
+    humidity: '78.5',
+    idealTempText: 'Warm Atmosphere',
+    balancedPressureText: 'Low Pressure Alert',
+    highSolarText: 'Intense Solar Radiation',
+    humidityNormalText: 'Humidity is high',
+    chartAqiData: [110, 115, 120, 125, 130, 122, 120, 114, 116, 118, 122, 124, 120],
+    chartConcentrationData: {
+      so2: [45, 48, 50, 52, 55, 50, 48, 45, 44, 46, 48, 50, 47],
+      no2: [65, 68, 70, 72, 75, 70, 68, 65, 64, 66, 68, 70, 67],
+      co: [30, 33, 35, 37, 40, 35, 33, 30, 29, 31, 33, 35, 32],
+      pm10: [75, 78, 80, 82, 85, 80, 78, 75, 74, 76, 78, 80, 77],
+      pm25: [85, 88, 90, 92, 95, 90, 88, 85, 84, 86, 88, 90, 87],
+    },
+    tabular: [
+      { time: '24 Feb 2026 11:30', station: 'Qidfa', co: '0.5', co2: '06', o3: '52', no2: '20', so2: '06', pm25: '15', pm10: '28', ch4: '0.2', h2s: '04', nmhc: '2.0', temp: '26.80°C', hum: '78.5%', windSpd: '22 Km/h', windDir: '315° NW' },
+      { time: '24 Feb 2026 11:35', station: 'Qidfa', co: '0.6', co2: '07', o3: '54', no2: '22', so2: '07', pm25: '16', pm10: '30', ch4: '0.22', h2s: '05', nmhc: '2.2', temp: '27.00°C', hum: '77.8%', windSpd: '24 Km/h', windDir: '320° NW' },
+      { time: '24 Feb 2026 11:40', station: 'Qidfa', co: '0.7', co2: '08', o3: '56', no2: '24', so2: '08', pm25: '17', pm10: '32', ch4: '0.25', h2s: '06', nmhc: '2.5', temp: '27.20°C', hum: '76.5%', windSpd: '25 Km/h', windDir: '312° NW' },
+    ]
+  },
+  'Lafarge Cems': {
+    name: 'Lafarge Cems',
+    lat: 25.1350,
+    lng: 56.3050,
+    aqi: 45,
+    category: 'Good',
+    aqiColor: '#84cc16',
+    pm25: '4',
+    pm10: '8',
+    co: '0.1',
+    o3: '20',
+    no2: '5',
+    so2: '01',
+    co2: '02',
+    ch4: '0.04',
+    h2s: '0.01',
+    nmhc: '0.5',
+    windSpeed: '10',
+    windDirection: '90',
+    windUnit: 'Km/h',
+    windDirText: 'E',
+    windPill: 'Light air',
+    temp: '23.15',
+    pressure: '1010',
+    solar: '1500',
+    humidity: '68.2',
+    idealTempText: 'Comfortable Temp',
+    balancedPressureText: 'Standard Air Pressure',
+    highSolarText: 'Optimal Solar Intensity',
+    humidityNormalText: 'Humidity is normal',
+    chartAqiData: [42, 44, 45, 47, 48, 46, 45, 43, 44, 45, 46, 45, 44],
+    chartConcentrationData: {
+      so2: [10, 12, 13, 14, 15, 14, 13, 11, 12, 13, 14, 13, 12],
+      no2: [20, 22, 23, 24, 25, 24, 23, 21, 22, 23, 24, 23, 22],
+      co: [7, 8, 9, 10, 11, 10, 9, 7, 8, 9, 10, 9, 8],
+      pm10: [20, 22, 23, 24, 25, 24, 23, 21, 22, 23, 24, 23, 22],
+      pm25: [30, 32, 33, 34, 35, 34, 33, 31, 32, 33, 34, 33, 32],
+    },
+    tabular: [
+      { time: '24 Feb 2026 11:30', station: 'Lafarge Cems', co: '0.1', co2: '02', o3: '20', no2: '05', so2: '01', pm25: '04', pm10: '08', ch4: '0.04', h2s: '01', nmhc: '0.5', temp: '23.15°C', hum: '68.2%', windSpd: '10 Km/h', windDir: '90° E' },
+      { time: '24 Feb 2026 11:35', station: 'Lafarge Cems', co: '0.2', co2: '03', o3: '21', no2: '06', so2: '02', pm25: '05', pm10: '10', ch4: '0.05', h2s: '02', nmhc: '0.6', temp: '23.30°C', hum: '67.8%', windSpd: '11 Km/h', windDir: '95° E' },
+      { time: '24 Feb 2026 11:40', station: 'Lafarge Cems', co: '0.3', co2: '04', o3: '23', no2: '07', so2: '03', pm25: '06', pm10: '12', ch4: '0.06', h2s: '03', nmhc: '0.7', temp: '23.45°C', hum: '66.5%', windSpd: '12 Km/h', windDir: '88° E' },
+    ]
+  },
+  'Fujairah Port': {
+    name: 'Fujairah Port',
+    lat: 25.1200,
+    lng: 56.3550,
+    aqi: 150,
+    category: 'Unhealthy',
+    aqiColor: '#ef4444',
+    pm25: '25',
+    pm10: '45',
+    co: '0.8',
+    o3: '68',
+    no2: '28',
+    so2: '09',
+    co2: '08',
+    ch4: '0.3',
+    h2s: '0.06',
+    nmhc: '2.8',
+    windSpeed: '28',
+    windDirection: '45',
+    windUnit: 'Km/h',
+    windDirText: 'NE',
+    windPill: 'High breeze',
+    temp: '27.50',
+    pressure: '1002',
+    solar: '1900',
+    humidity: '82.0',
+    idealTempText: 'Warm & Humid',
+    balancedPressureText: 'Low Pressure Alert',
+    highSolarText: 'Extremely High Solar',
+    humidityNormalText: 'Humidity is very high',
+    chartAqiData: [130, 135, 140, 145, 150, 142, 140, 136, 138, 142, 145, 148, 150],
+    chartConcentrationData: {
+      so2: [55, 58, 60, 62, 65, 60, 58, 55, 54, 56, 58, 60, 57],
+      no2: [75, 78, 80, 82, 85, 80, 78, 75, 74, 76, 78, 80, 77],
+      co: [40, 43, 45, 47, 50, 45, 43, 40, 39, 41, 43, 45, 42],
+      pm10: [85, 88, 90, 92, 95, 90, 88, 85, 84, 86, 88, 90, 87],
+      pm25: [95, 98, 100, 102, 105, 100, 98, 95, 94, 96, 98, 100, 97],
+    },
+    tabular: [
+      { time: '24 Feb 2026 11:30', station: 'Fujairah Port', co: '0.8', co2: '08', o3: '68', no2: '28', so2: '09', pm25: '25', pm10: '45', ch4: '0.3', h2s: '06', nmhc: '2.8', temp: '27.50°C', hum: '82.0%', windSpd: '28 Km/h', windDir: '45° NE' },
+      { time: '24 Feb 2026 11:35', station: 'Fujairah Port', co: '0.9', co2: '09', o3: '70', no2: '30', so2: '10', pm25: '26', pm10: '48', ch4: '0.32', h2s: '07', nmhc: '3.0', temp: '27.70°C', hum: '81.5%', windSpd: '30 Km/h', windDir: '50° NE' },
+      { time: '24 Feb 2026 11:40', station: 'Fujairah Port', co: '1.0', co2: '10', o3: '72', no2: '32', so2: '11', pm25: '27', pm10: '50', ch4: '0.35', h2s: '08', nmhc: '3.2', temp: '27.90°C', hum: '80.2%', windSpd: '32 Km/h', windDir: '40° NE' },
+    ]
+  },
+  'Fujairah Stadium': {
+    name: 'Fujairah Stadium',
+    lat: 25.1288,
+    lng: 56.3265,
+    aqi: 77,
+    category: 'Moderate',
+    aqiColor: '#fcd34d',
+    pm25: '8',
+    pm10: '17',
+    co: '0.28',
+    o3: '36',
+    no2: '11',
+    so2: '02',
+    co2: '03',
+    ch4: '0.08',
+    h2s: '0.02',
+    nmhc: '1.1',
+    windSpeed: '14',
+    windDirection: '260',
+    windUnit: 'Km/h',
+    windDirText: 'W',
+    windPill: 'Light breeze',
+    temp: '24.20',
+    pressure: '1007',
+    solar: '1600',
+    humidity: '71.5',
+    idealTempText: 'Ideal Temperature',
+    balancedPressureText: 'Balanced Air Pressure',
+    highSolarText: 'High Solar Intensity',
+    humidityNormalText: 'Humidity is normal',
+    chartAqiData: [68, 72, 77, 80, 82, 78, 76, 72, 74, 76, 77, 79, 77],
+    chartConcentrationData: {
+      so2: [22, 25, 27, 29, 31, 28, 26, 23, 24, 25, 26, 28, 27],
+      no2: [32, 35, 37, 39, 41, 38, 36, 33, 34, 35, 36, 38, 37],
+      co: [12, 15, 17, 19, 21, 18, 16, 13, 14, 15, 16, 18, 17],
+      pm10: [42, 45, 47, 49, 51, 48, 46, 43, 44, 45, 46, 48, 47],
+      pm25: [52, 55, 57, 59, 61, 58, 56, 53, 54, 55, 56, 58, 57],
+    },
+    tabular: [
+      { time: '24 Feb 2026 11:30', station: 'Fujairah Stadium', co: '0.28', co2: '03', o3: '36', no2: '11', so2: '02', pm25: '08', pm10: '17', ch4: '0.08', h2s: '02', nmhc: '1.1', temp: '24.20°C', hum: '71.5%', windSpd: '14 Km/h', windDir: '260° W' },
+      { time: '24 Feb 2026 11:35', station: 'Fujairah Stadium', co: '0.3', co2: '04', o3: '38', no2: '13', so2: '03', pm25: '09', pm10: '19', ch4: '0.1', h2s: '03', nmhc: '1.3', temp: '24.40°C', hum: '70.8%', windSpd: '16 Km/h', windDir: '265° W' },
+      { time: '24 Feb 2026 11:40', station: 'Fujairah Stadium', co: '0.4', co2: '05', o3: '40', no2: '14', so2: '04', pm25: '10', pm10: '21', ch4: '0.12', h2s: '04', nmhc: '1.5', temp: '24.60°C', hum: '69.5%', windSpd: '17 Km/h', windDir: '258° W' },
+    ]
+  },
+  'Sakamkam': {
+    name: 'Sakamkam',
+    lat: 25.1050,
+    lng: 56.3450,
+    aqi: 180,
+    category: 'Unhealthy',
+    aqiColor: '#ef4444',
+    pm25: '35',
+    pm10: '58',
+    co: '1.2',
+    o3: '82',
+    no2: '38',
+    so2: '12',
+    co2: '10',
+    ch4: '0.4',
+    h2s: '08',
+    nmhc: '3.5',
+    windSpeed: '32',
+    windDirection: '330',
+    windUnit: 'Km/h',
+    windDirText: 'NW',
+    windPill: 'High wind warning',
+    temp: '28.10',
+    pressure: '998',
+    solar: '1950',
+    humidity: '85.2',
+    idealTempText: 'Extremely Hot',
+    balancedPressureText: 'Severe Low Pressure',
+    highSolarText: 'Extreme UV Danger',
+    humidityNormalText: 'Humidity is extremely high',
+    chartAqiData: [160, 165, 170, 175, 180, 172, 170, 164, 166, 168, 172, 176, 180],
+    chartConcentrationData: {
+      so2: [65, 68, 70, 72, 75, 70, 68, 65, 64, 66, 68, 70, 67],
+      no2: [85, 88, 90, 92, 95, 90, 88, 85, 84, 86, 88, 90, 87],
+      co: [50, 53, 55, 57, 60, 55, 53, 50, 49, 51, 53, 55, 52],
+      pm10: [95, 98, 100, 102, 105, 100, 98, 95, 94, 96, 98, 100, 97],
+      pm25: [105, 108, 110, 112, 115, 110, 108, 105, 104, 106, 108, 110, 107],
+    },
+    tabular: [
+      { time: '24 Feb 2026 11:30', station: 'Sakamkam', co: '1.2', co2: '10', o3: '82', no2: '38', so2: '12', pm25: '35', pm10: '58', ch4: '0.4', h2s: '08', nmhc: '3.5', temp: '28.10°C', hum: '85.2%', windSpd: '32 Km/h', windDir: '330° NW' },
+      { time: '24 Feb 2026 11:35', station: 'Sakamkam', co: '1.3', co2: '11', o3: '85', no2: '40', so2: '13', pm25: '36', pm10: '60', ch4: '0.42', h2s: '09', nmhc: '3.8', temp: '28.30°C', hum: '84.8%', windSpd: '34 Km/h', windDir: '335° NW' },
+      { time: '24 Feb 2026 11:40', station: 'Sakamkam', co: '1.4', co2: '12', o3: '88', no2: '42', so2: '14', pm25: '37', pm10: '62', ch4: '0.45', h2s: '10', nmhc: '4.0', temp: '28.50°C', hum: '83.5%', windSpd: '36 Km/h', windDir: '328° NW' },
+    ]
+  }
+};
+
+const MapController = ({ setMapInstance }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (map) {
+      setMapInstance(map);
+    }
+  }, [map, setMapInstance]);
+  return null;
+};
 
 const LiveData = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeSubMenu, setActiveSubMenu] = useState(null);
+  const [isAqiFlipped, setIsAqiFlipped] = useState(false);
+  const [mapInstance, setMapInstance] = useState(null);
 
-  const [selectedStations, setSelectedStations] = useState(['City Centre']);
-  const [selectedDate, setSelectedDate] = useState('Today');
+  const toggleMapFullscreen = () => {
+    const mapCardEl = document.querySelector('.map-card');
+    if (!mapCardEl) return;
+    
+    if (!document.fullscreenElement) {
+      mapCardEl.requestFullscreen().then(() => {
+        setTimeout(() => {
+          mapInstance?.invalidateSize();
+        }, 150);
+      }).catch(err => {
+        console.error("Error enabling fullscreen:", err);
+      });
+    } else {
+      document.exitFullscreen().then(() => {
+        setTimeout(() => {
+          mapInstance?.invalidateSize();
+        }, 150);
+      });
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setTimeout(() => {
+        mapInstance?.invalidateSize();
+      }, 150);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [mapInstance]);
+
+  const [selectedStations, setSelectedStations] = useState('City Centre');
+  const [selectedDate, setSelectedDate] = useState('Live Data');
   const [selectedView, setSelectedView] = useState('Graph View');
+  
+  // Custom date range states for LiveData page
+  const [startDate, setStartDate] = useState('2026-02-01');
+  const [endDate, setEndDate] = useState('2026-02-24');
+  const [currentPage, setCurrentPage] = useState(3);
+  const [activeAccordionIdx, setActiveAccordionIdx] = useState(null);
 
-  // Concentration parameter multi-select states
+  const currentStation = stationsData[selectedStations] || stationsData['City Centre'];
+
+  const pollutants = [
+    { icon: <img src="/assets/AQMS/pollutants/PM2.5.png" alt="PM2.5" className="p-icon" />, name: 'PM2.5', val: currentStation.pm25, unit: '\u00B5g/m\u00B3', statusColor: currentStation.aqiColor },
+    { icon: <img src="/assets/AQMS/pollutants/PM10.png" alt="PM10" className="p-icon" />, name: 'PM10', val: currentStation.pm10, unit: '\u00B5g/m\u00B3', statusColor: currentStation.aqiColor },
+    { icon: <img src="/assets/AQMS/pollutants/CO.png" alt="CO" className="p-icon" />, name: 'CO', val: currentStation.co, unit: 'ppb', statusColor: '#84cc16' },
+    { icon: <img src="/assets/AQMS/pollutants/o3.png" alt="O3" className="p-icon" />, name: 'O\u2083', val: currentStation.o3, unit: 'ppb', statusColor: currentStation.aqiColor },
+    { icon: <img src="/assets/AQMS/pollutants/No2.png" alt="NO2" className="p-icon" />, name: 'NO\u2082', val: currentStation.no2, unit: 'ppb', statusColor: currentStation.aqiColor },
+    { icon: <img src="/assets/AQMS/pollutants/So2.png" alt="SO2" className="p-icon" />, name: 'SO\u2082', val: currentStation.so2, unit: 'ppb', statusColor: currentStation.aqiColor },
+    { icon: <img src="/assets/AQMS/pollutants/Co2.png" alt="CO2" className="p-icon" />, name: 'CO\u2082', val: currentStation.co2, unit: 'ppm', statusColor: currentStation.aqiColor },
+    { icon: <img src="/assets/AQMS/pollutants/Ch4.png" alt="CH4" className="p-icon" />, name: 'CH\u2084', val: currentStation.ch4, unit: 'ppb', statusColor: currentStation.aqiColor },
+    { icon: <img src="/assets/AQMS/pollutants/H2o.png" alt="H2S" className="p-icon" />, name: 'H\u2082S', val: currentStation.h2s, unit: 'ppm', statusColor: currentStation.aqiColor },
+  ];
+
+  const tabularData = {
+    1: currentStation.tabular,
+    2: currentStation.tabular.map((r, i) => ({
+      ...r,
+      time: r.time.replace('11:', '10:'),
+      co: (parseFloat(r.co) * 0.95).toFixed(2),
+      o3: Math.round(parseFloat(r.o3) * 0.95),
+      pm25: String(Math.round(parseInt(r.pm25) * 0.95)).padStart(2, '0')
+    })),
+    3: currentStation.tabular.map((r, i) => ({
+      ...r,
+      time: r.time.replace('11:', '09:'),
+      co: (parseFloat(r.co) * 0.9).toFixed(2),
+      o3: Math.round(parseFloat(r.o3) * 0.9),
+      pm25: String(Math.round(parseInt(r.pm25) * 0.9)).padStart(2, '0')
+    })),
+    4: currentStation.tabular.map((r, i) => ({
+      ...r,
+      time: r.time.replace('11:', '08:'),
+      co: (parseFloat(r.co) * 1.05).toFixed(2),
+      o3: Math.round(parseFloat(r.o3) * 1.05),
+      pm25: String(Math.round(parseInt(r.pm25) * 1.05)).padStart(2, '0')
+    })),
+    5: currentStation.tabular.map((r, i) => ({
+      ...r,
+      time: r.time.replace('11:', '07:'),
+      co: (parseFloat(r.co) * 1.1).toFixed(2),
+      o3: Math.round(parseFloat(r.o3) * 1.1),
+      pm25: String(Math.round(parseInt(r.pm25) * 1.1)).padStart(2, '0')
+    }))
+  };
+
+  useEffect(() => {
+    if (mapInstance && selectedStations) {
+      const station = stationsData[selectedStations];
+      if (station) {
+        mapInstance.setView([station.lat, station.lng], 12.5, {
+          animate: true,
+          duration: 0.8
+        });
+      }
+    }
+  }, [selectedStations, mapInstance]);
+
   const [selectedParams, setSelectedParams] = useState(['SO2', 'NO2', 'CO', 'PM10', 'PM2.5']);
   const [paramDropdownOpen, setParamDropdownOpen] = useState(false);
+  const [aqiDownloadOpen, setAqiDownloadOpen] = useState(false);
+  const [concDownloadOpen, setConcDownloadOpen] = useState(false);
+  const [expandedChart, setExpandedChart] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const handleDownload = (chartName, format) => {
+    setAqiDownloadOpen(false);
+    setConcDownloadOpen(false);
+    setToastMessage(`Exporting ${chartName} as ${format}...`);
+    setTimeout(() => {
+      setToastMessage(`${chartName} successfully saved as ${format}!`);
+      setTimeout(() => {
+        setToastMessage(null);
+      }, 2000);
+    }, 1200);
+  };
 
   /* ── Highcharts Settings: Last 24hrs Air Quality Index ── */
   const aqiChartOptions = {
@@ -138,7 +578,7 @@ const LiveData = () => {
         return `
           <div style="font-family:'Roboto',sans-serif; text-align:center; padding:2px;">
             <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
-              <span style="width:10px; height:10px; background:#f97316; border-radius:50%; display:inline-block;"></span>
+              <span style="width:10px; height:10px; background:${currentStation.aqiColor}; border-radius:50%; display:inline-block;"></span>
               <strong style="color:#111; font-size:0.875rem;">${this.y} AQI</strong>
               <span style="color:#6b7280; font-size:0.75rem; margin-left:4px;">20 Feb, 2:00PM</span>
             </div>
@@ -150,11 +590,11 @@ const LiveData = () => {
     plotOptions: {
       spline: {
         lineWidth: 3,
-        color: '#f97316',
+        color: currentStation.aqiColor,
         marker: {
           enabled: true,
           radius: 4,
-          fillColor: '#f97316',
+          fillColor: currentStation.aqiColor,
           lineWidth: 2,
           lineColor: '#ffffff'
         },
@@ -163,7 +603,7 @@ const LiveData = () => {
     },
     series: [{
       name: 'AQI Index',
-      data: [150, 160, 120, 130, 180, 170, 90, 45, 90, 90, 85, 95, 78]
+      data: currentStation.chartAqiData
     }]
   };
 
@@ -215,11 +655,11 @@ const LiveData = () => {
       }
     },
     series: [
-      { name: 'SO2',   data: [50, 4, 60, 40, 100, 50, 40, 50, 30, 55, 40, 40], color: '#3b82f6' },
-      { name: 'NO2',   data: [15, 2, 45, 50, 40, 50, 50, 80, 70, 55, 40, 30], color: '#0ea5e9' },
-      { name: 'CO',    data: [110, 80, 120, 95, 130, 85, 115, 70, 125, 90, 105, 80], color: '#0f766e' },
-      { name: 'PM10',  data: [200, 90, 240, 150, 135, 160, 245, 110, 120, 180, 140, 230], color: '#0d9488' },
-      { name: 'PM2.5', data: [40, 25, 90, 40, 35, 60, 45, 30, 110, 50, 70, 45], color: '#06b6d4' }
+      { name: 'SO2',   data: currentStation.chartConcentrationData.so2, color: '#3b82f6' },
+      { name: 'NO2',   data: currentStation.chartConcentrationData.no2, color: '#0ea5e9' },
+      { name: 'CO',    data: currentStation.chartConcentrationData.co, color: '#0f766e' },
+      { name: 'PM10',  data: currentStation.chartConcentrationData.pm10, color: '#0d9488' },
+      { name: 'PM2.5', data: currentStation.chartConcentrationData.pm25, color: '#06b6d4' }
     ].filter(s => selectedParams.includes(s.name))
   };
 
@@ -255,6 +695,35 @@ const LiveData = () => {
             </button>
           </div>
 
+          {/* View Toggle Icons (Graph / Tabular) */}
+          <div className="view-toggle-group">
+            <button
+              className={`view-toggle-btn ${selectedView === 'Graph View' ? 'active' : ''}`}
+              onClick={() => setSelectedView('Graph View')}
+              title="Graph View"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </button>
+            <button
+              className={`view-toggle-btn ${selectedView === 'Tabular View' ? 'active' : ''}`}
+              onClick={() => setSelectedView('Tabular View')}
+              title="Tabular View"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <line x1="3" y1="9" x2="21" y2="9"/>
+                <line x1="3" y1="15" x2="21" y2="15"/>
+                <line x1="9" y1="9" x2="9" y2="21"/>
+                <line x1="15" y1="9" x2="15" y2="21"/>
+              </svg>
+            </button>
+          </div>
+
           {/* Floating filter toggle button & popover wrapper */}
           <div className="filter-popover-anchor-wrapper">
             <button 
@@ -274,7 +743,7 @@ const LiveData = () => {
               <div className="filter-dropdown-popover">
                 <div className="popover-header">{t('filter.title', 'Filter')}</div>
                 
-                {/* Site Location Dropdown (Multi-select) */}
+                {/* Station Dropdown (Single-select with radio buttons) */}
                 <div 
                   className="popover-item site-location-row" 
                   onClick={(e) => {
@@ -283,17 +752,7 @@ const LiveData = () => {
                   }}
                 >
                   <span className="popover-item-label teal-label">
-                    {selectedStations.length === 0 
-                      ? t('filter.select_station', 'Select Station') 
-                      : selectedStations.length === 4 
-                        ? t('filter.all_stations', 'All Stations') 
-                        : selectedStations.map(s => {
-                            if (s === 'City Centre' || s === 'City Center') return t('live.city_centre', 'City Centre');
-                            if (s === 'Mobile Station') return t('live.mobile_station', 'Mobile Station');
-                            if (s === 'Qidfa') return t('live.qidfa', 'Qidfa');
-                            if (s === 'Lafarge CEMS' || s === 'Lafarge Cems') return t('live.lafarge_cems', 'Lafarge Cems');
-                            return s;
-                          }).join(', ')}
+                    {t('filter.station', 'Station')}: <strong style={{ color: '#009fac', marginLeft: '4px' }}>{t(`live.${selectedStations.toLowerCase().replace(' ', '_')}`, selectedStations)}</strong>
                   </span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#009fac" strokeWidth="3" className={`popover-arrow-svg ${activeSubMenu === 'location' ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -301,30 +760,28 @@ const LiveData = () => {
                   
                   {activeSubMenu === 'location' && (
                     <div className="popover-sub-menu" onClick={(e) => e.stopPropagation()}>
-                      {["City Centre", "Mobile Station", "Qidfa", "Lafarge Cems"].map(option => {
-                        const isChecked = selectedStations.includes(option === 'Lafarge Cems' ? 'Lafarge Cems' : option === 'City Centre' ? 'City Centre' : option);
+                      {["City Centre", "Mobile Station", "Qidfa", "Lafarge Cems", "Fujairah Port", "Fujairah Stadium", "Sakamkam"].map(option => {
                         let label = option;
                         if (option === 'City Centre') label = t('live.city_centre', 'City Centre');
                         if (option === 'Mobile Station') label = t('live.mobile_station', 'Mobile Station');
                         if (option === 'Qidfa') label = t('live.qidfa', 'Qidfa');
                         if (option === 'Lafarge Cems') label = t('live.lafarge_cems', 'Lafarge Cems');
+                        if (option === 'Fujairah Port') label = t('live.fujairah_port', 'Fujairah Port');
+                        if (option === 'Fujairah Stadium') label = t('live.fujairah_stadium', 'Fujairah Stadium');
+                        if (option === 'Sakamkam') label = t('live.sakamkam', 'Sakamkam');
                         return (
                           <div 
                             key={option} 
-                            className={`popover-sub-item ${isChecked ? 'active' : ''}`}
+                            className={`popover-sub-item ${selectedStations === option ? 'active' : ''}`}
                             style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                             onClick={() => {
-                              const checkVal = option;
-                              if (isChecked) {
-                                setSelectedStations(selectedStations.filter(s => s !== checkVal));
-                              } else {
-                                setSelectedStations([...selectedStations, checkVal]);
-                              }
+                              setSelectedStations(option);
+                              setActiveSubMenu(null);
                             }}
                           >
                             <input 
-                              type="checkbox" 
-                              checked={isChecked}
+                              type="radio" 
+                              checked={selectedStations === option}
                               onChange={() => {}}
                               style={{ accentColor: '#009fac', cursor: 'pointer' }}
                             />
@@ -336,7 +793,7 @@ const LiveData = () => {
                   )}
                 </div>
 
-                {/* Date Dropdown */}
+                {/* Date Range Dropdown */}
                 <div 
                   className="popover-item date-today-row" 
                   onClick={(e) => {
@@ -344,11 +801,13 @@ const LiveData = () => {
                     setActiveSubMenu(activeSubMenu === 'date' ? null : 'date');
                   }}
                 >
-                  <span className="popover-item-label neutral-label">
-                    {selectedDate === 'Today' ? t('live.today', 'Today') :
-                     selectedDate === 'Daily' ? t('live.daily', 'Daily') :
-                     selectedDate === 'Monthly' ? t('live.monthly', 'Monthly') :
-                     t('live.yearly', 'Yearly')}
+                  <span className="popover-item-label neutral-label" style={{ fontWeight: '800' }}>
+                    {selectedDate === 'Live Data' ? t('live.live_data', 'Live Data') :
+                     selectedDate === 'Last Day' ? t('live.last_day', 'Last Day') :
+                     selectedDate === 'Last Week' ? t('live.last_week', 'Last Week') :
+                     selectedDate === 'Last Month' ? t('live.last_month', 'Last Month') :
+                     selectedDate === 'Last Year' ? t('live.last_year', 'Last Year') :
+                     'Customize'}
                   </span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${activeSubMenu === 'date' ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -356,12 +815,15 @@ const LiveData = () => {
                   
                   {activeSubMenu === 'date' && (
                     <div className="popover-sub-menu">
-                      {["Today", "Daily", "Monthly", "Yearly"].map(option => {
-                        let label = option;
-                        if (option === 'Today') label = t('live.today', 'Today');
-                        if (option === 'Daily') label = t('live.daily', 'Daily');
-                        if (option === 'Monthly') label = t('live.monthly', 'Monthly');
-                        if (option === 'Yearly') label = t('live.yearly', 'Yearly');
+                      {["Live Data", "Last Day", "Last Week", "Last Month", "Last Year", "Customize"].map(option => {
+                        const labels = {
+                          'Live Data': t('live.live_data', 'Live Data'),
+                          'Last Day': t('live.last_day', 'Last Day'),
+                          'Last Week': t('live.last_week', 'Last Week'),
+                          'Last Month': t('live.last_month', 'Last Month'),
+                          'Last Year': t('live.last_year', 'Last Year'),
+                          'Customize': 'Customize',
+                        };
                         return (
                           <div 
                             key={option} 
@@ -369,17 +831,43 @@ const LiveData = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedDate(option);
-                              setActiveSubMenu(null);
-                              setFiltersOpen(false);
+                              if (option !== 'Customize') {
+                                setActiveSubMenu(null);
+                                setFiltersOpen(false);
+                              }
                             }}
                           >
-                            {label}
+                            {labels[option]}
                           </div>
                         );
                       })}
                     </div>
                   )}
                 </div>
+
+                {/* If selectedDate is 'Customize', render start/end date inputs beautifully inside the popover! */}
+                {selectedDate === 'Customize' && (
+                  <div className="custom-date-inputs-container" onClick={(e) => e.stopPropagation()}>
+                    <div className="date-input-field">
+                      <label>Start Date</label>
+                      <input 
+                        type="date" 
+                        value={startDate} 
+                        onChange={(e) => setStartDate(e.target.value)} 
+                        className="custom-date-picker"
+                      />
+                    </div>
+                    <div className="date-input-field">
+                      <label>End Date</label>
+                      <input 
+                        type="date" 
+                        value={endDate} 
+                        onChange={(e) => setEndDate(e.target.value)} 
+                        className="custom-date-picker"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Parameter Dropdown (Multi-select) */}
                 <div 
@@ -389,12 +877,8 @@ const LiveData = () => {
                     setActiveSubMenu(activeSubMenu === 'parameter' ? null : 'parameter');
                   }}
                 >
-                  <span className="popover-item-label neutral-label">
-                    {selectedParams.length === 0 
-                      ? 'Select Parameter' 
-                      : selectedParams.length === 5 
-                        ? 'All Parameters' 
-                        : selectedParams.join(', ')}
+                  <span className="popover-item-label neutral-label" style={{ fontWeight: '800' }}>
+                    {`Parameters (${selectedParams.length})`}
                   </span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${activeSubMenu === 'parameter' ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -431,101 +915,146 @@ const LiveData = () => {
                   )}
                 </div>
 
-                {/* View Type Dropdown */}
-                <div 
-                  className="popover-item view-tabular-row" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveSubMenu(activeSubMenu === 'view' ? null : 'view');
-                  }}
-                >
-                  <span className="popover-item-label neutral-label">
-                    {selectedView === 'Graph View' ? t('live.graph_view', 'Graph View') : t('live.tabular_view', 'Tabular View')}
-                  </span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${activeSubMenu === 'view' ? 'open' : ''}`}>
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                  
-                  {activeSubMenu === 'view' && (
-                    <div className="popover-sub-menu">
-                      {["Graph View", "Tabular View"].map(option => {
-                        let label = option;
-                        if (option === 'Graph View') label = t('live.graph_view', 'Graph View');
-                        if (option === 'Tabular View') label = t('live.tabular_view', 'Tabular View');
-                        return (
-                          <div 
-                            key={option} 
-                            className={`popover-sub-item ${selectedView === option ? 'active' : ''}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedView(option);
-                              setActiveSubMenu(null);
-                              setFiltersOpen(false);
-                            }}
-                          >
-                            {label}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {selectedView === 'Tabular View' ? (
+      <div className="aqms-live-data-scroll-body">
+        {selectedView === 'Tabular View' ? (
         <div className="tabular-form-container">
           <div className="tabular-card">
-            <table className="tabular-table">
-              <thead>
-                <tr>
-                  <th>
-                    Date and Time 
-                    <span className="sort-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </span>
-                  </th>
-                  <th>
-                    Station Name 
-                    <span className="sort-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </span>
-                  </th>
-                  <th>
-                    Parameter 
-                    <span className="sort-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>24 Feb 2026 11:30:42</td><td>City Center</td><td>SO2, H2S</td></tr>
-                <tr><td>24 Feb 2026 11:30:42</td><td>City Center</td><td>H2S</td></tr>
-                <tr><td>24 Feb 2026 11:30:42</td><td>City Center</td><td>NO2</td></tr>
-                <tr><td>24 Feb 2026 11:30:42</td><td>City Center</td><td>CO</td></tr>
-                <tr><td>24 Feb 2026 11:30:42</td><td>City Center</td><td>O3</td></tr>
-                <tr><td>24 Feb 2026 11:30:42</td><td>City Center</td><td>PM2.5</td></tr>
-                <tr><td>24 Feb 2026 11:30:42</td><td>City Center</td><td>PM10</td></tr>
-                <tr><td>24 Feb 2026 11:30:42</td><td>City Center</td><td>CH4</td></tr>
-                <tr><td>24 Feb 2026 11:30:42</td><td>City Center</td><td>NMHC</td></tr>
-              </tbody>
-            </table>
+            {/* Mobile View: Responsive Accordion Cards */}
+            <div className="tabular-mobile-accordion-list">
+              {(tabularData[currentPage] || []).map((row, idx) => {
+                const isExpanded = activeAccordionIdx === idx;
+                return (
+                  <div 
+                    key={idx} 
+                    className={`tabular-accordion-card ${isExpanded ? 'expanded' : ''}`}
+                    onClick={() => setActiveAccordionIdx(isExpanded ? null : idx)}
+                  >
+                    {/* Collapsed Header */}
+                    <div className="accordion-card-header">
+                      <div className="header-main-info">
+                        <div className="station-row">
+                          <span className="station-name">{row.station}</span>
+                          <span className="record-time">{row.time}</span>
+                        </div>
+                        <div className="aqi-row">
+                          <span className="aqi-status-badge" style={{ backgroundColor: currentStation.aqiColor + '20', color: currentStation.aqiColor, border: `1px solid ${currentStation.aqiColor}40` }}>
+                            {currentStation.category}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="header-aqi-indicator">
+                        <div className="aqi-stat-col">
+                          <span className="aqi-label">AQI</span>
+                          <span className="aqi-value" style={{ color: currentStation.aqiColor }}>{currentStation.aqi}</span>
+                        </div>
+                        <svg className={`accordion-chevron ${isExpanded ? 'open' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                      </div>
+                    </div>
+                    
+                    {/* Expanded Content Details */}
+                    <div className={`accordion-card-details ${isExpanded ? 'open' : ''}`}>
+                      <div className="details-grid">
+                        <div className="detail-item"><span className="detail-label">CO</span><span className="detail-value">{row.co} ppb</span></div>
+                        <div className="detail-item"><span className="detail-label">CO₂</span><span className="detail-value">{row.co2} ppm</span></div>
+                        <div className="detail-item"><span className="detail-label">O₃</span><span className="detail-value">{row.o3} ppb</span></div>
+                        <div className="detail-item"><span className="detail-label">NO₂</span><span className="detail-value">{row.no2} ppb</span></div>
+                        <div className="detail-item"><span className="detail-label">SO₂</span><span className="detail-value">{row.so2} ppb</span></div>
+                        <div className="detail-item"><span className="detail-label">PM2.5</span><span className="detail-value">{row.pm25} µg/m³</span></div>
+                        <div className="detail-item"><span className="detail-label">PM10</span><span className="detail-value">{row.pm10} µg/m³</span></div>
+                        <div className="detail-item"><span className="detail-label">CH₄</span><span className="detail-value">{row.ch4} ppb</span></div>
+                        <div className="detail-item"><span className="detail-label">H₂S</span><span className="detail-value">{row.h2s} ppm</span></div>
+                        <div className="detail-item"><span className="detail-label">NMHC</span><span className="detail-value">{row.nmhc} ppm</span></div>
+                        <div className="detail-item"><span className="detail-label">Temperature</span><span className="detail-value">{row.temp}</span></div>
+                        <div className="detail-item"><span className="detail-label">Humidity</span><span className="detail-value">{row.hum}</span></div>
+                        <div className="detail-item"><span className="detail-label">Wind Speed</span><span className="detail-value">{row.windSpd}</span></div>
+                        <div className="detail-item"><span className="detail-label">Wind Direction</span><span className="detail-value">{row.windDir}</span></div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="tabular-table-scroll-wrapper">
+              <table className="tabular-table">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Station Name</th>
+                    <th>CO</th>
+                    <th>CO2</th>
+                    <th>O3</th>
+                    <th>NO2</th>
+                    <th>SO2</th>
+                    <th>PM2.5</th>
+                    <th>PM10</th>
+                    <th>CH4</th>
+                    <th>H2S</th>
+                    <th>NMHC</th>
+                    <th>Temperature</th>
+                    <th>Humidity</th>
+                    <th>Wind Speed</th>
+                    <th>Wind Direction</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(tabularData[currentPage] || []).map((row, idx) => (
+                    <tr key={idx}>
+                      <td>{row.time}</td>
+                      <td>{row.station}</td>
+                      <td>{row.co}</td>
+                      <td>{row.co2}</td>
+                      <td>{row.o3}</td>
+                      <td>{row.no2}</td>
+                      <td>{row.so2}</td>
+                      <td>{row.pm25}</td>
+                      <td>{row.pm10}</td>
+                      <td>{row.ch4}</td>
+                      <td>{row.h2s}</td>
+                      <td>{row.nmhc}</td>
+                      <td>{row.temp}</td>
+                      <td>{row.hum}</td>
+                      <td>{row.windSpd}</td>
+                      <td>{row.windDir}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             
             <div className="tabular-pagination-container">
-              <button className="tab-page-btn">&lt;</button>
-              <button className="tab-page-btn">1</button>
-              <button className="tab-page-btn">2</button>
-              <button className="tab-page-btn active">3</button>
-              <button className="tab-page-btn">4</button>
-              <button className="tab-page-btn">5</button>
-              <button className="tab-page-btn">&gt;</button>
+              <button 
+                className="tab-page-btn"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              >
+                &lt;
+              </button>
+              {[1, 2, 3, 4, 5].map(pageNum => (
+                <button 
+                  key={pageNum}
+                  className={`tab-page-btn ${currentPage === pageNum ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              ))}
+              <button 
+                className="tab-page-btn"
+                disabled={currentPage === 5}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, 5))}
+              >
+                &gt;
+              </button>
             </div>
           </div>
         </div>
@@ -534,32 +1063,107 @@ const LiveData = () => {
           {/* ── TOP GRID: AQI + Pollutants ──────────────────── */}
           <div className="top-grid">
         {/* AQI Card */}
-        <div className="aqi-card">
-          <div className="aqi-pill">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="pin-icon">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3" fill="currentColor"/>
-            </svg>
-            {t('live.city_centre')}
-          </div>
+        <div 
+          className={`aqi-card${isAqiFlipped ? ' aqi-card-flipped-container' : ''}`} 
+          style={{ 
+            border: '1px solid #FFF', 
+            boxShadow: '0 4px 34px 0 rgba(0, 0, 0, 0.21)' 
+          }}
+        >
+          {isAqiFlipped ? (
+            /* ── FLIPPED: About Station ─── */
+            <div className="about-station-card">
+              <div className="about-station-header">
+                <span className="about-station-title">About Station</span>
+                <button
+                  className="aqi-flip-btn about-station-flip-btn"
+                  title="Flip back"
+                  onClick={() => setIsAqiFlipped(false)}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 4v6h6M23 20v-6h-6"/>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                  </svg>
+                </button>
+              </div>
 
-          {/* Refresh button */}
-          <button className="aqi-refresh-circle-btn" title="Refresh AQI data">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
-              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-3.7M22 12.5a10 10 0 0 1-18.8 3.7"/>
-            </svg>
-          </button>
+              <div className="about-station-body">
+                {/* Station image */}
+                <div className="about-station-img-wrap">
+                  <img
+                    src="/assets/AQMS/station-city-centre.jpg"
+                    alt="Station Illustration"
+                    className="about-station-img"
+                    onError={e => { e.target.style.background='#c8e6ea'; e.target.removeAttribute('src'); }}
+                  />
+                  <div className="about-station-img-label">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '4px' }}>
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                      <circle cx="12" cy="10" r="3" fill="currentColor"/>
+                    </svg>
+                    {t(`live.${selectedStations.toLowerCase().replace(' ', '_')}`, selectedStations)}
+                  </div>
+                </div>
 
-          <div className="aqi-info">
-            <div className="aqi-label">{t('live.aqi_index')}</div>
-            <div className="aqi-value">78</div>
-          </div>
-          <div className="aqi-footer">
-            <div className="status-badge">{t('live.moderate')}</div>
-            <div className="live-indicator">
-              <div className="dot animate-pulse"></div> {t('live.live_aqi')}
+                {/* Parameters */}
+                <div className="about-station-params">
+                  <div className="about-param-block">
+                    <div className="about-param-title">AQ Parameters:</div>
+                    <div className="about-param-text">
+                      PM10, PM2.5, NO₂, SO₂, H₂S, Total Hydrocarbons (THC), CO, Benzene, Toluene, Ethylbenzene, and Xylene.
+                    </div>
+                  </div>
+                  <div className="about-param-block">
+                    <div className="about-param-title">Met Parameters:</div>
+                    <div className="about-param-text">
+                      Wind Speed, Wind Direction, Net Radiation, Relative Humidity, Temperature, Atmospheric Pressure
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* ── DEFAULT: AQI View ─── */
+            <>
+              <div className="aqi-pill">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="pin-icon">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3" fill="currentColor"/>
+                </svg>
+                {t(`live.${selectedStations.toLowerCase().replace(' ', '_')}`, selectedStations)}
+              </div>
+
+              <button
+                className="aqi-flip-btn"
+                title="Flip card"
+                onClick={() => setIsAqiFlipped(true)}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 4v6h6M23 20v-6h-6"/>
+                  <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                </svg>
+              </button>
+
+              <div className="aqi-info">
+                <div className="aqi-label">{t('live.aqi_index')}</div>
+                <div className="aqi-value" style={{ color: currentStation.aqiColor }}>{currentStation.aqi}</div>
+              </div>
+              <div className="aqi-footer">
+                <div 
+                  className="status-badge" 
+                  style={{ 
+                    backgroundColor: currentStation.aqiColor, 
+                    color: currentStation.aqiColor === '#fcd34d' ? '#854d0e' : '#fff'
+                  }}
+                >
+                  {t(`live.${currentStation.category.toLowerCase().replace(/ /g, '_')}`, currentStation.category)}
+                </div>
+                <div className="live-indicator">
+                  <div className="dot animate-pulse"></div> {t('live.live_aqi')}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Pollutants Card */}
@@ -589,19 +1193,21 @@ const LiveData = () => {
           {/* Windmills background */}
           <img className="turbines-bg" src="/assets/AQMS/icons/widnspeed.png" alt="Windmills" />
 
-          <div className="wind-section" style={{ zIndex: 1, position: 'relative' }}>
-            <div className="wind-label">{t('live.wind_speed')}</div>
-            <div className="wind-val">16 <span className="wind-unit">Km/h</span></div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, zIndex: 1, position: 'relative' }}>
+            <div className="wind-section">
+              <div className="wind-label">{t('live.wind_speed')}</div>
+              <div className="wind-val">{currentStation.windSpeed} <span className="wind-unit">{currentStation.windUnit}</span></div>
+            </div>
+
+            <div className="wind-divider" />
+
+            <div className="wind-section">
+              <div className="wind-label">{t('live.wind_direction')}</div>
+              <div className="wind-val">{currentStation.windDirection}{'\u00BA'} <span className="wind-unit">{currentStation.windDirText}</span></div>
+            </div>
           </div>
 
-          <div className="wind-divider" style={{ zIndex: 1, position: 'relative' }} />
-
-          <div className="wind-section" style={{ zIndex: 1, position: 'relative' }}>
-            <div className="wind-label">{t('live.wind_direction')}</div>
-            <div className="wind-val">267{'\u00BA'} <span className="wind-unit">w</span></div>
-          </div>
-
-          <div className="wind-pill" style={{ zIndex: 1, position: 'relative' }}>{t('live.light_breeze')}</div>
+          <div className="wind-pill" style={{ zIndex: 1, position: 'relative' }}>{t(`live.${currentStation.windPill.toLowerCase().replace(/ /g, '_')}`, currentStation.windPill)}</div>
         </div>
 
         {/* Environmental Grid (2x2) */}
@@ -611,8 +1217,8 @@ const LiveData = () => {
             <div className="env-card-title">{t('live.temperature')}</div>
             <div className="env-card-content">
               <div className="env-card-info">
-                <div className="env-card-value">24.59<span className="env-card-unit">{'\u00BAC'}</span></div>
-                <div className="env-card-desc">{t('live.ideal_temp')}</div>
+                <div className="env-card-value">{currentStation.temp}<span className="env-card-unit">{'\u00BAC'}</span></div>
+                <div className="env-card-desc">{t(`live.${currentStation.idealTempText.toLowerCase().replace(/ /g, '_')}`, currentStation.idealTempText)}</div>
               </div>
               <img className="env-card-3d-icon" src="/assets/AQMS/icons/Temperature.png" alt="Temperature" />
             </div>
@@ -623,8 +1229,8 @@ const LiveData = () => {
             <div className="env-card-title">{t('live.atmospheric_pressure')}</div>
             <div className="env-card-content">
               <div className="env-card-info">
-                <div className="env-card-value">1008<span className="env-card-unit">mbar</span></div>
-                <div className="env-card-desc">{t('live.balanced_pressure')}</div>
+                <div className="env-card-value">{currentStation.pressure}<span className="env-card-unit">mbar</span></div>
+                <div className="env-card-desc">{t(`live.${currentStation.balancedPressureText.toLowerCase().replace(/ /g, '_')}`, currentStation.balancedPressureText)}</div>
               </div>
               <img className="env-card-3d-icon" src="/assets/AQMS/icons/Atmospheric.png" alt="Atmospheric Pressure" />
             </div>
@@ -635,8 +1241,8 @@ const LiveData = () => {
             <div className="env-card-title">{t('live.solar_radiation')}</div>
             <div className="env-card-content">
               <div className="env-card-info">
-                <div className="env-card-value">1632<span className="env-card-unit">w/m{'\u00B2'}</span></div>
-                <div className="env-card-desc">{t('live.high_solar')}</div>
+                <div className="env-card-value">{currentStation.solar}<span className="env-card-unit">w/m{'\u00B2'}</span></div>
+                <div className="env-card-desc">{t(`live.${currentStation.highSolarText.toLowerCase().replace(/ /g, '_')}`, currentStation.highSolarText)}</div>
               </div>
               <img className="env-card-3d-icon" src="/assets/AQMS/icons/Solar.png" alt="Solar Radiation" />
             </div>
@@ -647,8 +1253,8 @@ const LiveData = () => {
             <div className="env-card-title">{t('live.relative_humidity')}</div>
             <div className="env-card-content">
               <div className="env-card-info">
-                <div className="env-card-value">72.2<span className="env-card-unit">%</span></div>
-                <div className="env-card-desc">{t('live.humidity_normal')}</div>
+                <div className="env-card-value">{currentStation.humidity}<span className="env-card-unit">%</span></div>
+                <div className="env-card-desc">{t(`live.${currentStation.humidityNormalText.toLowerCase().replace(/ /g, '_')}`, currentStation.humidityNormalText)}</div>
               </div>
               <img className="env-card-3d-icon" src="/assets/AQMS/icons/Humidity.png" alt="Relative Humidity" />
             </div>
@@ -667,29 +1273,55 @@ const LiveData = () => {
               url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               attribution="&copy; CARTO"
             />
-            {/* Markers styled matching the reference precisely */}
-            <Marker position={[25.1288, 56.3265]} icon={createCustomIcon('77', '#fcd34d')}>
-              <Tooltip permanent direction="top" offset={[0, -10]} className="custom-map-tooltip-styled">
-                Fujairah Stadium
-              </Tooltip>
-            </Marker>
-            <Marker position={[25.1450, 56.3400]} icon={createCustomIcon('45', '#84cc16')} />
-            <Marker position={[25.1100, 56.3300]} icon={createCustomIcon('120', '#f97316')} />
-            <Marker position={[25.1350, 56.3050]} icon={createCustomIcon('45', '#84cc16')} />
-            <Marker position={[25.1200, 56.3550]} icon={createCustomIcon('150', '#ef4444')} />
-            <Marker position={[25.1050, 56.3450]} icon={createCustomIcon('180', '#ef4444')} />
-            <Marker position={[25.1150, 56.3150]} icon={createCustomIcon('120', '#f97316')} />
+            {Object.values(stationsData).map(station => {
+              const isSelected = selectedStations === station.name;
+              return (
+                <Marker 
+                  key={station.name}
+                  position={[station.lat, station.lng]} 
+                  icon={createCustomIcon(String(station.aqi), station.aqiColor, isSelected)}
+                  eventHandlers={{
+                    click: () => {
+                      setSelectedStations(station.name);
+                    }
+                  }}
+                >
+                  <Tooltip permanent direction="top" offset={[0, -10]} className={`custom-map-tooltip-styled ${isSelected ? 'tooltip-selected' : ''}`}>
+                    {t(`live.${station.name.toLowerCase().replace(/ /g, '_')}`, station.name)}
+                  </Tooltip>
+                </Marker>
+              );
+            })}
+            <MapController setMapInstance={setMapInstance} />
           </MapContainer>
 
           {/* Floating controls */}
           <div className="map-controls">
-            <button className="map-btn" title="Fullscreen">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <button 
+              className="map-btn" 
+              title="Expand" 
+              onClick={toggleMapFullscreen}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
               </svg>
             </button>
-            <button className="map-btn" title="Zoom In" style={{ fontSize: '1.2rem', fontWeight: '700' }}>+</button>
-            <button className="map-btn" title="Zoom Out" style={{ fontSize: '1.2rem', fontWeight: '700' }}>−</button>
+            <button 
+              className="map-btn" 
+              title="Zoom In" 
+              style={{ fontSize: '1.25rem', fontWeight: '700', paddingBottom: '2px' }}
+              onClick={() => mapInstance?.zoomIn()}
+            >
+              +
+            </button>
+            <button 
+              className="map-btn" 
+              title="Zoom Out" 
+              style={{ fontSize: '1.25rem', fontWeight: '700', paddingBottom: '3px' }}
+              onClick={() => mapInstance?.zoomOut()}
+            >
+              −
+            </button>
           </div>
 
           <div className="map-floating-fujairah-title">
@@ -705,17 +1337,42 @@ const LiveData = () => {
           <div className="chart-panel-header">
             <h3 className="chart-panel-title">Last 24hrs Air Quality Index</h3>
             
-            <button className="chart-download-dropdown-btn">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{marginRight: '6px'}}>
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Download
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{marginLeft: '6px'}}>
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </button>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div style={{ position: 'relative' }}>
+                <button 
+                  className="chart-download-dropdown-btn"
+                  onClick={() => setAqiDownloadOpen(!aqiDownloadOpen)}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{marginRight: '6px'}}>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Download
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{marginLeft: '6px'}} className={aqiDownloadOpen ? 'open' : ''}>
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+                
+                {aqiDownloadOpen && (
+                  <div className="reports-sub-dropdown-menu" style={{ right: 0, left: 'auto', minWidth: '130px', top: 'calc(100% + 4px)' }}>
+                    <div className="reports-sub-dropdown-item" onClick={() => handleDownload('Last 24hrs Air Quality Index', 'Export')}>Export</div>
+                    <div className="reports-sub-dropdown-item" onClick={() => handleDownload('Last 24hrs Air Quality Index', 'PDF')}>PDF</div>
+                    <div className="reports-sub-dropdown-item" onClick={() => handleDownload('Last 24hrs Air Quality Index', 'Word')}>Word</div>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                className="chart-expand-icon-btn" 
+                onClick={() => setExpandedChart('aqi')}
+                title="Expand Graph"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div className="chart-container-wrapper">
@@ -789,15 +1446,38 @@ const LiveData = () => {
                 )}
               </div>
               
-              <button className="chart-download-dropdown-btn">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{marginRight: '6px'}}>
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Download
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{marginLeft: '6px'}}>
-                  <polyline points="6 9 12 15 18 9"/>
+              <div style={{ position: 'relative' }}>
+                <button 
+                  className="chart-download-dropdown-btn"
+                  onClick={() => setConcDownloadOpen(!concDownloadOpen)}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{marginRight: '6px'}}>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Download
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{marginLeft: '6px'}} className={concDownloadOpen ? 'open' : ''}>
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+                
+                {concDownloadOpen && (
+                  <div className="reports-sub-dropdown-menu" style={{ right: 0, left: 'auto', minWidth: '130px', top: 'calc(100% + 4px)' }}>
+                    <div className="reports-sub-dropdown-item" onClick={() => handleDownload('Last 24hrs Concentration', 'Export')}>Export</div>
+                    <div className="reports-sub-dropdown-item" onClick={() => handleDownload('Last 24hrs Concentration', 'PDF')}>PDF</div>
+                    <div className="reports-sub-dropdown-item" onClick={() => handleDownload('Last 24hrs Concentration', 'Word')}>Word</div>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                className="chart-expand-icon-btn" 
+                onClick={() => setExpandedChart('conc')}
+                title="Expand Graph"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                 </svg>
               </button>
             </div>
@@ -823,6 +1503,79 @@ const LiveData = () => {
       </div>
         </>
       )}
+      {expandedChart && (
+        <div className="chart-expand-modal-overlay" onClick={() => setExpandedChart(null)}>
+          <div className="chart-expand-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="chart-expand-modal-header">
+              <h2>{expandedChart === 'aqi' ? 'Last 24hrs Air Quality Index' : 'Last 24hrs Concentration'}</h2>
+              <button className="chart-expand-modal-close" onClick={() => setExpandedChart(null)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div className="chart-expand-modal-body" style={{ display: 'flex', flexDirection: 'column', height: 'auto' }}>
+              <div style={{ flex: 1, minHeight: '380px' }}>
+                <HighchartsReactComponent
+                  highcharts={Highcharts}
+                  options={
+                    expandedChart === 'aqi' 
+                      ? { 
+                          ...aqiChartOptions, 
+                          chart: { 
+                            ...aqiChartOptions.chart, 
+                            height: 380,
+                            spacing: [15, 15, 45, 15]
+                          } 
+                        }
+                      : { 
+                          ...concChartOptions, 
+                          chart: { 
+                            ...concChartOptions.chart, 
+                            height: 380,
+                            spacing: [15, 15, 45, 15]
+                          } 
+                        }
+                  }
+                  containerProps={{ style: { height: '100%', width: '100%' } }}
+                />
+              </div>
+              
+              {expandedChart === 'aqi' ? (
+                <div className="chart-legend-container aqi-legend" style={{ marginTop: '16px', background: 'rgba(0,0,0,0.03)', padding: '10px 16px', borderRadius: '12px', justifyContent: 'center' }}>
+                  <div className="legend-item"><span className="legend-box" style={{background: '#84cc16'}}></span>Good</div>
+                  <div className="legend-item"><span className="legend-box" style={{background: '#fcd34d'}}></span>Moderate</div>
+                  <div className="legend-item"><span className="legend-box" style={{background: '#f97316'}}></span>Unhealthy for Sensitive Groups</div>
+                  <div className="legend-item"><span className="legend-box" style={{background: '#ef4444'}}></span>Unhealthy</div>
+                  <div className="legend-item"><span className="legend-box" style={{background: '#a855f7'}}></span>Very Unhealthy</div>
+                  <div className="legend-item"><span className="legend-box" style={{background: '#7f1d1d'}}></span>Hazardous</div>
+                </div>
+              ) : (
+                <div className="chart-legend-container conc-legend" style={{ marginTop: '16px', background: 'rgba(0,0,0,0.03)', padding: '10px 16px', borderRadius: '12px', justifyContent: 'center' }}>
+                  {selectedParams.includes('SO2') && <div className="legend-item"><span className="legend-box" style={{background: '#3b82f6'}}></span>SO2</div>}
+                  {selectedParams.includes('NO2') && <div className="legend-item"><span className="legend-box" style={{background: '#0ea5e9'}}></span>NO2</div>}
+                  {selectedParams.includes('CO') && <div className="legend-item"><span className="legend-box" style={{background: '#0f766e'}}></span>CO</div>}
+                  {selectedParams.includes('PM10') && <div className="legend-item"><span className="legend-box" style={{background: '#0d9488'}}></span>PM10</div>}
+                  {selectedParams.includes('PM2.5') && <div className="legend-item"><span className="legend-box" style={{background: '#06b6d4'}}></span>PM2.5</div>}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toastMessage && (
+        <div className="custom-toast-notification">
+          <div className="custom-toast-content">
+            <svg className="custom-toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span>{toastMessage}</span>
+          </div>
+        </div>
+      )}
+      </div>
     </div>
   );
 };
