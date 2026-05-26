@@ -448,6 +448,10 @@ const LiveData = () => {
   const [selectedStations, setSelectedStations] = useState('City Centre');
   const [selectedDate, setSelectedDate] = useState('Live Data');
   const [selectedView, setSelectedView] = useState('Graph View');
+  
+  // Custom date range states for LiveData page
+  const [startDate, setStartDate] = useState('2026-02-01');
+  const [endDate, setEndDate] = useState('2026-02-24');
   const [currentPage, setCurrentPage] = useState(3);
   const [activeAccordionIdx, setActiveAccordionIdx] = useState(null);
 
@@ -797,8 +801,13 @@ const LiveData = () => {
                     setActiveSubMenu(activeSubMenu === 'date' ? null : 'date');
                   }}
                 >
-                  <span className="popover-item-label neutral-label">
-                    {t('live.today', 'Today')}
+                  <span className="popover-item-label neutral-label" style={{ fontWeight: '800' }}>
+                    {selectedDate === 'Live Data' ? t('live.live_data', 'Live Data') :
+                     selectedDate === 'Last Day' ? t('live.last_day', 'Last Day') :
+                     selectedDate === 'Last Week' ? t('live.last_week', 'Last Week') :
+                     selectedDate === 'Last Month' ? t('live.last_month', 'Last Month') :
+                     selectedDate === 'Last Year' ? t('live.last_year', 'Last Year') :
+                     'Customize'}
                   </span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${activeSubMenu === 'date' ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -806,13 +815,14 @@ const LiveData = () => {
                   
                   {activeSubMenu === 'date' && (
                     <div className="popover-sub-menu">
-                      {["Live Data", "Last Day", "Last Week", "Last Month", "Last Year"].map(option => {
+                      {["Live Data", "Last Day", "Last Week", "Last Month", "Last Year", "Customize"].map(option => {
                         const labels = {
                           'Live Data': t('live.live_data', 'Live Data'),
                           'Last Day': t('live.last_day', 'Last Day'),
                           'Last Week': t('live.last_week', 'Last Week'),
                           'Last Month': t('live.last_month', 'Last Month'),
                           'Last Year': t('live.last_year', 'Last Year'),
+                          'Customize': 'Customize',
                         };
                         return (
                           <div 
@@ -821,8 +831,10 @@ const LiveData = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedDate(option);
-                              setActiveSubMenu(null);
-                              setFiltersOpen(false);
+                              if (option !== 'Customize') {
+                                setActiveSubMenu(null);
+                                setFiltersOpen(false);
+                              }
                             }}
                           >
                             {labels[option]}
@@ -833,6 +845,30 @@ const LiveData = () => {
                   )}
                 </div>
 
+                {/* If selectedDate is 'Customize', render start/end date inputs beautifully inside the popover! */}
+                {selectedDate === 'Customize' && (
+                  <div className="custom-date-inputs-container" onClick={(e) => e.stopPropagation()}>
+                    <div className="date-input-field">
+                      <label>Start Date</label>
+                      <input 
+                        type="date" 
+                        value={startDate} 
+                        onChange={(e) => setStartDate(e.target.value)} 
+                        className="custom-date-picker"
+                      />
+                    </div>
+                    <div className="date-input-field">
+                      <label>End Date</label>
+                      <input 
+                        type="date" 
+                        value={endDate} 
+                        onChange={(e) => setEndDate(e.target.value)} 
+                        className="custom-date-picker"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Parameter Dropdown (Multi-select) */}
                 <div 
                   className="popover-item parameter-row" 
@@ -841,12 +877,8 @@ const LiveData = () => {
                     setActiveSubMenu(activeSubMenu === 'parameter' ? null : 'parameter');
                   }}
                 >
-                  <span className="popover-item-label neutral-label">
-                    {selectedParams.length === 0 
-                      ? 'Select Parameter' 
-                      : selectedParams.length === 5 
-                        ? 'All Parameters' 
-                        : selectedParams.join(', ')}
+                  <span className="popover-item-label neutral-label" style={{ fontWeight: '800' }}>
+                    {`Parameters (${selectedParams.length})`}
                   </span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${activeSubMenu === 'parameter' ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -952,50 +984,52 @@ const LiveData = () => {
               })}
             </div>
 
-            <table className="tabular-table">
-              <thead>
-                <tr>
-                  <th>Date & Time</th>
-                  <th>Station Name</th>
-                  <th>CO</th>
-                  <th>CO2</th>
-                  <th>O3</th>
-                  <th>NO2</th>
-                  <th>SO2</th>
-                  <th>PM2.5</th>
-                  <th>PM10</th>
-                  <th>CH4</th>
-                  <th>H2S</th>
-                  <th>NMHC</th>
-                  <th>Temperature</th>
-                  <th>Humidity</th>
-                  <th>Wind Speed</th>
-                  <th>Wind Direction</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(tabularData[currentPage] || []).map((row, idx) => (
-                  <tr key={idx}>
-                    <td>{row.time}</td>
-                    <td>{row.station}</td>
-                    <td>{row.co}</td>
-                    <td>{row.co2}</td>
-                    <td>{row.o3}</td>
-                    <td>{row.no2}</td>
-                    <td>{row.so2}</td>
-                    <td>{row.pm25}</td>
-                    <td>{row.pm10}</td>
-                    <td>{row.ch4}</td>
-                    <td>{row.h2s}</td>
-                    <td>{row.nmhc}</td>
-                    <td>{row.temp}</td>
-                    <td>{row.hum}</td>
-                    <td>{row.windSpd}</td>
-                    <td>{row.windDir}</td>
+            <div className="tabular-table-scroll-wrapper">
+              <table className="tabular-table">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Station Name</th>
+                    <th>CO</th>
+                    <th>CO2</th>
+                    <th>O3</th>
+                    <th>NO2</th>
+                    <th>SO2</th>
+                    <th>PM2.5</th>
+                    <th>PM10</th>
+                    <th>CH4</th>
+                    <th>H2S</th>
+                    <th>NMHC</th>
+                    <th>Temperature</th>
+                    <th>Humidity</th>
+                    <th>Wind Speed</th>
+                    <th>Wind Direction</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {(tabularData[currentPage] || []).map((row, idx) => (
+                    <tr key={idx}>
+                      <td>{row.time}</td>
+                      <td>{row.station}</td>
+                      <td>{row.co}</td>
+                      <td>{row.co2}</td>
+                      <td>{row.o3}</td>
+                      <td>{row.no2}</td>
+                      <td>{row.so2}</td>
+                      <td>{row.pm25}</td>
+                      <td>{row.pm10}</td>
+                      <td>{row.ch4}</td>
+                      <td>{row.h2s}</td>
+                      <td>{row.nmhc}</td>
+                      <td>{row.temp}</td>
+                      <td>{row.hum}</td>
+                      <td>{row.windSpd}</td>
+                      <td>{row.windDir}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             
             <div className="tabular-pagination-container">
               <button 

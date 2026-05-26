@@ -123,6 +123,12 @@ const Layout = ({ children }) => {
             />
           </div>
 
+          {/* Centered Dashboard Title inside the header on desktop */}
+          <div className="nav-title-header-container">
+            <span className={`nav-title-text ${lang === 'ar' ? 'ar-title' : ''}`}>
+              {t('nav.dashboard_title', 'Air Quality Monitoring Dashboard')}
+            </span>
+          </div>
 
           {/* Right: User + CTA */}
           <div className="nav-right">

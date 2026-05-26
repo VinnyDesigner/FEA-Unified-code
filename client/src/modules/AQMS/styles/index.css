@@ -112,7 +112,7 @@ body.aqms-menu-open {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 60px;
+  height: 80px; /* Increased from 60px to accommodate larger logo */
   margin-bottom: 12px;
   flex-shrink: 0;
 }
@@ -122,24 +122,25 @@ body.aqms-menu-open {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  height: 54px;
+  height: 72px; /* Increased from 54px */
 }
 .top-nav .logo-img {
-  height: 48px;
+  height: 68px; /* Increased from 48px to improve branding presence */
   width: auto;
   object-fit: contain;
   display: block;
 }
 
 /* Centered Navigation Title */
-.nav-title-container {
-  width: 100%;
+.nav-title-header-container {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 4px;
-  margin-bottom: 16px;
-  flex-shrink: 0;
+  pointer-events: none;
+}
+.nav-title-container {
+  display: none; /* hidden below the header on desktop */
 }
 .nav-title-text {
   color: #111827;
@@ -260,10 +261,13 @@ body.aqms-menu-open {
   align-items: flex-end;
   margin-bottom: 16px; /* Exactly 16px gap below fixed header */
   flex-shrink: 0;
-  background: transparent;
-  padding-top: 4px;
-  padding-bottom: 4px;
+  background: transparent !important; /* remove white background bar completely */
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
   box-sizing: border-box;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
 }
 
 .page-title h1 {
@@ -1733,9 +1737,12 @@ body.aqms-menu-open {
   }
   
   /* Balanced visual breathing space above and below title area */
+  .nav-title-header-container {
+    display: none !important; /* Hide header version on mobile */
+  }
   .nav-title-container {
     width: 100% !important;
-    display: flex !important;
+    display: flex !important; /* Show below-header version on mobile */
     justify-content: center !important;
     align-items: center !important;
     margin-top: 16px !important;
@@ -2614,6 +2621,11 @@ body.aqms-menu-open {
   scroll-behavior: smooth;
 }
 
+/* Prevent outer scroll-body from scrolling when tabular view is active */
+.aqms-live-data-scroll-body:has(.tabular-form-container) {
+  overflow-y: hidden !important;
+}
+
 /* Custom scrollbar styling specifically for Live Data page container */
 .aqms-live-data-scroll-body::-webkit-scrollbar {
   width: 6px;
@@ -2809,25 +2821,38 @@ body.aqms-menu-open {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+.aqms-analytics-scroll-body {
+  flex: 1;
   overflow-y: auto;
-  max-height: calc(100vh - 104px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding-right: 6px;
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar styling specifically for Analytics container */
-.aqms-analytics-container::-webkit-scrollbar {
+/* Prevent outer scroll-body from scrolling when tabular view is active */
+.aqms-analytics-scroll-body:has(.tabular-form-container) {
+  overflow-y: hidden !important;
+}
+
+.aqms-analytics-scroll-body::-webkit-scrollbar {
   width: 6px;
 }
-.aqms-analytics-container::-webkit-scrollbar-track {
+.aqms-analytics-scroll-body::-webkit-scrollbar-track {
   background: rgba(0, 159, 172, 0.05);
   border-radius: 10px;
 }
-.aqms-analytics-container::-webkit-scrollbar-thumb {
+.aqms-analytics-scroll-body::-webkit-scrollbar-thumb {
   background: rgba(0, 159, 172, 0.25);
   border-radius: 10px;
 }
-.aqms-analytics-container::-webkit-scrollbar-thumb:hover {
+.aqms-analytics-scroll-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 159, 172, 0.4);
 }
 
@@ -2987,24 +3012,33 @@ body.aqms-menu-open {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+.aqms-reports-scroll-body {
+  flex: 1;
   overflow-y: auto;
-  max-height: calc(100vh - 104px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding-right: 6px;
   scroll-behavior: smooth;
 }
 
-.aqms-reports-container::-webkit-scrollbar {
+.aqms-reports-scroll-body::-webkit-scrollbar {
   width: 6px;
 }
-.aqms-reports-container::-webkit-scrollbar-track {
+.aqms-reports-scroll-body::-webkit-scrollbar-track {
   background: rgba(0, 159, 172, 0.05);
   border-radius: 10px;
 }
-.aqms-reports-container::-webkit-scrollbar-thumb {
+.aqms-reports-scroll-body::-webkit-scrollbar-thumb {
   background: rgba(0, 159, 172, 0.25);
   border-radius: 10px;
 }
-.aqms-reports-container::-webkit-scrollbar-thumb:hover {
+.aqms-reports-scroll-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 159, 172, 0.4);
 }
 
@@ -3385,6 +3419,9 @@ body.aqms-menu-open {
   flex-direction: column;
   gap: 20px;
   width: 100%;
+  flex: 1;
+  min-height: 0;
+  height: 100%; /* Fill remaining viewport */
 }
 
 .tabular-card {
@@ -3396,7 +3433,24 @@ body.aqms-menu-open {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
   width: 100%;
   box-sizing: border-box;
-  overflow-x: auto;
+  
+  /* Flex layout to occupy maximum space and remain sticky */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden; /* Only the inner table body wrapper should scroll */
+}
+
+/* Scrollable wrapper for the tabular table */
+.tabular-table-scroll-wrapper {
+  flex: 1;
+  overflow: auto; /* Vertically and horizontally scrollable body */
+  min-height: 0;
+  max-height: calc(100vh - 360px) !important; /* strictly restrict scrolling within the table body viewport area */
+  width: 100%;
+  border-radius: 12px;
 }
 
 .tabular-table {
@@ -3413,6 +3467,12 @@ body.aqms-menu-open {
   color: #4b5563;
   border-bottom: 2px solid rgba(200, 215, 215, 0.5);
   white-space: nowrap;
+  
+  /* Sticky headers with opaque light teal page-matching background to block row bleed-through */
+  position: sticky !important;
+  top: 0 !important;
+  background: #e0f2f4 !important; /* match the soft page background exactly, hiding overlaying rows */
+  z-index: 5 !important;
 }
 
 [dir="rtl"] .tabular-table th {
@@ -3538,20 +3598,49 @@ body.aqms-menu-open {
 
 @media (max-width: 768px) {
   .header-controls-group {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    height: 45px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .view-toggle-group {
+    order: 1 !important;
+    margin: 0 !important;
+    display: flex !important;
+    gap: 6px !important;
+  }
+
+  .filter-popover-anchor-wrapper {
+    order: 2 !important;
+    margin: 0 !important;
+    display: flex !important;
   }
 
   .pill-tabs-group {
-    max-width: 100%;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
-    height: 45px !important;
-    padding: 3px !important;
-    border-radius: 22px !important;
+    order: 3 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 4px 0 0 0 !important;
+    height: 48px !important; /* Increased height for touch interaction */
+    padding: 4px !important;
+    border-radius: 24px !important;
+    display: flex !important;
+  }
+
+  .pill-tab {
+    flex: 1 !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    border-radius: 20px !important;
   }
   
   .nav-right {
@@ -3628,7 +3717,9 @@ body.aqms-menu-open {
   }
 
   .reports-card-styled {
-    padding: 16px 12px;
+    padding: 16px 12px !important;
+    min-height: auto !important;
+    height: auto !important;
   }
   
   .aqi-card {
@@ -4281,27 +4372,603 @@ body.aqms-menu-open {
     bottom: 0 !important;
     left: 0 !important;
     width: 100% !important;
-    height: 64px !important;
-    background: rgba(255, 255, 255, 0.94) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border-top: 1.2px solid rgba(0, 0, 0, 0.08) !important;
+    height: 48px !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-top: none !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
     margin: 0 !important;
-    padding: 12px 20px !important;
+    padding: 4px 20px !important;
     box-sizing: border-box !important;
     z-index: 1000 !important;
-    gap: 8px !important;
+    gap: 6px !important;
   }
   
   .tabular-pagination-container .tab-page-btn {
     flex: 1 !important;
-    max-width: 46px !important;
-    height: 40px !important; /* high touch-friendly height */
-    border-radius: 8px !important;
-    font-size: 0.92rem !important;
+    max-width: 34px !important;
+    height: 30px !important;
+    border-radius: 6px !important;
+    font-size: 0.82rem !important;
     font-weight: 700 !important;
+  }
+}
+
+/* ========================================================= */
+/* ANALYTICS GRAPHICAL VIEW DYNAMIC GRID STYLING             */
+/* ========================================================= */
+
+.analytics-graphs-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 20px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding-bottom: 24px !important;
+}
+
+.analytics-graph-card {
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1.2px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 20px !important;
+  padding: 16px !important; /* Slightly more compact padding */
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important; /* More compact gap */
+  min-height: 310px !important; /* Sleek, reduced height as requested */
+  box-sizing: border-box !important;
+  transition: all 0.3s ease !important;
+}
+
+.analytics-graph-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 159, 172, 0.2) !important;
+}
+
+.graph-card-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  border-bottom: 1.2px solid rgba(0, 0, 0, 0.04) !important;
+  padding-bottom: 10px !important;
+}
+
+.graph-param-title {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  color: #1f2937 !important;
+  margin: 0 !important;
+  letter-spacing: -0.3px !important;
+}
+
+.graph-unit-label {
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: #009fac !important;
+  background: rgba(0, 159, 172, 0.08) !important;
+  padding: 3px 8px !important;
+  border-radius: 8px !important;
+  text-transform: uppercase !important;
+}
+
+.graph-canvas-wrapper {
+  flex: 1 !important;
+  width: 100% !important;
+  min-height: 0 !important;
+}
+
+.graph-legend-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding-top: 8px !important;
+  border-top: 1.2px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Prevent outer scroll-body from scrolling when tabular view is active on Analytics page */
+.aqms-analytics-container:has(.tabular-form-container) {
+  overflow-y: hidden !important;
+}
+
+/* Tablet & Mobile Media Queries for Analytics page */
+@media (max-width: 1024px) {
+  .analytics-graphs-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .analytics-graphs-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .analytics-graph-card {
+    min-height: 290px !important;
+  }
+}
+
+/* ========================================================= */
+/* CUSTOM DATE RANGE SELECTOR STYLING                        */
+/* ========================================================= */
+
+.custom-date-inputs-container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  padding: 12px 14px !important;
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-radius: 12px !important;
+  margin-top: 4px !important;
+  margin-bottom: 8px !important;
+  border: 1px dashed rgba(0, 159, 172, 0.2) !important;
+}
+
+.date-input-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.date-input-field label {
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  color: #009fac !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.2px !important;
+  margin: 0 !important;
+}
+
+.custom-date-picker {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(0, 159, 172, 0.25) !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #4b5563 !important;
+  font-family: 'Inter', sans-serif !important;
+  outline: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-date-picker:focus {
+  border-color: #009fac !important;
+  box-shadow: 0 0 0 3px rgba(0, 159, 172, 0.1) !important;
+  background: #ffffff !important;
+}
+
+/* ========================================================= */
+/* ANALYTICS SINGLE CHART VIEW STYLING                       */
+/* ========================================================= */
+
+.station-analytics-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important; /* reduce inner gap to bring charts closer to the station title */
+  width: 100% !important;
+  margin-bottom: 16px !important; /* reduce bottom margin to bring stations closer to each other */
+}
+
+.station-section-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important; /* center the station title */
+  gap: 12px !important;
+  background: transparent !important; /* remove the glassmorphic background box */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  padding: 0 !important; /* remove padding */
+  box-shadow: none !important;
+  margin-bottom: 8px !important; /* reduce bottom margin */
+  width: 100% !important;
+}
+
+/* Beautiful fading gradient lines on the left and right of centered station name */
+.station-section-header::before,
+.station-section-header::after {
+  content: "" !important;
+  flex: 1 !important;
+  height: 1px !important;
+  background: linear-gradient(
+    to var(--line-direction, right), 
+    rgba(0, 184, 200, 0) 0%, 
+    rgba(0, 184, 200, 0.4) 50%, 
+    rgba(0, 184, 200, 0.7) 100%
+  ) !important;
+}
+
+.station-section-header::before {
+  --line-direction: right;
+}
+
+.station-section-header::after {
+  --line-direction: left;
+}
+
+.station-status-indicator {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+}
+
+.station-section-header h2 {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: #1e293b !important;
+  margin: 0 !important;
+  letter-spacing: -0.3px !important;
+}
+
+/* ========================================================= */
+/* ANALYTICS POPUP CUSTOMIZE DATE FLOATING PANEL             */
+/* ========================================================= */
+
+.custom-date-floating-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 22px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  padding: 16px !important;
+  min-width: 220px !important;
+  animation: fadeInFloatingSub 0.2s ease-out !important;
+}
+
+@keyframes fadeInFloatingSub {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+/* ========================================================= */
+/* REPORTS ROW FILTER AND BUTTON DESIGN                      */
+/* ========================================================= */
+
+.reports-horizontal-filter-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 0 !important; /* Float directly on background with zero extra padding */
+  background: transparent !important; /* No background card */
+  backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  margin-bottom: 20px !important; /* Sleek bottom margin */
+  flex-wrap: nowrap !important;
+}
+
+.reports-horizontal-filter-row .reports-form-group {
+  flex: 1 !important;
+  min-width: 0 !important;
+  margin-bottom: 0 !important;
+  gap: 2px !important; /* Reduce flex gap between title and input box */
+}
+
+.reports-horizontal-filter-row .reports-form-group.button-group {
+  flex: 0 0 auto !important;
+}
+
+.reports-generate-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #009fac !important;
+  color: white !important;
+  border: 1.5px solid #009fac !important;
+  padding: 0 24px !important;
+  border-radius: 20px !important;
+  font-weight: 700 !important;
+  height: 40px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-size: 0.85rem !important;
+}
+
+.reports-generate-btn:hover {
+  background: #008792 !important;
+  border-color: #008792 !important;
+  box-shadow: 0 4px 12px rgba(0, 159, 172, 0.25) !important;
+  transform: translateY(-1px) !important;
+}
+
+.reports-generate-btn:active {
+  transform: translateY(0) !important;
+}
+
+.reports-form-date-input {
+  width: 100% !important;
+  height: 40px !important;
+  border: 1.5px solid rgba(0, 159, 172, 0.15) !important;
+  border-radius: 20px !important;
+  padding: 0 16px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.reports-form-date-input:focus {
+  border-color: #009fac !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(0, 159, 172, 0.1) !important;
+}
+
+/* Make sure all inputs in reports match equal height of 40px */
+.reports-horizontal-filter-row .reports-form-input-wrapper {
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 16px !important;
+  border-radius: 20px !important;
+  border: 1.5px solid rgba(0, 159, 172, 0.15) !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+}
+
+.reports-horizontal-filter-row .reports-form-input-wrapper:hover {
+  border-color: #009fac !important;
+  background: #ffffff !important;
+}
+
+.reports-horizontal-filter-row .reports-form-label {
+  display: block !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  color: #000000 !important; /* Change labels to black */
+  margin-bottom: 0 !important; /* Eliminate bottom margin to minimize vertical gap */
+  text-transform: none !important; /* Display in native Title Case instead of uppercase */
+  letter-spacing: normal !important;
+}
+
+.reports-back-btn {
+  display: none !important;
+}
+
+/* Responsive Overrides */
+@media (max-width: 1024px) {
+  .reports-horizontal-filter-row {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+  .reports-horizontal-filter-row .reports-form-group {
+    flex: 1 1 calc(50% - 6px) !important;
+  }
+  .reports-horizontal-filter-row .reports-form-group.button-group {
+    flex: 1 1 100% !important;
+  }
+  .reports-generate-btn {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .reports-horizontal-filter-row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: flex-end !important;
+    gap: 12px !important;
+  }
+  .reports-horizontal-filter-row.report-active {
+    display: none !important; /* Hide filter form completely on mobile when showing generated report */
+  }
+  .reports-horizontal-filter-row .reports-form-group {
+    flex: 1 1 calc(50% - 6px) !important;
+    width: calc(50% - 6px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+  .reports-horizontal-filter-row .reports-form-group.button-group {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+  .reports-generate-btn {
+    width: 100% !important;
+    height: 40px !important;
+  }
+
+  /* Back to filter button styling visible only on mobile/tablet */
+  .reports-back-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    background: transparent !important;
+    color: #111827 !important; /* Pure black text color */
+    border: none !important; /* Remove borders completely */
+    border-radius: 0 !important;
+    padding: 4px 0 !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: color 0.2s ease !important;
+    margin-bottom: 0 !important;
+    width: auto !important;
+    box-sizing: border-box !important;
+  }
+  .reports-back-btn:hover {
+    color: #009fac !important; /* Elegant subtle teal color transition on hover */
+    background: transparent !important;
+  }
+}
+
+/* Reports Mobile Responsive Accordion Layout */
+@media (min-width: 768px) {
+  .reports-table-wrapper {
+    display: block !important;
+  }
+  .reports-mobile-accordion-list {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .reports-table-wrapper {
+    display: none !important;
+  }
+  .reports-mobile-accordion-list {
+    display: block !important;
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  
+  /* Reports Mobile Accordion Cards */
+  .reports-mobile-card {
+    background: #ffffff !important;
+    border-radius: 16px !important;
+    border: 1.5px solid rgba(0, 159, 172, 0.1) !important;
+    box-shadow: 0 4px 12px rgba(0, 159, 172, 0.03) !important;
+    margin-bottom: 12px !important;
+    overflow: hidden !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .reports-mobile-card.expanded {
+    border-color: #009fac !important;
+    box-shadow: 0 6px 18px rgba(0, 159, 172, 0.08) !important;
+  }
+
+  .reports-mobile-card-header {
+    padding: 14px 16px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    cursor: pointer !important;
+    transition: background 0.3s ease !important;
+  }
+
+  .reports-mobile-card.expanded .reports-mobile-card-header {
+    background: #e0f2f4 !important; /* Premium dashboard theme color background when expanded */
+  }
+
+  .reports-mobile-card-body {
+    padding: 16px !important;
+    border-top: 1px solid rgba(0, 159, 172, 0.1) !important;
+    background: #ffffff !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    animation: slideDown 0.3s ease-out !important;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .reports-mobile-card:active {
+    transform: scale(0.985);
+  }
+
+  /* Hide pagination completely on mobile */
+  .tabular-pagination-container {
+    display: none !important;
+  }
+  .reports-pagination-container {
+    display: none !important;
+  }
+
+  /* Stack nested menus inside the download dropdown on mobile */
+  .reports-sub-dropdown-menu {
+    position: absolute !important;
+    top: calc(100% + 4px) !important;
+    right: 0 !important;
+    left: auto !important;
+    width: 280px !important;
+    min-width: 280px !important;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
+    z-index: 9999 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .popover-sub-menu {
+    position: static !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: rgba(0, 159, 172, 0.04) !important;
+    padding: 6px 0 !important;
+    margin-top: 6px !important;
+    display: block !important;
+    border-radius: 8px !important;
+  }
+
+  /* Align Back-to-Filter on left and Download button on right side of same row on mobile */
+  .reports-card-header {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 16px !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+  .reports-card-header .spacer-element {
+    display: none !important;
+  }
+  .reports-card-header > div {
+    width: auto !important;
+  }
+  .reports-generated-title {
+    display: none !important; /* Remove generated report title completely on mobile */
+  }
+  .chart-download-dropdown-btn {
+    width: auto !important;
+    min-width: 130px !important;
+    justify-content: center !important;
+    height: 38px !important;
+    border-radius: 19px !important;
+    font-size: 0.82rem !important;
+  }
+
+  /* Pollutants grid 3 items per row */
+  .reports-pollutants-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
   }
 }
