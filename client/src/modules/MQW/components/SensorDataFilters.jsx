@@ -14,6 +14,45 @@ const SensorDataFilters = ({
   setSelectedDate: propSetSelectedDate
 }) => {
   const { t } = useTranslation();
+
+  
+  const getTransLabel = (val) => {
+    if (!val) return val;
+    const map = {
+      'Near Shore Buoy': 'stations.nearShore',
+      'Offshore Buoy': 'stations.offshore',
+      'Al Aqah Buoy': 'stations.alAqah',
+      'North Dibbah': 'stations.northDibbah',
+      'All Stations': 'stations.allStations',
+      'Graph and Table View': 'analytics.graphAndTable',
+      'Graph View': 'analytics.graphView',
+      'Table View': 'analytics.tableView',
+      'Line Chart': 'chart.lineChart',
+      'Bar Chart': 'chart.barChart',
+      'Area Chart': 'chart.areaChart',
+      'Scatter Plot': 'chart.scatterPlot',
+      'Scatter Chart': 'chart.scatterPlot',
+      'Sonde Information': 'analytics.sondeInformation',
+      'Specific Conductivity': 'parameters.specificConductivity',
+      'Water Temperature': 'parameters.waterTemperature',
+      'Salinity': 'parameters.salinity',
+      'Chlorophyll': 'parameters.chlorophyll',
+      'Oxygen Saturation': 'parameters.oxygenSaturation',
+      'Dissolved Oxygen': 'parameters.dissolvedOxygen',
+      'Turbidity': 'parameters.turbidity',
+      'pH': 'parameters.pH',
+      'Depth': 'parameters.depth',
+      'Blue-Green Algae': 'parameters.blueGreenAlgae',
+      'Bluegreen Algae': 'parameters.blueGreenAlgae',
+      'Last Day': 'analytics.lastDay',
+      'Last Week': 'analytics.lastWeek',
+      'Last Month': 'analytics.lastMonth',
+      'Last Three Months': 'analytics.lastThreeMonths',
+      'Last 24 Hours': 'analytics.last24Hours'
+    };
+    return map[val] ? t(map[val], val) : t('analytics.' + val.charAt(0).toLowerCase() + val.slice(1).replace(/ /g, ''), val);
+  };
+
   
   const [isSubTabOpen, setIsSubTabOpen] = useState(false);
   const [isBuoyOpen, setIsBuoyOpen] = useState(false);
@@ -62,32 +101,37 @@ const SensorDataFilters = ({
   const filterMenuRef = useRef(null);
 
   const updatePositions = useCallback(() => {
+    const isRtl = document.documentElement.dir === 'rtl';
     if (subTabBtnRef.current) {
       const rect = subTabBtnRef.current.getBoundingClientRect();
+      const defaultLeft = window.innerWidth < 1024 ? (window.innerWidth - 380) / 2 : rect.right + window.scrollX - 220;
       setSubTabPos({
         top: rect.bottom + window.scrollY + 8,
-        left: window.innerWidth < 1024 ? (window.innerWidth - 380) / 2 : rect.right + window.scrollX - 220
+        left: isRtl ? Math.max(16, rect.left + window.scrollX) : defaultLeft
       });
     }
     if (buoyBtnRef.current) {
       const rect = buoyBtnRef.current.getBoundingClientRect();
+      const defaultLeft = window.innerWidth < 1024 ? (window.innerWidth - 380) / 2 : rect.right + window.scrollX - 220;
       setBuoyPos({
         top: rect.bottom + window.scrollY + 8,
-        left: window.innerWidth < 1024 ? (window.innerWidth - 380) / 2 : rect.right + window.scrollX - 220
+        left: isRtl ? Math.max(16, rect.left + window.scrollX) : defaultLeft
       });
     }
     if (dateBtnRef.current) {
       const rect = dateBtnRef.current.getBoundingClientRect();
+      const defaultLeft = window.innerWidth < 1024 ? (window.innerWidth - 380) / 2 : rect.right + window.scrollX - 380;
       setDatePos({
         top: rect.bottom + window.scrollY + 8,
-        left: window.innerWidth < 1024 ? (window.innerWidth - 380) / 2 : rect.right + window.scrollX - 380
+        left: isRtl ? Math.max(16, rect.left + window.scrollX) : defaultLeft
       });
     }
     if (filterBtnRef.current) {
       const rect = filterBtnRef.current.getBoundingClientRect();
+      const defaultLeft = window.innerWidth < 450 ? 16 : rect.right + window.scrollX - 350;
       setFilterPos({
         top: rect.bottom + window.scrollY + 10,
-        left: window.innerWidth < 450 ? 16 : rect.right + window.scrollX - 350
+        left: isRtl ? Math.max(16, rect.left + window.scrollX) : defaultLeft
       });
     }
   }, []);
@@ -204,7 +248,7 @@ const SensorDataFilters = ({
             style={{...filterStyle, height: 'auto'}}
           >
             <Filter size={10} className="text-white" />
-            <span className="whitespace-nowrap text-white">Filter</span>
+            <span className="whitespace-nowrap text-white">{t("common.filter", "Filter")}</span>
           </button>
 
           {isFilterOpen && createPortal(
@@ -220,12 +264,12 @@ const SensorDataFilters = ({
             >
               {/* Select View By (Sub Tab) */}
               <div className="flex flex-col gap-1.5 relative text-left">
-                <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">View By</span>
+                <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("analytics.viewBy", "View By")}</span>
                 <div 
                   onClick={() => setOpenSelect(openSelect === 'subtab' ? null : 'subtab')}
                   className="flex items-center justify-between px-3.5 py-2 bg-white/5 border border-white/10 rounded-[10px] text-white text-[13px] font-semibold cursor-pointer hover:bg-white/10 transition-colors select-none"
                 >
-                  <span>{tempSubTab}</span>
+                  <span>{getTransLabel(tempSubTab)}</span>
                   <ChevronDown size={13} className={`text-white/60 transition-transform ${openSelect === 'subtab' ? 'rotate-180' : ''}`} />
                 </div>
                 {openSelect === 'subtab' && (
@@ -322,7 +366,7 @@ const SensorDataFilters = ({
                               {tempBuoy === buoy && <div className="w-[6px] h-[6px] bg-white rounded-full" />}
                             </div>
                           )}
-                          <span className="text-white text-[13px] font-medium">{buoy}</span>
+                          <span className="text-white text-[13px] font-medium">{getTransLabel(buoy)}</span>
                         </div>
                       );
                     })}
@@ -332,7 +376,7 @@ const SensorDataFilters = ({
 
               {/* Select Duration */}
               <div className="flex flex-col gap-1.5 relative text-left">
-                <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">Duration</span>
+                <span className="text-white text-[11px] font-bold tracking-wider uppercase opacity-75">{t("analytics.duration", "Duration")}</span>
                 <div 
                   onClick={() => setOpenSelect(openSelect === 'date' ? null : 'date')}
                   className="flex items-center justify-between px-3.5 py-2 bg-white/5 border border-white/10 rounded-[10px] text-white text-[13px] font-semibold cursor-pointer hover:bg-white/10 transition-colors select-none"
@@ -361,7 +405,7 @@ const SensorDataFilters = ({
                           }`}>
                             {isChecked && <div className="w-[6px] h-[6px] bg-white rounded-full" />}
                           </div>
-                          <span className="text-white text-[13px] font-medium">{range}</span>
+                          <span className="text-white text-[13px] font-medium">{getTransLabel(range)}</span>
                         </div>
                       );
                     })}
@@ -374,9 +418,7 @@ const SensorDataFilters = ({
                 <button
                   className="text-white/80 hover:text-white font-semibold text-[13px] cursor-pointer outline-none transition-colors border-none bg-transparent"
                   onClick={() => setIsFilterOpen(false)}
-                >
-                  Cancel
-                </button>
+                >{t("common.cancel", "Cancel")}</button>
                 <button
                   style={{
                     ...applyButtonStyle,
@@ -477,9 +519,7 @@ const SensorDataFilters = ({
                 <button 
                   onClick={() => setIsSubTabOpen(false)}
                   className="text-white/80 text-[15px] font-semibold hover:text-white transition-colors cursor-pointer outline-none border-none bg-transparent"
-                >
-                  Cancel
-                </button>
+                >{t("common.cancel", "Cancel")}</button>
                 <button 
                   onClick={() => {
                     setActiveSubTab(tempSubTab);
@@ -556,7 +596,7 @@ const SensorDataFilters = ({
                             </svg>
                           )}
                         </div>
-                        <span className="text-white text-[13px] font-semibold group-hover:text-white/80 transition-colors">{buoy}</span>
+                        <span className="text-white text-[13px] font-semibold group-hover:text-white/80 transition-colors">{getTransLabel(buoy)}</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-3.5 w-full">
@@ -567,7 +607,7 @@ const SensorDataFilters = ({
                         >
                           {selectedBuoy === buoy && <div className="w-[7px] h-[7px] bg-[#009FAC] rounded-full" />}
                         </div>
-                        <span className="text-white text-[13px] font-semibold group-hover:text-white/80 transition-colors">{buoy}</span>
+                        <span className="text-white text-[13px] font-semibold group-hover:text-white/80 transition-colors">{getTransLabel(buoy)}</span>
                       </div>
                     )}
                   </button>
@@ -599,7 +639,7 @@ const SensorDataFilters = ({
                     >
                       {tempDate === range && <div className="w-[10px] h-[10px] bg-[#009FAC] rounded-full" />}
                     </div>
-                    <span className="text-white text-[15px] font-medium" onClick={() => setTempDate(range)}>{range}</span>
+                    <span className="text-white text-[15px] font-medium" onClick={() => setTempDate(range)}>{getTransLabel(range)}</span>
                   </label>
                 ))}
               </div>
@@ -609,9 +649,7 @@ const SensorDataFilters = ({
                 <button 
                   onClick={() => setIsDateOpen(false)}
                   className="text-white/80 text-[15px] font-semibold hover:text-white transition-colors cursor-pointer outline-none border-none bg-transparent"
-                >
-                  Cancel
-                </button>
+                >{t("common.cancel", "Cancel")}</button>
                 <button 
                   onClick={() => {
                     setSelectedDate(tempDate);

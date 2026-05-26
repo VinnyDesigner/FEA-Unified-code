@@ -14,6 +14,16 @@ const DownloadDropdown = ({ t, onDownload }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  
+  const getTransLabel = (val) => {
+    const map = {
+      'Download InExcel': 'common.downloadInExcel',
+      'Download in Word': 'common.downloadInWord',
+      'Download in Pdf': 'common.downloadInPdf'
+    };
+    return map[val] ? t(map[val], val) : val;
+  };
+
   const options = ['Download InExcel', 'Download in Word', 'Download in Pdf'];
 
   return (
@@ -36,7 +46,7 @@ const DownloadDropdown = ({ t, onDownload }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-[calc(100%+8px)] w-[180px] py-2 flex flex-col shadow-2xl rounded-[16px] border border-white/10"
+        <div className="absolute ltr:right-0 rtl:left-0 top-[calc(100%+8px)] w-[180px] py-2 flex flex-col shadow-2xl rounded-[16px] border border-white/10"
           style={{
             background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.40) 100%), radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.25) 100%)',
             backdropFilter: 'blur(20px)',
@@ -52,7 +62,7 @@ const DownloadDropdown = ({ t, onDownload }) => {
               }}
               className="text-left px-4 py-2 text-white text-[13px] md:text-[14px] hover:bg-white/10 transition-colors border-none outline-none cursor-pointer bg-transparent"
             >
-              {option}
+              {getTransLabel(option)}
             </button>
           ))}
         </div>

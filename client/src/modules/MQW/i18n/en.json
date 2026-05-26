@@ -69,7 +69,14 @@
     "alAqah": "AL Aqah Buoy",
     "fujairah1": "Fujairah Buoy 1",
     "fujairah2": "Fujairah Buoy 2",
-    "coastal": "Coastal Buoy A"
+    "coastal": "Coastal Buoy A",
+    "nearShore": "Near Shore Buoy",
+    "offshore": "Offshore Buoy",
+    "northDibbah": "North Dibbah",
+    "allStations": "All Stations",
+    "alAqahNew": "Al Aqah New",
+    "osb": "OSB",
+    "nsb": "NSB"
   },
   "analytics": {
     "pageTitle": "Marine Water Quality Monitoring Dashboard - MIS Analytics",
@@ -106,7 +113,7 @@
     "receivedRecords": "Received Records",
     "validRecords": "Valid Records",
     "sondeInformation": "Sonde Information",
-    "stationName": "Al Aqah New",
+    "stationName": "Station Name",
     "timeLastHour": "Last Hour",
     "timeToday": "Today",
     "timeOneWeek": "Last One Week",
@@ -128,7 +135,38 @@
       "oct": "Oct",
       "nov": "Nov",
       "dec": "Dec"
-    }
+    },
+    "viewType": "View Type",
+    "graphAndTable": "Graph and Table View",
+    "graphView": "Graph View",
+    "tableView": "Table View",
+    "applyFilter": "Apply Filter",
+    "applyFilters": "Apply Filters",
+    "viewBy": "View By",
+    "timePeriod": "Time Period",
+    "selectChartType": "Select Chart Type",
+    "chooseParameters": "Choose Parameters",
+    "chooseMetrics": "Choose Metrics",
+    "alarms": "Alarms",
+    "batteryHealth": "Battery Health",
+    "sondeStatus": "Sonde Status",
+    "logIntervals": "Log Intervals",
+    "selectStation": "Select Station",
+    "stations": "Stations",
+    "weatherInformation": "Weather Information",
+    "selectPredefinedParameter": "Select Predefined Parameter",
+    "chartTypeTitle": "Chart Type",
+    "selectParameters": "Select Parameters...",
+    "selectParametersTitle": "Select Parameters",
+    "predefinedParameters": "Pre-defined Parameters",
+    "customParameters": "Custom Parameters",
+    "selectTimePeriod": "Select Time Period",
+    "lastDay": "Last Day",
+    "lastWeek": "Last Week",
+    "lastMonth": "Last Month",
+    "lastThreeMonths": "Last Three Months",
+    "last24Hours": "Last 24 Hours",
+    "disabled": "Disabled"
   },
   "reports": {
     "pageTitle": "Marine Water Quality Monitoring Dashboard - Reports",
@@ -142,7 +180,8 @@
     "cancel": "Cancel",
     "downloadReport": "Download Report",
     "raw": "Raw",
-    "sondeInformation": "Sonde Information"
+    "sondeInformation": "Sonde Information",
+    "noReportsGenerated": "No Reports Generated Yet"
   },
   "faq": {
     "pageTitle": "Frequently Asked Questions",
@@ -177,7 +216,11 @@
     "download": "Download",
     "search": "Search",
     "next": "Next",
-    "previous": "Previous"
+    "previous": "Previous",
+    "downloadInExcel": "Download InExcel",
+    "downloadInWord": "Download in Word",
+    "downloadInPdf": "Download in Pdf",
+    "all": "All"
   },
   "chart": {
     "line": "Line",
@@ -191,6 +234,32 @@
     "marker": "Marker",
     "dashes": "Dashes",
     "dateTooltip": "Date Tooltip",
-    "animation": "Animation"
+    "animation": "Animation",
+    "lineChart": "Line Chart",
+    "barChart": "Bar Chart",
+    "areaChart": "Area Chart",
+    "scatterPlot": "Scatter Plot"
+  },
+  "parameters": {
+    "specificConductivity": "Specific Conductivity",
+    "waterTemperature": "Water Temperature",
+    "salinity": "Salinity",
+    "chlorophyll": "Chlorophyll",
+    "oxygenSaturation": "Oxygen Saturation",
+    "dissolvedOxygen": "Dissolved Oxygen",
+    "turbidity": "Turbidity",
+    "pH": "pH",
+    "depth": "Depth",
+    "blueGreenAlgae": "Blue-Green Algae"
+  },
+  "alarms": {
+    "alertType": "Alert Type",
+    "alertDescription": "Alert Description",
+    "commAlert": "Comm Alert",
+    "gpsAlert": "GPS Alert",
+    "enclosureDoorOpenAlert": "Enclosure Door Open Alert",
+    "commAlertDesc": "Triggered when communication with the marine monitoring station/buoy is lost or data transmission is interrupted.",
+    "gpsAlertDesc1": "Triggered when the monitoring station enclosure door is opened or left open.",
+    "gpsAlertDesc2": "Triggered when GPS signal is lost or the station location changes from the configured position."
   }
 }

@@ -87,7 +87,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
             }`}
           >
             <User size={18} className="flex-shrink-0" />
-            <span className="text-[14.5px] font-semibold">My Profile</span>
+            <span className="text-[14.5px] font-semibold">{t('nav.myProfile', 'My Profile')}</span>
           </NavLink>
 
           {/* Option 2: User Management Link */}
@@ -99,7 +99,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
             }`}
           >
             <User size={18} className="flex-shrink-0" />
-            <span className="text-[14.5px] font-semibold">User Management</span>
+            <span className="text-[14.5px] font-semibold">{t('nav.userManagement', 'User Management')}</span>
           </NavLink>
 
           {/* Logout Link */}

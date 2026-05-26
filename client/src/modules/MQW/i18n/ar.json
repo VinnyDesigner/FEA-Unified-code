@@ -69,7 +69,14 @@
     "alAqah": "عوامة العقة",
     "fujairah1": "عوامة الفجيرة 1",
     "fujairah2": "عوامة الفجيرة 2",
-    "coastal": "عوامة ساحلية أ"
+    "coastal": "عوامة ساحلية أ",
+    "nearShore": "عوامة قريبة من الشاطئ",
+    "offshore": "عوامة بحرية",
+    "northDibbah": "شمال دبا",
+    "allStations": "جميع المحطات",
+    "alAqahNew": "العقة الجديدة",
+    "osb": "عوامة بحرية",
+    "nsb": "عوامة قريبة من الشاطئ"
   },
   "analytics": {
     "pageTitle": "لوحة مراقبة جودة المياه البحرية - تحليلات النظام",
@@ -106,7 +113,7 @@
     "receivedRecords": "السجلات المستلمة",
     "validRecords": "السجلات الصالحة",
     "sondeInformation": "معلومات المسبار",
-    "stationName": "العقة الجديدة",
+    "stationName": "اسم المحطة",
     "timeLastHour": "الساعة الماضية",
     "timeToday": "اليوم",
     "timeOneWeek": "الأسبوع الماضي",
@@ -128,7 +135,38 @@
       "oct": "أكتوبر",
       "nov": "نوفمبر",
       "dec": "ديسمبر"
-    }
+    },
+    "viewType": "نوع العرض",
+    "graphAndTable": "عرض الرسم البياني والجدول",
+    "graphView": "عرض الرسم البياني",
+    "tableView": "عرض الجدول",
+    "applyFilter": "تطبيق الفلتر",
+    "applyFilters": "تطبيق الفلاتر",
+    "viewBy": "عرض حسب",
+    "timePeriod": "الفترة الزمنية",
+    "selectChartType": "اختر نوع الرسم البياني",
+    "chooseParameters": "اختر المعلمات",
+    "chooseMetrics": "اختر المقاييس",
+    "alarms": "الإنذارات",
+    "batteryHealth": "صحة البطارية",
+    "sondeStatus": "حالة المسبار",
+    "logIntervals": "فترات التسجيل",
+    "selectStation": "اختر المحطة",
+    "stations": "المحطات",
+    "weatherInformation": "معلومات الطقس",
+    "selectPredefinedParameter": "اختر المعلمة المحددة مسبقًا",
+    "chartTypeTitle": "نوع المخطط",
+    "selectParameters": "اختر المعلمات...",
+    "selectParametersTitle": "اختر المعلمات",
+    "predefinedParameters": "معلمات محددة مسبقًا",
+    "customParameters": "معلمات مخصصة",
+    "selectTimePeriod": "اختر الفترة الزمنية",
+    "lastDay": "اليوم الأخير",
+    "lastWeek": "الأسبوع الماضي",
+    "lastMonth": "الشهر الماضي",
+    "lastThreeMonths": "آخر ثلاثة أشهر",
+    "last24Hours": "آخر 24 ساعة",
+    "disabled": "معطل"
   },
   "reports": {
     "pageTitle": "لوحة مراقبة جودة المياه البحرية - التقارير",
@@ -142,7 +180,8 @@
     "cancel": "إلغاء",
     "downloadReport": "تحميل التقرير",
     "raw": "خام",
-    "sondeInformation": "معلومات المسبار"
+    "sondeInformation": "معلومات المسبار",
+    "noReportsGenerated": "لم يتم إنشاء تقارير بعد"
   },
   "faq": {
     "pageTitle": "الأسئلة المتداولة",
@@ -177,7 +216,11 @@
     "download": "تحميل",
     "search": "بحث",
     "next": "التالي",
-    "previous": "السابق"
+    "previous": "السابق",
+    "downloadInExcel": "تحميل بتنسيق إكسيل",
+    "downloadInWord": "تحميل بتنسيق وورد",
+    "downloadInPdf": "تحميل بتنسيق PDF",
+    "all": "الكل"
   },
   "chart": {
     "line": "خط",
@@ -191,6 +234,32 @@
     "marker": "علامات",
     "dashes": "شرطات",
     "dateTooltip": "تلميح التاريخ",
-    "animation": "حركة"
+    "animation": "حركة",
+    "lineChart": "تخطيط خطي",
+    "barChart": "شريطي",
+    "areaChart": "مساحي",
+    "scatterPlot": "مبعثر"
+  },
+  "parameters": {
+    "specificConductivity": "التوصيل النوعي",
+    "waterTemperature": "درجة حرارة الماء",
+    "salinity": "الملوحة",
+    "chlorophyll": "الكلوروفيل",
+    "oxygenSaturation": "تشبع الأكسجين",
+    "dissolvedOxygen": "الأكسجين المذاب",
+    "turbidity": "التعكر",
+    "pH": "الرقم الهيدروجيني",
+    "depth": "العمق",
+    "blueGreenAlgae": "الطحالب الخضراء المزرقة"
+  },
+  "alarms": {
+    "alertType": "نوع التنبيه",
+    "alertDescription": "وصف التنبيه",
+    "commAlert": "تنبيه الاتصال",
+    "gpsAlert": "تنبيه نظام تحديد المواقع",
+    "enclosureDoorOpenAlert": "تنبيه فتح باب الحاوية",
+    "commAlertDesc": "يتم إطلاقه عند فقدان الاتصال مع محطة المراقبة البحرية/العوامة أو انقطاع نقل البيانات.",
+    "gpsAlertDesc1": "يتم إطلاقه عند فتح باب حاوية محطة المراقبة أو تركه مفتوحًا.",
+    "gpsAlertDesc2": "يتم إطلاقه عند فقدان إشارة نظام تحديد المواقع أو تغير موقع المحطة عن الموقع المحدد."
   }
 }

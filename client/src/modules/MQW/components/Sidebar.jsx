@@ -33,8 +33,8 @@ const Sidebar = () => {
     if (!isProfileOpen && profileBtnRef.current) {
       const rect = profileBtnRef.current.getBoundingClientRect();
       setProfilePos({
-        top: rect.top + window.scrollY - 30, // Positioned matching mockup height level
-        left: rect.right + window.scrollX + 12 // Positioned to the right of the sidebar
+        top: rect.top + window.scrollY - 30,
+        left: rect.right + window.scrollX + 12
       });
     }
     setIsProfileOpen(!isProfileOpen);

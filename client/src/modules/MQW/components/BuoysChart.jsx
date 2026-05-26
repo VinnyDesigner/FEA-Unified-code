@@ -1,7 +1,9 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { ChevronDown, Maximize2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import ChartModal from './ChartModal';
 
 const dayData = [
   { month: '09:00', conductivity: 4000, temp: 3500, salinity: 3000, chlorophyll: 4500, oxygenSat: 6000, dissolvedOxygen: 5000, turbidity: 4200, ph: 3800, depth: 2500, algae: 2000 },
@@ -63,7 +65,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <div 
         className="backdrop-blur-[20px] border border-white/10 p-5 rounded-[20px] shadow-2xl min-w-[220px]"
         style={{
-          background: 'rgba(255, 255, 255, 0.08)',
+          background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.65) 100%), radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.3) 100%)',
         }}
       >
         <div className="flex flex-col gap-2 ltr:text-left rtl:text-right">
@@ -361,7 +363,7 @@ const BuoysChart = ({
                                 tickFormatter={(value) => value === 0 ? '0' : `${value / 1000}K`}
                                 tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
                               />
-                              <Tooltip 
+                              <Tooltip wrapperStyle={{ zIndex: 9999, pointerEvents: 'none' }} 
                                 content={<CustomTooltip />} 
                                 cursor={{ fill: 'rgba(255,255,255,0.05)' }} 
                               />
@@ -411,7 +413,7 @@ const BuoysChart = ({
                                 tickFormatter={(value) => value === 0 ? '0' : `${value / 1000}K`}
                                 tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
                               />
-                              <Tooltip 
+                              <Tooltip wrapperStyle={{ zIndex: 9999, pointerEvents: 'none' }} 
                                 content={<CustomTooltip />} 
                                 cursor={{ stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1, strokeDasharray: '5 5' }} 
                               />
@@ -461,7 +463,7 @@ const BuoysChart = ({
                               tickFormatter={(value) => value === 0 ? '0' : `${value / 1000}K`}
                               tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
                             />
-                            <Tooltip 
+                            <Tooltip wrapperStyle={{ zIndex: 9999, pointerEvents: 'none' }} 
                               content={<CustomTooltip />} 
                               cursor={{ stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1, strokeDasharray: '5 5' }} 
                             />
@@ -536,7 +538,7 @@ const BuoysChart = ({
                       tickFormatter={(value) => value === 0 ? '0' : `${value / 1000}K`}
                       tick={{ fontSize: isMobile ? 12 : 13, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
                     />
-                    <Tooltip 
+                    <Tooltip wrapperStyle={{ zIndex: 9999, pointerEvents: 'none' }} 
                       content={<CustomTooltip />} 
                       cursor={{ fill: 'rgba(255,255,255,0.05)' }} 
                     />
@@ -579,7 +581,7 @@ const BuoysChart = ({
                       tickFormatter={(value) => value === 0 ? '0' : `${value / 1000}K`}
                       tick={{ fontSize: isMobile ? 12 : 13, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
                     />
-                    <Tooltip 
+                    <Tooltip wrapperStyle={{ zIndex: 9999, pointerEvents: 'none' }} 
                       content={<CustomTooltip />} 
                       cursor={{ stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1, strokeDasharray: '5 5' }} 
                     />
@@ -637,7 +639,7 @@ const BuoysChart = ({
                     tickFormatter={(value) => value === 0 ? '0' : `${value / 1000}K`}
                     tick={{ fontSize: isMobile ? 12 : 13, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
                   />
-                  <Tooltip 
+                  <Tooltip wrapperStyle={{ zIndex: 9999, pointerEvents: 'none' }} 
                     content={<CustomTooltip />} 
                     cursor={{ stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1, strokeDasharray: '5 5' }} 
                   />
@@ -680,178 +682,30 @@ const BuoysChart = ({
       )}
 
       {/* Expand Modal overlay */}
-      {expandedParam && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 md:p-8">
-          <div 
-            className="relative w-full max-w-[1000px] h-[550px] p-6 md:p-8 flex flex-col"
-            style={{
-              borderRadius: '24px',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              background: 'radial-gradient(251.65% 89.92% at 50.22% 50.31%, rgba(10, 30, 35, 0.95) 0%, rgba(5, 15, 20, 0.98) 100%)',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)'
-            }}
-          >
-            {/* Modal Header */}
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-white text-[20px] font-bold tracking-wide">
-                {t(expandedParam.label)} Overview (Expanded)
-              </span>
-              <button 
-                onClick={() => setExpandedParam(null)}
-                className="text-white/70 hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/10"
-                title="Close"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {/* Modal Chart viewport */}
-            <div className="flex-1 min-h-0 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                {(() => {
-                  const buoyColors = {
-                    'Near Shore Buoy': '#3B82F6', // Blue
-                    'Offshore Buoy': '#F59E0B',  // Amber
-                    'Al Aqah Buoy': '#10B981',   // Teal
-                    'North Dibbah': '#EC4899'    // Pink
-                  };
-                  const getBuoyColor = (buoy) => buoyColors[buoy] || '#1DCDDD';
-                  const activeBuoys = Array.isArray(selectedBuoy) ? selectedBuoy : [selectedBuoy];
-
-                  const renderModalDefs = () => (
-                    <defs>
-                      {activeBuoys.map(buoy => {
-                        const color = getBuoyColor(buoy);
-                        const gradId = `modal_grad_${buoy.replace(/\s+/g, '')}`;
-                        return (
-                          <linearGradient key={buoy} id={gradId} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={color} stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor={color} stopOpacity={0}/>
-                          </linearGradient>
-                        );
-                      })}
-                    </defs>
-                  );
-
-                  const renderModalSeries = () => {
-                    if (chartType === 'Bar Chart') {
-                      return activeBuoys.map((buoy) => (
-                        <Bar 
-                          key={buoy}
-                          dataKey={`${expandedParam.key}_${buoy}`} 
-                          name={buoy}
-                          fill={getBuoyColor(buoy)}
-                          radius={[4, 4, 0, 0]}
-                        />
-                      ));
-                    }
-                    if (chartType === 'Scatter Chart') {
-                      return activeBuoys.map((buoy) => (
-                        <Line 
-                          key={buoy}
-                          type="monotone" 
-                          dataKey={`${expandedParam.key}_${buoy}`} 
-                          name={buoy}
-                          stroke="transparent" 
-                          strokeWidth={0}
-                          dot={{ r: 8, fill: getBuoyColor(buoy), stroke: '#ffffff', strokeWidth: 2 }}
-                          activeDot={{ r: 10, fill: getBuoyColor(buoy), stroke: '#ffffff', strokeWidth: 2 }}
-                        />
-                      ));
-                    }
-                    // Default Area
-                    return activeBuoys.map((buoy) => {
-                      const color = getBuoyColor(buoy);
-                      const gradId = `modal_grad_${buoy.replace(/\s+/g, '')}`;
-                      return (
-                        <Area 
-                          key={buoy}
-                          type="monotone" 
-                          dataKey={`${expandedParam.key}_${buoy}`} 
-                          name={buoy}
-                          stroke={color} 
-                          strokeWidth={4}
-                          fillOpacity={1} 
-                          fill={`url(#${gradId})`} 
-                          dot={{ r: 5, fill: '#ffffff', stroke: color, strokeWidth: 2.5 }}
-                          activeDot={{ r: 8, fill: '#ffffff', stroke: color, strokeWidth: 3 }}
-                        />
-                      );
-                    });
-                  };
-
-                  const CustomTooltip = ({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div 
-                          className="p-4" 
-                          style={{
-                            borderRadius: '12px',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            background: 'rgba(10,30,35,0.95)',
-                            backdropFilter: 'blur(8px)',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                          }}
-                        >
-                          <p className="text-[12px] text-white/50 mb-2 font-medium">{label}</p>
-                          <div className="flex flex-col gap-2">
-                            {payload.map((item, index) => (
-                              <div key={index} className="flex items-center gap-3">
-                                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: item.color }} />
-                                <span className="text-[13px] text-white/70 font-medium">{item.name}:</span>
-                                <span className="text-[13px] text-white font-bold">{item.value.toFixed(2)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  };
-
-                  return (
-                    <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
-                      {renderModalDefs()}
-                      <CartesianGrid strokeDasharray="5 5" vertical={true} stroke="#CACBCE" strokeWidth={1} strokeOpacity={0.2} />
-                      <XAxis 
-                        dataKey="month" 
-                        axisLine={false}
-                        tickLine={false}
-                        tickFormatter={(value) => {
-                          const lowerVal = value ? value.toLowerCase() : '';
-                          if (['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].includes(lowerVal)) {
-                            return t(`analytics.months.${lowerVal}`, value);
-                          }
-                          return value;
-                        }}
-                        tick={{ fontSize: 13, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
-                        dy={10}
-                      />
-                      <YAxis 
-                        axisLine={false}
-                        tickLine={false}
-                        ticks={[0, 5000, 10000, 15000, 20000]}
-                        tickFormatter={(value) => value === 0 ? '0' : `${value / 1000}K`}
-                        tick={{ fontSize: 13, fill: 'rgba(255,255,255,0.6)', fontWeight: 500 }}
-                      />
-                      <Tooltip 
-                        content={<CustomTooltip />} 
-                        cursor={{ stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1, strokeDasharray: '5 5' }} 
-                      />
-                      {renderModalSeries()}
-                      <Legend 
-                        iconType="circle"
-                        iconSize={10}
-                        formatter={(value) => <span className="text-white/80 font-medium ml-2 text-[13px]">{value}</span>}
-                        wrapperStyle={{ paddingTop: '20px' }}
-                      />
-                    </AreaChart>
-                  );
-                })()}
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
+      {expandedParam && createPortal(
+        <ChartModal
+          isOpen={!!expandedParam}
+          onClose={() => setExpandedParam(null)}
+          metric={expandedParam.filterName}
+          translatedMetricTitle={t(expandedParam.label)}
+          selectedBuoy={Array.isArray(selectedBuoy) ? { name: selectedBuoy.join(', ') } : { name: selectedBuoy }}
+          customData={chartData}
+          series={(Array.isArray(selectedBuoy) ? selectedBuoy : [selectedBuoy]).map(buoy => {
+            const buoyColors = {
+              'Near Shore Buoy': '#3B82F6',
+              'Offshore Buoy': '#F59E0B',
+              'Al Aqah Buoy': '#10B981',
+              'North Dibbah': '#EC4899'
+            };
+            return {
+              key: `${expandedParam.key}_${buoy}`,
+              name: buoy,
+              color: buoyColors[buoy] || '#1DCDDD'
+            };
+          })}
+          xAxisKey="month"
+        />,
+        document.body
       )}
     </div>
   );
