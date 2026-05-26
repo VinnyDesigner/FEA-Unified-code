@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Calendar, ChevronRight } from 'lucide-react';
+import { ChevronDown, Calendar, ChevronRight, CheckSquare, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
@@ -31,16 +31,27 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
 
   
   const initialState = {
-    station: '',
+    station: [],
     monitoringType: '',
-    parameter: '',
+    parameter: [],
     startDate: '',
     endDate: ''
   };
 
   const [formData, setFormData] = useState(initialState);
   
-  const isFormValid = formData.station && formData.monitoringType && formData.parameter && formData.startDate && formData.endDate;
+  const isFormValid = formData.station.length > 0 && formData.monitoringType && formData.parameter.length > 0 && formData.startDate && formData.endDate;
+  
+  const toggleSelection = (key, val) => {
+    setFormData(prev => {
+      const arr = prev[key] || [];
+      if (arr.includes(val)) {
+        return { ...prev, [key]: arr.filter(item => item !== val) };
+      } else {
+        return { ...prev, [key]: [...arr, val] };
+      }
+    });
+  };
   
   // Dropdown visibility states
   const [isStationOpen, setIsStationOpen] = useState(false);
@@ -179,7 +190,13 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                 setIsStationOpen(!isStationOpen);
               }}
             >
-              <span>{formData.station ? (formData.station === 'Al Aqah New' ? t('analytics.stationName') : formData.station) : 'Select Station'}</span>
+              <span className="truncate">
+                {formData.station.length === 0 
+                  ? 'Select Station' 
+                  : formData.station.length === 1 
+                    ? (formData.station[0] === 'Al Aqah New' ? t('analytics.stationName') : formData.station[0]) 
+                    : `${formData.station.length} Selected`}
+              </span>
               <ChevronDown size={14} className={`transition-transform duration-300 ${isStationOpen ? 'rotate-180' : ''} text-white/70`} />
             </button>
 
@@ -198,12 +215,15 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                 {stations.map((station) => (
                   <button
                     key={station}
-                    className="text-left text-white text-[13.5px] font-semibold hover:text-[#1DCDDD] transition-colors bg-transparent border-none outline-none cursor-pointer"
-                    onClick={() => {
-                      setFormData({ ...formData, station });
-                      setIsStationOpen(false);
+                    className="flex items-center gap-2 text-left text-white text-[13.5px] font-semibold hover:text-[#1DCDDD] transition-colors bg-transparent border-none outline-none cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSelection('station', station);
                     }}
                   >
+                    <div className={`w-4 h-4 rounded flex items-center justify-center transition-colors ${formData.station.includes(station) ? 'bg-[#009FAC]' : 'border border-white/40'}`}>
+                      {formData.station.includes(station) && <svg viewBox="0 0 14 14" fill="none" className="w-3 h-3 text-white"><path d="M3 7.5L5.5 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    </div>
                     {station === 'Al Aqah New' ? t('analytics.stationName') : station}
                   </button>
                 ))}
@@ -269,7 +289,13 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                 setIsParameterOpen(!isParameterOpen);
               }}
             >
-              <span className="truncate">{formData.parameter || 'Select Parameter'}</span>
+              <span className="truncate">
+                {formData.parameter.length === 0 
+                  ? 'Select Parameter' 
+                  : formData.parameter.length === 1 
+                    ? formData.parameter[0] 
+                    : `${formData.parameter.length} Selected`}
+              </span>
               <ChevronDown size={14} className={`transition-transform duration-300 ${isParameterOpen ? 'rotate-180' : ''} text-white/70`} />
             </button>
 
@@ -288,12 +314,15 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
                 {parameters.map((param) => (
                   <button
                     key={param}
-                    className="text-left text-white text-[13.5px] font-semibold hover:text-[#1DCDDD] transition-colors bg-transparent border-none outline-none cursor-pointer whitespace-nowrap"
-                    onClick={() => {
-                      setFormData({ ...formData, parameter: param });
-                      setIsParameterOpen(false);
+                    className="flex items-center gap-2 text-left text-white text-[13.5px] font-semibold hover:text-[#1DCDDD] transition-colors bg-transparent border-none outline-none cursor-pointer whitespace-nowrap"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSelection('parameter', param);
                     }}
                   >
+                    <div className={`w-4 h-4 rounded shrink-0 flex items-center justify-center transition-colors ${formData.parameter.includes(param) ? 'bg-[#009FAC]' : 'border border-white/40'}`}>
+                      {formData.parameter.includes(param) && <svg viewBox="0 0 14 14" fill="none" className="w-3 h-3 text-white"><path d="M3 7.5L5.5 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    </div>
                     {param}
                   </button>
                 ))}
