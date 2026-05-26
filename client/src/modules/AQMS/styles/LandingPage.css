@@ -672,8 +672,8 @@ body.aqms-theme {
   }
 }
 
-/* Responsive Adjustments for Mobile (max-width: 768px) */
-@media (max-width: 768px) {
+/* Responsive Adjustments for Mobile & Tablet (max-width: 1024px) */
+@media (max-width: 1024px) {
   .landing-nav {
     flex-direction: row;
     padding: 15px;

@@ -9,11 +9,17 @@
   --color-text-dark: #1f2937;
   --glass-bg: rgba(255, 255, 255, 0.30);
   --glass-border: rgba(255, 255, 255, 0.55);
-  --glass-shadow: 0 4px 24px rgba(0, 159, 172, 0.06), 0 1px 4px rgba(0,0,0,0.03);
+  --glass-shadow: 0 4px 24px rgba(0, 159, 172, 0.06), 0 1px 4px rgba(0, 0, 0, 0.03);
 }
 
 /* ─── RESET ──────────────────────────────────────────────────────── */
-.aqms-theme *, .aqms-theme *::before, .aqms-theme *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.aqms-theme *,
+.aqms-theme *::before,
+.aqms-theme *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 .aqms-theme {
   font-family: 'Roboto', sans-serif;
@@ -32,11 +38,17 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.aqms-theme img { color: transparent; }
-.aqms-theme img, .aqms-theme canvas, .aqms-theme svg {
+.aqms-theme img {
+  color: transparent;
+}
+
+.aqms-theme img,
+.aqms-theme canvas,
+.aqms-theme svg {
   max-width: 100%;
   height: auto;
 }
+
 .aqms-theme table {
   width: 100%;
   overflow-x: auto;
@@ -47,18 +59,54 @@ body.aqms-menu-open {
 }
 
 /* ─── UTILITY ────────────────────────────────────────────────────── */
-.flex { display: flex; }
-.flex-col { display: flex; flex-direction: column; }
-.flex-1 { flex: 1; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.justify-center { justify-content: center; }
-.w-full { width: 100%; }
-.h-full { height: 100%; }
-.h-screen { height: 100vh; }
-.gap-2 { gap: 0.5rem; }
-.gap-4 { gap: 1rem; }
-.text-center { text-align: center; }
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.h-screen {
+  height: 100vh;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.text-center {
+  text-align: center;
+}
 
 /* ─── DASHBOARD SHELL ────────────────────────────────────────────── */
 .app-container {
@@ -80,7 +128,10 @@ body.aqms-menu-open {
 /* ─── TOP NAVIGATION BAR ─────────────────────────────────────────── */
 .nav-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(2px);
   z-index: 998;
@@ -88,13 +139,15 @@ body.aqms-menu-open {
   visibility: hidden;
   transition: 0.3s ease;
 }
+
 .nav-overlay.active {
   opacity: 1;
   visibility: visible;
 }
 
 .hamburger-btn {
-  display: none; /* hidden on desktop */
+  display: none;
+  /* hidden on desktop */
   background: none;
   border: none;
   cursor: pointer;
@@ -105,14 +158,16 @@ body.aqms-menu-open {
 }
 
 .drawer-header {
-  display: none; /* hidden on desktop */
+  display: none;
+  /* hidden on desktop */
 }
 
 .top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 80px; /* Increased from 60px to accommodate larger logo */
+  height: 80px;
+  /* Increased from 60px to accommodate larger logo */
   margin-bottom: 12px;
   flex-shrink: 0;
 }
@@ -122,10 +177,13 @@ body.aqms-menu-open {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  height: 72px; /* Increased from 54px */
+  height: 72px;
+  /* Increased from 54px */
 }
+
 .top-nav .logo-img {
-  height: 68px; /* Increased from 48px to improve branding presence */
+  height: 68px;
+  /* Increased from 48px to improve branding presence */
   width: auto;
   object-fit: contain;
   display: block;
@@ -139,9 +197,12 @@ body.aqms-menu-open {
   align-items: center;
   pointer-events: none;
 }
+
 .nav-title-container {
-  display: none; /* hidden below the header on desktop */
+  display: none;
+  /* hidden below the header on desktop */
 }
+
 .nav-title-text {
   color: #111827;
   font-family: 'Roboto', sans-serif;
@@ -150,6 +211,7 @@ body.aqms-menu-open {
   letter-spacing: -0.5px;
   text-align: center;
 }
+
 .nav-title-text.ar-title {
   font-family: 'Noto Sans Arabic', sans-serif;
   font-size: 2.1rem;
@@ -157,7 +219,8 @@ body.aqms-menu-open {
 
 /* Nav Tabs — centered pill group */
 .nav-tabs {
-  display: none; /* hidden on desktop */
+  display: none;
+  /* hidden on desktop */
   gap: 20px;
   align-items: center;
   padding: 4px 6px;
@@ -184,7 +247,9 @@ body.aqms-menu-open {
   white-space: nowrap;
 }
 
-.nav-tab:hover { color: #111; }
+.nav-tab:hover {
+  color: #111;
+}
 
 .nav-tab.active {
   background: white;
@@ -231,7 +296,11 @@ body.aqms-menu-open {
   justify-content: center;
   flex-shrink: 0;
 }
-.user-avatar svg { width: 18px; height: 18px; }
+
+.user-avatar svg {
+  width: 18px;
+  height: 18px;
+}
 
 /* Back to Map button */
 .btn-primary {
@@ -251,17 +320,25 @@ body.aqms-menu-open {
   box-shadow: 0 4px 20px rgba(0, 159, 172, 0.40);
   transition: opacity 0.2s, transform 0.1s;
 }
-.btn-primary:hover { opacity: 0.92; }
-.btn-primary:active { transform: scale(0.98); }
+
+.btn-primary:hover {
+  opacity: 0.92;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
 
 /* ─── DASHBOARD HEADER (page title + filters) ────────────────────── */
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 16px; /* Exactly 16px gap below fixed header */
+  margin-bottom: 16px;
+  /* Exactly 16px gap below fixed header */
   flex-shrink: 0;
-  background: transparent !important; /* remove white background bar completely */
+  background: transparent !important;
+  /* remove white background bar completely */
   padding-top: 8px !important;
   padding-bottom: 8px !important;
   box-sizing: border-box;
@@ -277,6 +354,7 @@ body.aqms-menu-open {
   line-height: 1.1;
   letter-spacing: -0.5px;
 }
+
 .page-title p {
   font-size: 0.72rem;
   color: #6b7280;
@@ -310,10 +388,15 @@ body.aqms-menu-open {
   box-sizing: border-box;
   transition: background 0.15s;
 }
-.filter-btn:hover { background: rgba(230, 245, 245, 0.9); }
+
+.filter-btn:hover {
+  background: rgba(230, 245, 245, 0.9);
+}
 
 /* Dropdown */
-.dropdown { position: relative; }
+.dropdown {
+  position: relative;
+}
 
 .dropdown-menu {
   display: none;
@@ -328,8 +411,16 @@ body.aqms-menu-open {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.8);
 }
-.dropdown.active .dropdown-menu { display: flex; flex-direction: column; }
-.dropdown-menu-right { left: auto; right: 0; }
+
+.dropdown.active .dropdown-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-menu-right {
+  left: auto;
+  right: 0;
+}
 
 .dropdown-header {
   background: #ffffff;
@@ -338,13 +429,21 @@ body.aqms-menu-open {
   color: #6b7280;
   font-weight: 500;
 }
+
 .dropdown-list {
   max-height: 250px;
   overflow-y: auto;
   padding: 0 0 10px;
 }
-.dropdown-list::-webkit-scrollbar { width: 6px; }
-.dropdown-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+.dropdown-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
 
 .dropdown-item {
   padding: 12px 16px;
@@ -357,9 +456,20 @@ body.aqms-menu-open {
   cursor: pointer;
   transition: background 0.1s;
 }
-.dropdown-item:hover { background: #e2e8e8; }
-.dropdown-item.selected { color: #009fac; font-weight: 600; }
-.dropdown-item.highlight { color: #009fac; font-weight: 600; }
+
+.dropdown-item:hover {
+  background: #e2e8e8;
+}
+
+.dropdown-item.selected {
+  color: #009fac;
+  font-weight: 600;
+}
+
+.dropdown-item.highlight {
+  color: #009fac;
+  font-weight: 600;
+}
 
 /* ─── CARD BASE ───────────────────────────────────────────────────── */
 .card {
@@ -383,8 +493,8 @@ body.aqms-menu-open {
 
 /* AQI Card */
 .aqi-card {
-  background: linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.50)),
-              url('/assets/AQMS/livedata.jpg') center / cover;
+  background: linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.50)),
+    url('/assets/AQMS/livedata.jpg') center / cover;
   border-radius: 20px;
   border: 1px solid #FFF;
   box-shadow: 0 4px 34px 0 rgba(0, 0, 0, 0.21);
@@ -398,14 +508,16 @@ body.aqms-menu-open {
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .aqi-card:hover {
   transform: translateY(-2px);
   filter: brightness(1.05);
 }
+
 .aqi-pill {
-  background: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,0.45);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   padding: 4px 12px;
   border-radius: 9999px;
   font-size: 0.72rem;
@@ -416,29 +528,34 @@ body.aqms-menu-open {
   align-self: flex-start;
   transition: all 0.3s ease;
 }
+
 .aqi-info {
   display: flex;
   flex-direction: column;
   justify-content: center;
   flex: 1;
 }
+
 .aqi-label {
   font-size: 0.92rem;
   font-weight: 700;
   margin-bottom: -2px;
   transition: all 0.3s ease;
 }
+
 .aqi-value {
   font-size: 4.2rem;
   font-weight: 900;
   line-height: 1;
   transition: all 0.3s ease;
 }
+
 .aqi-footer {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .status-badge {
   padding: 4px 14px;
   border-radius: 6px;
@@ -446,9 +563,10 @@ body.aqms-menu-open {
   font-size: 0.82rem;
   transition: all 0.3s ease;
 }
+
 .live-indicator {
-  background: rgba(255,255,255,0.18);
-  border: 1px solid rgba(255,255,255,0.45);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   padding: 4px 12px;
   border-radius: 9999px;
   font-size: 0.75rem;
@@ -458,6 +576,7 @@ body.aqms-menu-open {
   gap: 6px;
   transition: all 0.3s ease;
 }
+
 .dot {
   width: 7px;
   height: 7px;
@@ -484,6 +603,7 @@ body.aqms-menu-open {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .aqi-flip-btn:hover {
   background: rgba(255, 255, 255, 0.35);
 }
@@ -524,6 +644,7 @@ body.aqms-menu-open {
   width: 26px !important;
   height: 26px !important;
 }
+
 .about-station-flip-btn:hover {
   background: rgba(0, 0, 0, 0.1) !important;
   color: #111827 !important;
@@ -569,7 +690,7 @@ body.aqms-menu-open {
   color: white;
   display: flex;
   align-items: center;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .about-station-params {
@@ -582,9 +703,11 @@ body.aqms-menu-open {
   overflow-y: auto;
   padding: 4px 6px 4px 0;
 }
+
 .about-station-params::-webkit-scrollbar {
   width: 4px;
 }
+
 .about-station-params::-webkit-scrollbar-thumb {
   background: rgba(0, 159, 172, 0.2);
   border-radius: 10px;
@@ -624,12 +747,14 @@ body.aqms-menu-open {
   flex-direction: column;
   overflow: hidden;
 }
+
 .pollutants-title {
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 8px;
   flex-shrink: 0;
 }
+
 .pollutants-list {
   display: flex;
   gap: 12px;
@@ -639,8 +764,15 @@ body.aqms-menu-open {
   align-items: stretch;
   justify-content: center;
 }
-.pollutants-list::-webkit-scrollbar { height: 4px; }
-.pollutants-list::-webkit-scrollbar-thumb { background: rgba(0,159,172,0.2); border-radius: 10px; }
+
+.pollutants-list::-webkit-scrollbar {
+  height: 4px;
+}
+
+.pollutants-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 159, 172, 0.2);
+  border-radius: 10px;
+}
 
 .pollutant-card {
   background: rgba(255, 255, 255, 0.75);
@@ -657,6 +789,7 @@ body.aqms-menu-open {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
+
 .pollutant-icon-container {
   display: flex;
   align-items: center;
@@ -664,13 +797,15 @@ body.aqms-menu-open {
   padding: 3px;
   margin-bottom: 4px;
 }
-.pollutant-card .p-icon { 
-  width: 36px; 
-  height: 36px; 
+
+.pollutant-card .p-icon {
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   margin: 0;
 }
-.pollutant-card .p-name { 
+
+.pollutant-card .p-name {
   color: #4A4A4A;
   text-align: center;
   font-family: Roboto;
@@ -680,16 +815,18 @@ body.aqms-menu-open {
   line-height: normal;
   margin-bottom: 6px;
 }
-.pollutant-card .p-val { 
+
+.pollutant-card .p-val {
   color: #000;
   text-align: center;
   font-family: Roboto;
   font-size: 26px;
   font-style: normal;
   font-weight: 700;
-  line-height: 1; 
+  line-height: 1;
 }
-.pollutant-card .p-unit { 
+
+.pollutant-card .p-unit {
   color: rgba(74, 74, 74, 0.70);
   text-align: center;
   font-family: Roboto;
@@ -698,11 +835,12 @@ body.aqms-menu-open {
   font-weight: 500;
   line-height: normal;
 }
-.pollutant-card .p-status { 
-  height: 6px; 
-  width: 70%; 
-  border-radius: 9999px; 
-  margin-top: 14px; 
+
+.pollutant-card .p-status {
+  height: 6px;
+  width: 70%;
+  border-radius: 9999px;
+  margin-top: 14px;
 }
 
 /* Bottom row: Wind + Env Grid + Map */
@@ -728,11 +866,37 @@ body.aqms-menu-open {
   flex-direction: column;
   height: 100%;
 }
-.wind-section { margin-bottom: 10px; position: relative; z-index: 2; }
-.wind-label { font-weight: 700; font-size: 0.75rem; color: #111; margin-bottom: 2px; }
-.wind-val { font-size: 1.3rem; font-weight: 800; }
-.wind-unit { font-size: 0.78rem; font-weight: 600; }
-.wind-divider { height: 1.5px; background: rgba(0, 159, 172, 0.3); width: 100%; margin: 12px 0; }
+
+.wind-section {
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.wind-label {
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: #111;
+  margin-bottom: 2px;
+}
+
+.wind-val {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.wind-unit {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.wind-divider {
+  height: 1.5px;
+  background: rgba(0, 159, 172, 0.3);
+  width: 100%;
+  margin: 12px 0;
+}
+
 .wind-pill {
   background: rgba(0, 180, 216, 0.15);
   color: #0077b6;
@@ -746,6 +910,7 @@ body.aqms-menu-open {
   z-index: 2;
   position: relative;
 }
+
 .turbines-bg {
   position: absolute;
   right: -15px;
@@ -767,6 +932,7 @@ body.aqms-menu-open {
   gap: 12px;
   height: 100%;
 }
+
 .env-card {
   border-radius: 20px;
   border: 1px solid #FFF;
@@ -775,10 +941,12 @@ body.aqms-menu-open {
   display: flex;
   flex-direction: column;
 }
+
 .env-card-header {
   padding: 10px 14px;
   border-bottom: 1px solid rgba(0, 159, 172, 0.3);
 }
+
 .env-card-body {
   padding: 10px 14px;
   display: flex;
@@ -786,12 +954,14 @@ body.aqms-menu-open {
   align-items: center;
   flex: 1;
 }
-.env-info { 
-  display: flex; 
-  flex-direction: column; 
-  justify-content: center; 
+
+.env-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
-.env-label { 
+
+.env-label {
   color: #000;
   font-family: Roboto;
   font-size: 15px;
@@ -800,7 +970,8 @@ body.aqms-menu-open {
   line-height: 117.7%;
   letter-spacing: 0.15px;
 }
-.env-val { 
+
+.env-val {
   color: #000;
   font-family: Roboto;
   font-size: 24px;
@@ -809,12 +980,14 @@ body.aqms-menu-open {
   line-height: 117.7%;
   letter-spacing: 0.24px;
 }
-.env-unit { 
-  font-size: 0.82rem; 
-  font-weight: 500; 
+
+.env-unit {
+  font-size: 0.82rem;
+  font-weight: 500;
   margin-left: 2px;
 }
-.env-desc { 
+
+.env-desc {
   color: #4A4A4A;
   font-family: Roboto;
   font-size: 12px;
@@ -822,13 +995,14 @@ body.aqms-menu-open {
   font-weight: 400;
   line-height: 117.7%;
   letter-spacing: 0.12px;
-  max-width: 90px; 
+  max-width: 90px;
 }
-.env-icon { 
-  width: auto; 
+
+.env-icon {
+  width: auto;
   height: 44px;
-  object-fit: contain; 
-  flex-shrink: 0; 
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 /* Map Card */
@@ -841,6 +1015,7 @@ body.aqms-menu-open {
   position: relative;
   height: 100%;
 }
+
 .map-card:fullscreen {
   width: 100vw !important;
   height: 100vh !important;
@@ -848,25 +1023,30 @@ body.aqms-menu-open {
   border-radius: 0 !important;
   background: #ffffff !important;
 }
+
 .map-card:fullscreen .map-floating-fujairah-title {
   bottom: 24px !important;
   left: 24px !important;
   font-size: 1.1rem !important;
   padding: 8px 16px !important;
 }
+
 .map-card:fullscreen .map-controls {
   right: 24px !important;
   gap: 12px !important;
 }
+
 .map-card:fullscreen .map-btn {
   width: 44px !important;
   height: 44px !important;
   font-size: 1.5rem !important;
 }
+
 .map-card:fullscreen .map-btn svg {
   width: 20px !important;
   height: 20px !important;
 }
+
 .map-controls {
   position: absolute;
   right: 12px;
@@ -877,6 +1057,7 @@ body.aqms-menu-open {
   gap: 6px;
   z-index: 1000;
 }
+
 .map-btn {
   width: 32px;
   height: 32px;
@@ -895,12 +1076,14 @@ body.aqms-menu-open {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+
 .map-btn:hover {
   background: rgba(255, 255, 255, 0.95);
   color: #009fac;
   box-shadow: 0 4px 16px rgba(0, 159, 172, 0.2);
   transform: translateY(-1px);
 }
+
 .map-btn:active {
   transform: translateY(1px);
 }
@@ -947,6 +1130,7 @@ body.aqms-menu-open {
   flex-shrink: 0;
   box-sizing: border-box;
 }
+
 .sub-tab {
   display: flex;
   justify-content: center;
@@ -962,6 +1146,7 @@ body.aqms-menu-open {
   color: #374151;
   transition: all 0.15s;
 }
+
 .sub-tab.active {
   background: #FFF;
   color: #111;
@@ -974,29 +1159,38 @@ body.aqms-menu-open {
   border-collapse: collapse;
   font-size: 0.875rem;
 }
+
 .data-table thead th {
   text-align: left;
   padding: 12px 16px;
   font-weight: 600;
   font-size: 0.82rem;
   color: #374151;
-  border-bottom: 1.5px solid rgba(0,0,0,0.08);
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.08);
   white-space: nowrap;
 }
+
 .data-table thead th .sort-icon {
   display: inline-block;
   margin-left: 4px;
   color: #9ca3af;
   font-size: 0.7rem;
 }
+
 .data-table tbody td {
   padding: 12px 16px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   color: #374151;
   font-size: 0.875rem;
 }
-.data-table tbody tr:last-child td { border-bottom: none; }
-.data-table tbody tr:hover td { background: rgba(255,255,255,0.4); }
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.4);
+}
 
 /* Pagination */
 .pagination {
@@ -1006,6 +1200,7 @@ body.aqms-menu-open {
   margin-top: 16px;
   flex-shrink: 0;
 }
+
 .page-btn {
   display: flex;
   height: 32px;
@@ -1026,13 +1221,19 @@ body.aqms-menu-open {
   cursor: pointer;
   transition: all 0.15s;
 }
+
 .page-btn:first-child {
   border-radius: 8px 0 0 8px;
 }
+
 .page-btn:last-child {
   border-radius: 0 8px 8px 0;
 }
-.page-btn:hover { background: rgba(255,255,255,0.5); }
+
+.page-btn:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
 .page-btn.active {
   color: #000;
   border-radius: 4px !important;
@@ -1086,15 +1287,18 @@ body.aqms-menu-open {
   margin-bottom: 44px;
   width: 100%;
 }
+
 .login-logo-img {
   height: 56px;
   width: auto;
   object-fit: contain;
 }
+
 .login-logo-text {
   display: flex;
   flex-direction: column;
 }
+
 .login-logo-text-ar {
   font-size: 1.3rem;
   font-weight: 700;
@@ -1102,27 +1306,32 @@ body.aqms-menu-open {
   color: white;
   letter-spacing: 0.5px;
 }
+
 .login-logo-text-en {
   font-size: 0.55rem;
   letter-spacing: 1.5px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
   text-transform: uppercase;
   margin-top: 3px;
 }
 
 /* Login form */
-.login-form-wrapper { width: 100%; }
+.login-form-wrapper {
+  width: 100%;
+}
 
 .login-header {
   text-align: center;
   margin-bottom: 28px;
 }
+
 .login-header h2 {
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 0.3px;
 }
+
 .login-header p {
   font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.7);
@@ -1155,7 +1364,11 @@ body.aqms-menu-open {
   transition: all 0.2s;
   box-sizing: border-box;
 }
-.input-glass::placeholder { color: rgba(255, 255, 255, 0.5); }
+
+.input-glass::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .input-glass:focus {
   background: rgba(255, 255, 255, 0.18);
   border-color: rgba(255, 255, 255, 0.5);
@@ -1171,7 +1384,10 @@ body.aqms-menu-open {
   display: flex;
   align-items: center;
 }
-.password-toggle:hover { opacity: 1; }
+
+.password-toggle:hover {
+  opacity: 1;
+}
 
 .form-options {
   display: flex;
@@ -1190,7 +1406,11 @@ body.aqms-menu-open {
   user-select: none;
   font-size: 0.82rem;
 }
-.checkbox-container input { display: none; }
+
+.checkbox-container input {
+  display: none;
+}
+
 .checkmark {
   width: 16px;
   height: 16px;
@@ -1203,10 +1423,12 @@ body.aqms-menu-open {
   transition: all 0.2s;
   flex-shrink: 0;
 }
-.checkbox-container input:checked ~ .checkmark {
+
+.checkbox-container input:checked~.checkmark {
   background: #009fac;
   border-color: #009fac;
 }
+
 .checkmark::after {
   content: "";
   display: none;
@@ -1217,7 +1439,10 @@ body.aqms-menu-open {
   transform: rotate(45deg);
   margin-bottom: 2px;
 }
-.checkbox-container input:checked ~ .checkmark::after { display: block; }
+
+.checkbox-container input:checked~.checkmark::after {
+  display: block;
+}
 
 .forgot-password {
   color: white;
@@ -1225,7 +1450,10 @@ body.aqms-menu-open {
   font-weight: 600;
   font-size: 0.82rem;
 }
-.forgot-password:hover { text-decoration: underline; }
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
 
 .login-btn {
   width: 100%;
@@ -1246,26 +1474,49 @@ body.aqms-menu-open {
   transition: opacity 0.2s, transform 0.1s;
   font-family: 'Inter', sans-serif;
 }
-.login-btn:hover { opacity: 0.92; }
-.login-btn:active { transform: scale(0.98); }
+
+.login-btn:hover {
+  opacity: 0.92;
+}
+
+.login-btn:active {
+  transform: scale(0.98);
+}
 
 .signup-link {
   text-align: center;
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.75);
 }
+
 .signup-link a {
   color: #5ef0ff;
   text-decoration: none;
   font-weight: 600;
 }
-.signup-link a:hover { text-decoration: underline; }
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
 
 /* ─── SCROLLBARS ─────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
 
 /* ─── LANDING PAGE ─────────────────────────────────────────────────── */
 .landing-page {
@@ -1274,7 +1525,8 @@ body.aqms-menu-open {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-  background-color: #f3f4f6; /* light grey for bottom sections */
+  background-color: #f3f4f6;
+  /* light grey for bottom sections */
 }
 
 .landing-nav {
@@ -1288,7 +1540,7 @@ body.aqms-menu-open {
   padding: 10px 40px;
   background-color: white;
   z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .landing-logo img {
@@ -1339,7 +1591,7 @@ body.aqms-menu-open {
   flex: 1;
   min-height: 80vh;
   position: relative;
-  background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.25)), url('/assets/AQMS/landingbg_new.png');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.25)), url('/assets/AQMS/landingbg_new.png');
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -1349,8 +1601,10 @@ body.aqms-menu-open {
   justify-content: center;
   text-align: center;
   color: white;
-  padding-top: 80px; /* Space for nav */
-  overflow: hidden; /* Prevent SVG bleed */
+  padding-top: 80px;
+  /* Space for nav */
+  overflow: hidden;
+  /* Prevent SVG bleed */
 }
 
 .landing-content {
@@ -1365,7 +1619,7 @@ body.aqms-menu-open {
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 30px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .landing-map-overlay {
@@ -1389,7 +1643,8 @@ body.aqms-menu-open {
   justify-content: center;
 }
 
-.landing-radar::before, .landing-radar::after {
+.landing-radar::before,
+.landing-radar::after {
   content: '';
   position: absolute;
   border-radius: 50%;
@@ -1398,17 +1653,26 @@ body.aqms-menu-open {
 }
 
 .landing-radar::before {
-  width: 100px; height: 100px;
+  width: 100px;
+  height: 100px;
 }
 
 .landing-radar::after {
-  width: 150px; height: 150px;
+  width: 150px;
+  height: 150px;
   animation-delay: 1.5s;
 }
 
 @keyframes pulse {
-  0% { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(1.5); opacity: 0; }
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
 }
 
 .radar-circle {
@@ -1564,9 +1828,22 @@ body.aqms-menu-open {
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
+
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-10px);
+  }
+
+  60% {
+    transform: translateY(-5px);
+  }
 }
 
 /* ─── GLOBAL RESPONSIVE ADJUSTMENTS ─────────────────────────────────── */
@@ -1577,70 +1854,13 @@ body.aqms-menu-open {
 }
 
 @media (max-width: 1024px) {
-  /* Tablet Adjustments */
-  .app-container {
-    height: auto;
-    min-height: calc(100vh - 24px);
-    overflow-y: auto;
-  }
-  .top-nav {
-    flex-wrap: wrap;
-    height: auto;
-    gap: 15px;
-  }
-  .nav-tabs {
-    order: 3;
-    width: 100%;
-    justify-content: center;
-  }
-  
-  /* Live Data Grids - Tablet */
-  .top-grid {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
-  .aqi-card {
-    min-width: unset;
-    width: 100%;
-    min-height: 250px;
-  }
-  .pollutants-wrapper {
-    width: 100%;
-  }
-  .pollutants-list {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .bottom-grid {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
-  .wind-card {
-    width: 100%;
-    min-height: 250px;
-  }
-  .turbines-bg {
-    width: 175px !important;
-    height: 175px !important;
-    min-width: 175px !important;
-    min-height: 175px !important;
-    right: -12px !important;
-    bottom: -12px !important;
-  }
-  .env-grid {
-    width: 100%;
-    grid-template-columns: 1fr;
-  }
-  .map-card {
-    width: 100%;
-    height: 300px;
-  }
-  
+
   /* Login Screen - Tablet */
   .login-container {
     justify-content: center;
     align-items: center;
   }
+
   .login-panel {
     margin-left: 0;
     width: 70%;
@@ -1652,8 +1872,9 @@ body.aqms-menu-open {
   }
 }
 
-@media (max-width: 768px) {
-  /* Mobile Adjustments */
+@media (max-width: 1024px) {
+
+  /* Mobile & Tablet Adjustments */
   .app-container {
     padding: 10px 14px !important;
     margin: 0 !important;
@@ -1665,28 +1886,30 @@ body.aqms-menu-open {
     flex-direction: column !important;
     box-sizing: border-box !important;
   }
-  
+
   /* Layout Children Container */
-  .app-container > div:last-child {
+  .app-container>div:last-child {
     flex: 1 !important;
     display: flex !important;
     flex-direction: column !important;
     min-height: 0 !important;
     overflow: hidden !important;
   }
-  
+
   .top-nav {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     justify-content: space-between !important;
     align-items: center !important;
-    height: 64px !important; /* Premium branding height increased for larger logo */
+    height: 64px !important;
+    /* Premium branding height increased for larger logo */
     padding: 0px 2px !important;
     position: relative !important;
     box-sizing: border-box !important;
     flex-shrink: 0 !important;
   }
+
   .logo-container {
     display: flex !important;
     align-items: center !important;
@@ -1694,26 +1917,77 @@ body.aqms-menu-open {
     flex: unset !important;
     position: static !important;
   }
+
   .hamburger-btn {
-    display: none !important; /* hide hamburger entirely */
+    display: none !important;
+    /* hide hamburger entirely */
   }
+
   .logo-img {
-    margin: 0 !important; /* Left-aligned logo */
-    height: 52px !important; /* Increased FEA logo size for better visibility and readability */
+    margin: 0 !important;
+    /* Left-aligned logo */
+    height: 52px !important;
+    /* Increased FEA logo size for better visibility and readability */
     width: auto !important;
   }
+
   .nav-right {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    position: static !important; /* flex-aligned inline */
+    position: static !important;
+    /* flex-aligned inline */
     transform: none !important;
     flex: unset !important;
   }
+
   .top-nav .dropdown {
-    display: none !important;
+    display: block !important;
+    position: relative !important;
   }
-  
+
+  .top-nav .dropdown .user-pill {
+    padding: 0 !important;
+    border-radius: 50% !important;
+    width: 32px !important;
+    height: 32px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    background: rgba(235, 242, 242, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 2px 8px rgba(0, 159, 172, 0.05) !important;
+  }
+
+  .top-nav .dropdown .user-pill span,
+  .top-nav .dropdown .user-pill svg:not(:first-child) {
+    display: none !important;
+    /* Hide name and chevron down arrow on mobile */
+  }
+
+  .top-nav .dropdown .user-pill .user-avatar {
+    width: 28px !important;
+    height: 28px !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  .top-nav .dropdown .user-pill .user-avatar svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .top-nav .dropdown .dropdown-menu {
+    position: absolute !important;
+    top: calc(100% + 6px) !important;
+    right: 0 !important;
+    left: auto !important;
+    width: 160px !important;
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    z-index: 99999 !important;
+  }
+
   /* Ultra-compact Premium sliding language selection switcher toggle */
   .lang-switcher-container {
     width: 64px !important;
@@ -1721,49 +1995,61 @@ body.aqms-menu-open {
     border-radius: 14px !important;
     margin-inline-end: 2px !important;
   }
+
   .lang-label-bg {
     width: 24px !important;
     height: 24px !important;
     font-size: 10px !important;
   }
+
   .lang-knob {
     width: 24px !important;
     height: 24px !important;
   }
+
   .lang-switcher-container.en .lang-knob {
-    transform: translateX(36px) !important; /* Adjusted for 64px container */
+    transform: translateX(36px) !important;
+    /* Adjusted for 64px container */
   }
+
   .lang-switcher-container.ar .lang-knob {
     transform: translateX(0) !important;
   }
+
   .lang-knob-text {
     font-size: 10px !important;
   }
-  
+
   /* Balanced visual breathing space above and below title area */
   .nav-title-header-container {
-    display: none !important; /* Hide header version on mobile */
+    display: none !important;
+    /* Hide header version on mobile */
   }
+
   .nav-title-container {
     width: 100% !important;
-    display: flex !important; /* Show below-header version on mobile */
+    display: flex !important;
+    /* Show below-header version on mobile */
     justify-content: center !important;
     align-items: center !important;
     margin-top: 16px !important;
     margin-bottom: 16px !important;
     flex-shrink: 0 !important;
   }
+
   .nav-title-text {
     font-size: 1.25rem !important;
     white-space: nowrap !important;
     text-align: center !important;
     letter-spacing: -0.3px !important;
-    font-weight: 900 !important; /* Preserve existing font weight */
+    font-weight: 900 !important;
+    /* Preserve existing font weight */
   }
+
   .nav-title-text.ar-title {
     font-size: 1.35rem !important;
   }
-  
+
   /* Drawer Mobile Profile */
   .mobile-profile-container {
     margin-top: auto !important;
@@ -1773,6 +2059,7 @@ body.aqms-menu-open {
     flex-direction: column !important;
     gap: 10px !important;
   }
+
   .user-pill-mobile {
     display: flex !important;
     align-items: center !important;
@@ -1781,6 +2068,7 @@ body.aqms-menu-open {
     padding: 8px 12px !important;
     border-radius: 10px !important;
   }
+
   .user-pill-mobile .user-avatar {
     width: 28px !important;
     height: 28px !important;
@@ -1790,11 +2078,13 @@ body.aqms-menu-open {
     align-items: center !important;
     justify-content: center !important;
   }
+
   .user-pill-mobile span {
     font-weight: 600 !important;
     font-size: 0.9rem !important;
     color: #334155 !important;
   }
+
   .mobile-profile-logout {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
     color: white !important;
@@ -1817,7 +2107,7 @@ body.aqms-menu-open {
     position: relative !important;
     padding-top: 8px !important;
   }
-  
+
   /* Lock layout to support fixed header & top section with independent body scroll */
   .aqms-main-content {
     display: flex !important;
@@ -1826,37 +2116,47 @@ body.aqms-menu-open {
     min-height: 0 !important;
     overflow: hidden !important;
   }
+
   .aqms-live-data-scroll-body {
     flex: 1 !important;
     overflow-y: auto !important;
     min-height: 0 !important;
     padding-bottom: 24px !important;
     -webkit-overflow-scrolling: touch !important;
-    padding-right: 0 !important; /* tight mobile layout */
+    padding-right: 0 !important;
+    /* tight mobile layout */
   }
+
   .page-title {
     align-self: flex-start !important;
     max-width: 62% !important;
   }
+
   .page-title h1 {
-    font-size: 1.15rem !important; /* Reduced font size from 1.5rem */
-    font-weight: 700 !important;   /* Reduced font weight from 800 */
+    font-size: 1.15rem !important;
+    /* Reduced font size from 1.5rem */
+    font-weight: 700 !important;
+    /* Reduced font weight from 800 */
   }
-  .page-title .header-date, .page-title .tabular-date {
+
+  .page-title .header-date,
+  .page-title .tabular-date {
     font-size: 0.72rem !important;
   }
+
   .header-controls-group {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
     gap: 12px !important;
   }
-  
+
   /* Pill Switcher Navigation - Row 2 (Full Width) */
   .pill-tabs-group {
     order: 2 !important;
     width: 100% !important;
-    height: 45px !important; /* Touch-friendly height exactly 45px */
+    height: 45px !important;
+    /* Touch-friendly height exactly 45px */
     background: rgba(255, 255, 255, 0.4) !important;
     border: 1px solid rgba(255, 255, 255, 0.6) !important;
     padding: 3px !important;
@@ -1865,22 +2165,26 @@ body.aqms-menu-open {
     display: flex !important;
     margin-top: 0 !important;
   }
+
   .pill-tabs-group .pill-tab {
-    flex: 1 !important; /* Full width align */
+    flex: 1 !important;
+    /* Full width align */
     height: 100% !important;
-    font-size: 0.85rem !important; /* Adjusted font size for 45px height */
+    font-size: 0.85rem !important;
+    /* Adjusted font size for 45px height */
     font-weight: 700 !important;
     border-radius: 19px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
   }
-  
+
   /* View Toggle and Filter Button - Row 1 (Aligned Right & Touch-Friendly) */
   .view-toggle-group {
     order: 1 !important;
     position: absolute !important;
-    right: 48px !important; /* Gap for filter button */
+    right: 48px !important;
+    /* Gap for filter button */
     top: 8px !important;
     height: 38px !important;
     display: flex !important;
@@ -1892,6 +2196,7 @@ body.aqms-menu-open {
     box-sizing: border-box !important;
     z-index: 10 !important;
   }
+
   .view-toggle-btn {
     width: 32px !important;
     height: 32px !important;
@@ -1902,11 +2207,13 @@ body.aqms-menu-open {
     align-items: center !important;
     justify-content: center !important;
   }
+
   .view-toggle-btn.active {
     background: #009fac !important;
     color: white !important;
     border-radius: 16px !important;
   }
+
   .filter-popover-anchor-wrapper {
     order: 1 !important;
     position: absolute !important;
@@ -1917,6 +2224,7 @@ body.aqms-menu-open {
     align-items: center !important;
     z-index: 10 !important;
   }
+
   .filter-toggle-circle-btn {
     width: 38px !important;
     height: 38px !important;
@@ -1935,30 +2243,35 @@ body.aqms-menu-open {
     right: auto !important;
     left: 48px !important;
   }
+
   html[lang="ar"] .filter-popover-anchor-wrapper,
   [dir="rtl"] .filter-popover-anchor-wrapper,
   .rtl .filter-popover-anchor-wrapper {
     right: auto !important;
     left: 0 !important;
   }
+
   html[lang="ar"] .page-title,
   [dir="rtl"] .page-title,
   .rtl .page-title {
-    align-self: flex-start !important; /* aligns to the right edge in RTL column flexbox */
+    align-self: flex-start !important;
+    /* aligns to the right edge in RTL column flexbox */
     text-align: right !important;
     max-width: 62% !important;
   }
+
   html[lang="ar"] .page-title h1,
   [dir="rtl"] .page-title h1,
   .rtl .page-title h1 {
     text-align: right !important;
   }
+
   html[lang="ar"] .page-title p,
   [dir="rtl"] .page-title p,
   .rtl .page-title p {
     text-align: right !important;
   }
-  
+
   /* Off-canvas Drawer */
   .nav-tabs {
     display: flex;
@@ -1977,11 +2290,13 @@ body.aqms-menu-open {
     transition: transform 0.3s ease-in-out;
     border-radius: 0;
     border: none;
-    box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
   }
+
   .nav-tabs.active {
     transform: translateX(0);
   }
+
   .drawer-header {
     display: flex;
     justify-content: space-between;
@@ -1990,11 +2305,13 @@ body.aqms-menu-open {
     padding-bottom: 10px;
     border-bottom: 1px solid #e2e8f0;
   }
+
   .drawer-header h3 {
     margin: 0;
     font-size: 1.2rem;
     color: #0f172a;
   }
+
   .close-btn {
     background: none;
     border: none;
@@ -2005,6 +2322,7 @@ body.aqms-menu-open {
     align-items: center;
     justify-content: center;
   }
+
   .nav-tab {
     height: 48px;
     justify-content: flex-start;
@@ -2012,39 +2330,44 @@ body.aqms-menu-open {
     width: 100%;
     margin-bottom: 8px;
   }
+
   .dashboard-header {
     flex-direction: column;
     align-items: stretch;
     gap: 15px;
   }
+
   .filters-bar {
     flex-wrap: wrap;
   }
+
   .custom-select {
     flex: 1 1 100%;
   }
-  
+
   .header-actions {
     flex-direction: column;
     align-items: flex-end;
     gap: 10px;
   }
-  
+
   .ld-top-cards {
     flex-direction: column;
   }
+
   .ld-card {
     flex: 1 1 100%;
   }
-  
+
   /* Make Data Tables horizontally scrollable */
   .table-card {
     padding: 15px;
   }
+
   .data-table-wrapper {
     overflow-x: auto;
   }
-  
+
   /* Analytics specific */
   .chart-controls-top {
     position: static !important;
@@ -2054,54 +2377,65 @@ body.aqms-menu-open {
     margin-bottom: 15px;
     justify-content: flex-start;
   }
-  .controls-row, .controls-bottom {
+
+  .controls-row,
+  .controls-bottom {
     flex-direction: column;
     align-items: flex-start;
   }
+
   .custom-select {
     width: 100%;
   }
-  
+
   /* Live Data grids */
   .top-grid {
     grid-template-columns: 1fr;
     min-height: auto;
   }
+
   .aqi-card {
     min-width: unset;
     width: 100%;
     min-height: 250px;
   }
+
   .pollutants-wrapper {
     width: 100%;
   }
+
   .pollutants-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
   }
+
   .bottom-grid {
     grid-template-columns: 1fr;
     min-height: auto;
   }
+
   .wind-card {
     width: 100%;
     min-height: 250px;
   }
+
   .env-grid {
     width: 100%;
     grid-template-columns: 1fr;
   }
+
   .map-card {
     width: 100%;
     height: 300px;
   }
-  
+
   /* Login Screen */
   .login-container {
     flex-direction: column;
     justify-content: center;
     align-items: center;
   }
+
   .login-panel {
     margin-left: 0;
     min-width: unset;
@@ -2261,14 +2595,17 @@ body.aqms-menu-open {
 .aqms-live-data-container::-webkit-scrollbar {
   width: 6px;
 }
+
 .aqms-live-data-container::-webkit-scrollbar-track {
   background: rgba(0, 159, 172, 0.05);
   border-radius: 10px;
 }
+
 .aqms-live-data-container::-webkit-scrollbar-thumb {
   background: rgba(0, 159, 172, 0.25);
   border-radius: 10px;
 }
+
 .aqms-live-data-container::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 159, 172, 0.4);
 }
@@ -2580,53 +2917,63 @@ body.aqms-menu-open {
   .header-dashboard-title {
     font-size: 1.3rem;
   }
+
   .pill-tabs-group {
     height: 45px !important;
     padding: 3px !important;
     border-radius: 22px !important;
   }
+
   .pill-tab {
     padding: 0 14px;
     font-size: 0.85rem !important;
     border-radius: 19px !important;
   }
+
   .filter-toggle-circle-btn {
     width: 40px;
     height: 40px;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .header-dashboard-title-wrapper {
     flex-wrap: wrap;
     gap: 8px;
   }
+
   .header-dashboard-title {
     font-size: 1.1rem;
     width: 100%;
     margin-bottom: 6px;
   }
+
   .mobile-only-nav {
     display: flex !important;
   }
+
   .dashboard-header {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
+
   .header-controls-group {
     justify-content: space-between;
     width: 100%;
   }
+
   .pill-tabs-group {
     flex: 1 !important;
     height: 45px !important;
     padding: 3px !important;
     border-radius: 22px !important;
   }
+
   .env-card-styled {
     min-height: 120px;
   }
+
   .map-floating-fujairah-title {
     font-size: 1.4rem;
   }
@@ -2664,14 +3011,17 @@ body.aqms-menu-open {
 .aqms-live-data-scroll-body::-webkit-scrollbar {
   width: 6px;
 }
+
 .aqms-live-data-scroll-body::-webkit-scrollbar-track {
   background: rgba(0, 159, 172, 0.05);
   border-radius: 10px;
 }
+
 .aqms-live-data-scroll-body::-webkit-scrollbar-thumb {
   background: rgba(0, 159, 172, 0.25);
   border-radius: 10px;
 }
+
 .aqms-live-data-scroll-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 159, 172, 0.4);
 }
@@ -2701,7 +3051,8 @@ body.aqms-menu-open {
   box-sizing: border-box;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   min-height: 380px;
-  min-width: 0; /* CRITICAL: Prevents Highcharts from pushing card width out */
+  min-width: 0;
+  /* CRITICAL: Prevents Highcharts from pushing card width out */
   overflow: hidden;
 }
 
@@ -2801,7 +3152,7 @@ body.aqms-menu-open {
 .custom-chart-tooltip-bubble {
   background: white;
   border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(255, 255, 255, 1);
   padding: 8px 12px;
   font-family: 'Roboto', sans-serif;
@@ -2821,30 +3172,36 @@ body.aqms-menu-open {
     grid-template-columns: 1fr;
     gap: 14px;
   }
+
   .chart-panel-card {
     min-height: auto;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .chart-panel-card {
     position: relative !important;
   }
+
   .chart-panel-header {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 10px !important;
-    padding-right: 48px !important; /* ensure title doesn't overlap expand button */
+    padding-right: 48px !important;
+    /* ensure title doesn't overlap expand button */
   }
+
   .chart-panel-title {
     font-size: 0.95rem !important;
   }
+
   .chart-expand-icon-btn {
     position: absolute !important;
     right: 18px !important;
     top: 18px !important;
     z-index: 10 !important;
   }
+
   .chart-legend-container {
     gap: 8px 12px !important;
   }
@@ -2878,14 +3235,17 @@ body.aqms-menu-open {
 .aqms-analytics-scroll-body::-webkit-scrollbar {
   width: 6px;
 }
+
 .aqms-analytics-scroll-body::-webkit-scrollbar-track {
   background: rgba(0, 159, 172, 0.05);
   border-radius: 10px;
 }
+
 .aqms-analytics-scroll-body::-webkit-scrollbar-thumb {
   background: rgba(0, 159, 172, 0.25);
   border-radius: 10px;
 }
+
 .aqms-analytics-scroll-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 159, 172, 0.4);
 }
@@ -2900,7 +3260,8 @@ body.aqms-menu-open {
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 580px; /* Constrain the height premiumly for analytics */
+  min-height: 580px;
+  /* Constrain the height premiumly for analytics */
   box-sizing: border-box;
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -3064,14 +3425,17 @@ body.aqms-menu-open {
 .aqms-reports-scroll-body::-webkit-scrollbar {
   width: 6px;
 }
+
 .aqms-reports-scroll-body::-webkit-scrollbar-track {
   background: rgba(0, 159, 172, 0.05);
   border-radius: 10px;
 }
+
 .aqms-reports-scroll-body::-webkit-scrollbar-thumb {
   background: rgba(0, 159, 172, 0.25);
   border-radius: 10px;
 }
+
 .aqms-reports-scroll-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 159, 172, 0.4);
 }
@@ -3259,14 +3623,17 @@ body.aqms-menu-open {
 .aqms-reports-container::-webkit-scrollbar {
   width: 6px;
 }
+
 .aqms-reports-container::-webkit-scrollbar-track {
   background: rgba(0, 159, 172, 0.05);
   border-radius: 10px;
 }
+
 .aqms-reports-container::-webkit-scrollbar-thumb {
   background: rgba(0, 159, 172, 0.25);
   border-radius: 10px;
 }
+
 .aqms-reports-container::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 159, 172, 0.4);
 }
@@ -3455,7 +3822,8 @@ body.aqms-menu-open {
   width: 100%;
   flex: 1;
   min-height: 0;
-  height: 100%; /* Fill remaining viewport */
+  height: 100%;
+  /* Fill remaining viewport */
 }
 
 .tabular-card {
@@ -3467,22 +3835,25 @@ body.aqms-menu-open {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
   width: 100%;
   box-sizing: border-box;
-  
+
   /* Flex layout to occupy maximum space and remain sticky */
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
   height: 100%;
-  overflow: hidden; /* Only the inner table body wrapper should scroll */
+  overflow: hidden;
+  /* Only the inner table body wrapper should scroll */
 }
 
 /* Scrollable wrapper for the tabular table */
 .tabular-table-scroll-wrapper {
   flex: 1;
-  overflow: auto; /* Vertically and horizontally scrollable body */
+  overflow: auto;
+  /* Vertically and horizontally scrollable body */
   min-height: 0;
-  max-height: calc(100vh - 360px) !important; /* strictly restrict scrolling within the table body viewport area */
+  max-height: calc(100vh - 360px) !important;
+  /* strictly restrict scrolling within the table body viewport area */
   width: 100%;
   border-radius: 12px;
 }
@@ -3501,11 +3872,12 @@ body.aqms-menu-open {
   color: #4b5563;
   border-bottom: 2px solid rgba(200, 215, 215, 0.5);
   white-space: nowrap;
-  
+
   /* Sticky headers with opaque light teal page-matching background to block row bleed-through */
   position: sticky !important;
   top: 0 !important;
-  background: #e0f2f4 !important; /* match the soft page background exactly, hiding overlaying rows */
+  background: #e0f2f4 !important;
+  /* match the soft page background exactly, hiding overlaying rows */
   z-index: 5 !important;
 }
 
@@ -3607,7 +3979,7 @@ body.aqms-menu-open {
     height: auto;
     padding-bottom: 12px;
   }
-  
+
   .header-controls-group {
     width: 100%;
     justify-content: space-between;
@@ -3624,13 +3996,13 @@ body.aqms-menu-open {
   .charts-grid-row {
     grid-template-columns: 1fr;
   }
-  
+
   .pollutants-list {
     flex-wrap: wrap;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .header-controls-group {
     display: flex !important;
     flex-direction: row !important;
@@ -3663,6 +4035,7 @@ body.aqms-menu-open {
     left: 48px !important;
     top: 8px !important;
   }
+
   html[lang="ar"] .filter-popover-anchor-wrapper,
   [dir="rtl"] .filter-popover-anchor-wrapper,
   .rtl .filter-popover-anchor-wrapper {
@@ -3677,7 +4050,8 @@ body.aqms-menu-open {
     width: 100% !important;
     max-width: 100% !important;
     margin: 4px 0 0 0 !important;
-    height: 48px !important; /* Increased height for touch interaction */
+    height: 48px !important;
+    /* Increased height for touch interaction */
     padding: 4px !important;
     border-radius: 24px !important;
     display: flex !important;
@@ -3693,7 +4067,7 @@ body.aqms-menu-open {
     font-weight: 700 !important;
     border-radius: 20px !important;
   }
-  
+
   .nav-right {
     width: 100%;
     justify-content: space-between;
@@ -3710,6 +4084,7 @@ body.aqms-menu-open {
     gap: 8px !important;
     width: 100% !important;
   }
+
   .pollutant-card {
     min-width: 0 !important;
     padding: 8px 4px !important;
@@ -3719,29 +4094,35 @@ body.aqms-menu-open {
     align-items: center !important;
     text-align: center !important;
   }
+
   .pollutant-card .pollutant-icon-container {
     margin-bottom: 4px !important;
   }
+
   .pollutant-card .pollutant-icon-container svg {
     width: 24px !important;
     height: 24px !important;
   }
+
   .pollutant-card .p-name {
     font-size: 0.72rem !important;
     font-weight: 600 !important;
     color: #475569 !important;
     margin-bottom: 2px !important;
   }
+
   .pollutant-card .p-val {
     font-size: 1.15rem !important;
     font-weight: 800 !important;
     color: #0f172a !important;
     line-height: 1.1 !important;
   }
+
   .pollutant-card .p-unit {
     font-size: 0.62rem !important;
     color: #64748b !important;
   }
+
   .pollutant-card .p-status-bar {
     height: 3px !important;
     width: 16px !important;
@@ -3757,7 +4138,7 @@ body.aqms-menu-open {
     width: 100%;
     overflow-x: auto;
   }
-  
+
   .tabular-card {
     padding: 16px 12px;
     overflow-x: auto;
@@ -3772,12 +4153,12 @@ body.aqms-menu-open {
     min-height: auto !important;
     height: auto !important;
   }
-  
+
   .aqi-card {
     width: 100%;
     max-width: none;
   }
-  
+
   .wind-card {
     width: 100%;
   }
@@ -3789,6 +4170,7 @@ body.aqms-menu-open {
 
 /* ─── AQMS DASHBOARD COMPACT RESPONSIVE SCALING (100% -> 80%) ─────────── */
 @media (min-width: 1024px) {
+
   /* Main Containers & Heights */
   .aqms-live-data-container,
   .aqms-analytics-container,
@@ -3802,24 +4184,29 @@ body.aqms-menu-open {
   .dashboard-header {
     margin-bottom: 8px !important;
   }
-  .page-title h1, 
+
+  .page-title h1,
   .tabular-title {
     font-size: 1.35rem !important;
   }
-  .page-title p, 
-  .tabular-date, 
+
+  .page-title p,
+  .tabular-date,
   .header-date {
     font-size: 0.72rem !important;
     margin-top: 1px !important;
   }
+
   .pill-tab {
     padding: 4px 14px !important;
     font-size: 0.72rem !important;
   }
+
   .filter-toggle-circle-btn {
     width: 40px !important;
     height: 40px !important;
   }
+
   .filter-toggle-circle-btn svg {
     width: 18px !important;
     height: 18px !important;
@@ -3831,42 +4218,52 @@ body.aqms-menu-open {
     height: 200px !important;
     gap: 10px !important;
   }
+
   .aqi-card {
     border-radius: 12px !important;
     padding: 10px 12px !important;
   }
+
   .aqi-pill {
     font-size: 0.68rem !important;
     padding: 2px 8px !important;
     gap: 4px !important;
   }
+
   .aqi-pill svg {
     width: 10px !important;
     height: 10px !important;
   }
+
   .aqi-refresh-circle-btn {
     width: 20px !important;
     height: 20px !important;
     top: 10px !important;
     right: 12px !important;
   }
+
   .aqi-info {
     margin-top: 4px !important;
   }
+
   .aqi-info .aqi-label {
     font-size: 0.75rem !important;
   }
+
   .aqi-info .aqi-value {
     font-size: 3rem !important;
     line-height: 1.05 !important;
   }
+
   .aqi-footer {
     margin-top: auto !important;
   }
+
   .aqi-footer .status-badge {
     font-size: 0.68rem !important;
     padding: 2px 8px !important;
   }
+
   .aqi-footer .live-indicator {
     font-size: 0.65rem !important;
   }
@@ -3876,15 +4273,18 @@ body.aqms-menu-open {
     border-radius: 12px !important;
     padding: 10px 14px 8px !important;
   }
+
   .pollutants-title {
     font-size: 0.85rem !important;
     margin-bottom: 6px !important;
     font-weight: 700 !important;
   }
+
   .pollutants-list {
     gap: 6px !important;
     padding-bottom: 2px !important;
   }
+
   .pollutant-card {
     border-radius: 12px !important;
     padding: 8px 4px 6px !important;
@@ -3892,24 +4292,29 @@ body.aqms-menu-open {
     min-width: 0 !important;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02) !important;
   }
+
   .pollutant-card .p-icon {
     width: 36px !important;
     height: 36px !important;
     margin: 0 !important;
   }
+
   .pollutant-card .p-name {
     font-size: 0.68rem !important;
     font-weight: 700 !important;
   }
+
   .pollutant-card .p-val {
     font-size: 1.15rem !important;
     font-weight: 800 !important;
     line-height: 1.2 !important;
     margin: 1px 0 !important;
   }
+
   .pollutant-card .p-unit {
     font-size: 0.58rem !important;
   }
+
   .pollutant-card .p-status {
     height: 3.5px !important;
     width: 24px !important;
@@ -3930,6 +4335,7 @@ body.aqms-menu-open {
     border-radius: 12px !important;
     padding: 12px 12px 12px 24px !important;
   }
+
   .turbines-bg {
     width: 175px !important;
     height: 175px !important;
@@ -3938,24 +4344,30 @@ body.aqms-menu-open {
     right: -12px !important;
     bottom: -12px !important;
   }
+
   .wind-section {
     margin-bottom: 6px !important;
   }
+
   .wind-label {
     font-size: 0.72rem !important;
     margin-bottom: 1px !important;
   }
+
   .wind-val {
     font-size: 1.2rem !important;
   }
+
   .wind-unit {
     font-size: 0.7rem !important;
   }
+
   .wind-divider {
     margin: 4px 0 8px !important;
     height: 1.2px !important;
     width: 40px !important;
   }
+
   .wind-pill {
     padding: 2.5px 8px !important;
     font-size: 0.65rem !important;
@@ -3965,26 +4377,32 @@ body.aqms-menu-open {
   .env-grid {
     gap: 8px !important;
   }
+
   .env-card-styled {
     border-radius: 12px !important;
     padding: 16px 8px 12px 24px !important;
   }
+
   .env-card-title {
     font-size: 0.72rem !important;
     font-weight: 700 !important;
   }
+
   .env-card-value {
     font-size: 1.2rem !important;
     font-weight: 800 !important;
     margin-bottom: 5px !important;
   }
+
   .env-card-unit {
     font-size: 0.7rem !important;
   }
+
   .env-card-desc {
     font-size: 0.62rem !important;
     max-width: 100px !important;
   }
+
   .env-card-3d-icon {
     width: auto !important;
     height: 70px !important;
@@ -3995,12 +4413,14 @@ body.aqms-menu-open {
   .map-card {
     border-radius: 12px !important;
   }
+
   .map-floating-fujairah-title {
     font-size: 0.68rem !important;
     padding: 3px 8px !important;
     top: 8px !important;
     left: 8px !important;
   }
+
   .map-controls {
     top: 50% !important;
     bottom: auto !important;
@@ -4008,6 +4428,7 @@ body.aqms-menu-open {
     right: 8px !important;
     gap: 4px !important;
   }
+
   .map-btn {
     width: 22px !important;
     height: 22px !important;
@@ -4120,8 +4541,15 @@ body.aqms-menu-open {
 }
 
 @keyframes aqmsModalSlideUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .aqms-chart-modal-header {
@@ -4304,37 +4732,45 @@ body.aqms-menu-open {
     height: 95vh !important;
     width: 98% !important;
   }
+
   .aqms-chart-modal-header {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 12px !important;
     padding: 14px 16px !important;
   }
+
   .aqms-chart-type-container {
     margin-right: 0 !important;
     width: 100% !important;
     overflow-x: auto !important;
   }
+
   .aqms-chart-type-pill {
     width: 100% !important;
     justify-content: space-between !important;
   }
+
   .aqms-chart-modal-close-btn {
     top: 14px !important;
     right: 16px !important;
   }
+
   .aqms-chart-modal-content-body {
     flex-direction: column !important;
     overflow-y: auto !important;
   }
+
   .aqms-chart-modal-left {
     padding: 16px !important;
     overflow-y: visible !important;
     min-height: auto !important;
   }
+
   .aqms-chart-modal-canvas-container {
     min-height: 280px !important;
   }
+
   .aqms-chart-modal-sidebar {
     width: 100% !important;
     border-left: none !important;
@@ -4377,24 +4813,51 @@ body.aqms-menu-open {
 
 /* Animations */
 @keyframes modalFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes modalSlideUp {
-  from { transform: translateY(40px) scale(0.96); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+  from {
+    transform: translateY(40px) scale(0.96);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes toastSlideDown {
-  from { transform: translate(-50%, -30px); opacity: 0; }
-  to { transform: translate(-50%, 0); opacity: 1; }
+  from {
+    transform: translate(-50%, -30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
 }
 
 @keyframes pulseIcon {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Hide default Leaflet zoom controls */
@@ -4405,12 +4868,13 @@ body.aqms-menu-open {
 /* ========================================================= */
 /* TABULAR VIEW ACCORDION CARDS FOR MOBILE SCREEN SIZES      */
 /* ========================================================= */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+
   /* Hide the horizontal scrolling table completely */
   .tabular-table {
     display: none !important;
   }
-  
+
   /* Remove horizontal scroll container constraints and allow vertical scrolling */
   .tabular-card {
     overflow-x: visible !important;
@@ -4422,7 +4886,7 @@ body.aqms-menu-open {
     min-height: auto !important;
     overflow-y: visible !important;
   }
-  
+
   .tabular-form-container {
     height: auto !important;
     min-height: auto !important;
@@ -4434,11 +4898,11 @@ body.aqms-menu-open {
   .aqms-analytics-scroll-body:has(.tabular-form-container) {
     overflow-y: auto !important;
   }
-  
+
   .aqms-analytics-container:has(.tabular-form-container) {
     overflow-y: auto !important;
   }
-  
+
   /* Show accordion list */
   .tabular-mobile-accordion-list {
     display: flex !important;
@@ -4448,7 +4912,7 @@ body.aqms-menu-open {
     box-sizing: border-box !important;
     margin-bottom: 24px !important;
   }
-  
+
   /* Accordion Card Container */
   .tabular-accordion-card {
     background: rgba(255, 255, 255, 0.75) !important;
@@ -4462,19 +4926,19 @@ body.aqms-menu-open {
     cursor: pointer !important;
     box-sizing: border-box !important;
   }
-  
+
   .tabular-accordion-card:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
     border-color: rgba(0, 190, 200, 0.2) !important;
   }
-  
+
   .tabular-accordion-card.expanded {
     background: #ffffff !important;
     border-color: rgba(0, 190, 200, 0.35) !important;
     box-shadow: 0 10px 30px rgba(0, 190, 200, 0.08) !important;
   }
-  
+
   /* Collapsed Header */
   .accordion-card-header {
     display: flex !important;
@@ -4484,39 +4948,39 @@ body.aqms-menu-open {
     box-sizing: border-box !important;
     width: 100% !important;
   }
-  
+
   .header-main-info {
     display: flex !important;
     flex-direction: column !important;
     gap: 6px !important;
     flex: 1 !important;
   }
-  
+
   .station-row {
     display: flex !important;
     align-items: center !important;
     flex-wrap: wrap !important;
     gap: 6px 12px !important;
   }
-  
+
   .station-name {
     font-size: 0.95rem !important;
     font-weight: 800 !important;
     color: #111827 !important;
     letter-spacing: -0.3px !important;
   }
-  
+
   .record-time {
     font-size: 0.72rem !important;
     font-weight: 500 !important;
     color: #6b7280 !important;
   }
-  
+
   .aqi-row {
     display: flex !important;
     align-items: center !important;
   }
-  
+
   .aqi-status-badge {
     padding: 3px 10px !important;
     font-size: 0.72rem !important;
@@ -4525,21 +4989,21 @@ body.aqms-menu-open {
     text-transform: capitalize !important;
     letter-spacing: -0.1px !important;
   }
-  
+
   /* AQI Score columns */
   .header-aqi-indicator {
     display: flex !important;
     align-items: center !important;
     gap: 16px !important;
   }
-  
+
   .aqi-stat-col {
     display: flex !important;
     flex-direction: column !important;
     align-items: flex-end !important;
     gap: 2px !important;
   }
-  
+
   .aqi-label {
     font-size: 0.62rem !important;
     font-weight: 700 !important;
@@ -4547,23 +5011,23 @@ body.aqms-menu-open {
     letter-spacing: 0.5px !important;
     text-transform: uppercase !important;
   }
-  
+
   .aqi-value {
     font-size: 1.25rem !important;
     font-weight: 900 !important;
     line-height: 1 !important;
   }
-  
+
   .accordion-chevron {
     color: #9ca3af !important;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
-  
+
   .accordion-chevron.open {
     transform: rotate(180deg) !important;
     color: #009fac !important;
   }
-  
+
   /* Details Expand Block */
   .accordion-card-details {
     max-height: 0 !important;
@@ -4572,53 +5036,61 @@ body.aqms-menu-open {
     width: 100% !important;
     box-sizing: border-box !important;
   }
-  
+
   .accordion-card-details.open {
-    max-height: 800px !important; /* Enough for expanding grid content */
+    max-height: 800px !important;
+    /* Enough for expanding grid content */
     border-top: 1.2px solid rgba(226, 232, 240, 0.8) !important;
     padding: 16px !important;
   }
-  
+
   /* 2-Column Pollutant Grid Layout */
   .details-grid {
     display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important; /* 3 columns layout */
-    gap: 6px !important; /* Compact premium gap */
+    grid-template-columns: repeat(3, 1fr) !important;
+    /* 3 columns layout */
+    gap: 6px !important;
+    /* Compact premium gap */
     width: 100% !important;
     box-sizing: border-box !important;
   }
-  
+
   .detail-item {
     display: flex !important;
     flex-direction: column !important;
     gap: 2px !important;
     background: rgba(0, 0, 0, 0.025) !important;
-    padding: 6px 4px !important; /* Touch-optimized compact padding */
+    padding: 6px 4px !important;
+    /* Touch-optimized compact padding */
     border-radius: 6px !important;
     border: 1px solid rgba(0, 0, 0, 0.01) !important;
-    align-items: center !important; /* Centered layout matching reference aesthetic */
+    align-items: center !important;
+    /* Centered layout matching reference aesthetic */
     text-align: center !important;
   }
-  
+
   .detail-label {
-    font-size: 0.58rem !important; /* Compact label size to avoid text overlap */
+    font-size: 0.58rem !important;
+    /* Compact label size to avoid text overlap */
     font-weight: 700 !important;
     color: #64748b !important;
     text-transform: uppercase !important;
     letter-spacing: 0.1px !important;
   }
-  
+
   .detail-value {
-    font-size: 0.78rem !important; /* Proportional value size for 3-column layouts */
+    font-size: 0.78rem !important;
+    /* Proportional value size for 3-column layouts */
     font-weight: 800 !important;
     color: #1e293b !important;
   }
-  
+
   /* Fixed Full-Width Float Pagination at bottom of Mobile Viewport */
   .tabular-mobile-accordion-list {
-    margin-bottom: 84px !important; /* ensure last card is completely readable above pagination bar */
+    margin-bottom: 84px !important;
+    /* ensure last card is completely readable above pagination bar */
   }
-  
+
   .tabular-pagination-container {
     position: fixed !important;
     bottom: 0 !important;
@@ -4638,7 +5110,7 @@ body.aqms-menu-open {
     z-index: 1000 !important;
     gap: 6px !important;
   }
-  
+
   .tabular-pagination-container .tab-page-btn {
     flex: 1 !important;
     max-width: 34px !important;
@@ -4668,12 +5140,15 @@ body.aqms-menu-open {
   -webkit-backdrop-filter: blur(16px) !important;
   border: 1.2px solid rgba(255, 255, 255, 0.6) !important;
   border-radius: 20px !important;
-  padding: 16px !important; /* Slightly more compact padding */
+  padding: 16px !important;
+  /* Slightly more compact padding */
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02) !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 8px !important; /* More compact gap */
-  min-height: 310px !important; /* Sleek, reduced height as requested */
+  gap: 8px !important;
+  /* More compact gap */
+  min-height: 310px !important;
+  /* Sleek, reduced height as requested */
   box-sizing: border-box !important;
   transition: all 0.3s ease !important;
 }
@@ -4735,16 +5210,10 @@ body.aqms-menu-open {
 /* Tablet & Mobile Media Queries for Analytics page */
 @media (max-width: 1024px) {
   .analytics-graphs-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .analytics-graphs-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
   }
-  
+
   .analytics-graph-card {
     min-height: 290px !important;
   }
@@ -4808,23 +5277,29 @@ body.aqms-menu-open {
 .station-analytics-section {
   display: flex !important;
   flex-direction: column !important;
-  gap: 8px !important; /* reduce inner gap to bring charts closer to the station title */
+  gap: 8px !important;
+  /* reduce inner gap to bring charts closer to the station title */
   width: 100% !important;
-  margin-bottom: 16px !important; /* reduce bottom margin to bring stations closer to each other */
+  margin-bottom: 16px !important;
+  /* reduce bottom margin to bring stations closer to each other */
 }
 
 .station-section-header {
   display: flex !important;
   align-items: center !important;
-  justify-content: center !important; /* center the station title */
+  justify-content: center !important;
+  /* center the station title */
   gap: 12px !important;
-  background: transparent !important; /* remove the glassmorphic background box */
+  background: transparent !important;
+  /* remove the glassmorphic background box */
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border: none !important;
-  padding: 0 !important; /* remove padding */
+  padding: 0 !important;
+  /* remove padding */
   box-shadow: none !important;
-  margin-bottom: 8px !important; /* reduce bottom margin */
+  margin-bottom: 8px !important;
+  /* reduce bottom margin */
   width: 100% !important;
 }
 
@@ -4834,12 +5309,10 @@ body.aqms-menu-open {
   content: "" !important;
   flex: 1 !important;
   height: 1px !important;
-  background: linear-gradient(
-    to var(--line-direction, right), 
-    rgba(0, 184, 200, 0) 0%, 
-    rgba(0, 184, 200, 0.4) 50%, 
-    rgba(0, 184, 200, 0.7) 100%
-  ) !important;
+  background: linear-gradient(to var(--line-direction, right),
+      rgba(0, 184, 200, 0) 0%,
+      rgba(0, 184, 200, 0.4) 50%,
+      rgba(0, 184, 200, 0.7) 100%) !important;
 }
 
 .station-section-header::before {
@@ -4887,6 +5360,7 @@ body.aqms-menu-open {
     opacity: 0;
     transform: scale(0.95) translateX(10px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateX(0);
@@ -4903,13 +5377,16 @@ body.aqms-menu-open {
   align-items: flex-end !important;
   gap: 16px !important;
   width: 100% !important;
-  padding: 0 !important; /* Float directly on background with zero extra padding */
-  background: transparent !important; /* No background card */
+  padding: 0 !important;
+  /* Float directly on background with zero extra padding */
+  background: transparent !important;
+  /* No background card */
   backdrop-filter: none !important;
   border: none !important;
   box-shadow: none !important;
   box-sizing: border-box !important;
-  margin-bottom: 20px !important; /* Sleek bottom margin */
+  margin-bottom: 20px !important;
+  /* Sleek bottom margin */
   flex-wrap: nowrap !important;
 }
 
@@ -4917,7 +5394,8 @@ body.aqms-menu-open {
   flex: 1 !important;
   min-width: 0 !important;
   margin-bottom: 0 !important;
-  gap: 2px !important; /* Reduce flex gap between title and input box */
+  gap: 2px !important;
+  /* Reduce flex gap between title and input box */
 }
 
 .reports-horizontal-filter-row .reports-form-group.button-group {
@@ -4998,9 +5476,12 @@ body.aqms-menu-open {
   display: block !important;
   font-size: 0.8rem !important;
   font-weight: 700 !important;
-  color: #000000 !important; /* Change labels to black */
-  margin-bottom: 0 !important; /* Eliminate bottom margin to minimize vertical gap */
-  text-transform: none !important; /* Display in native Title Case instead of uppercase */
+  color: #000000 !important;
+  /* Change labels to black */
+  margin-bottom: 0 !important;
+  /* Eliminate bottom margin to minimize vertical gap */
+  text-transform: none !important;
+  /* Display in native Title Case instead of uppercase */
   letter-spacing: normal !important;
 }
 
@@ -5014,18 +5495,21 @@ body.aqms-menu-open {
     flex-wrap: wrap !important;
     gap: 12px !important;
   }
+
   .reports-horizontal-filter-row .reports-form-group {
     flex: 1 1 calc(50% - 6px) !important;
   }
+
   .reports-horizontal-filter-row .reports-form-group.button-group {
     flex: 1 1 100% !important;
   }
+
   .reports-generate-btn {
     width: 100% !important;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .reports-horizontal-filter-row {
     display: flex !important;
     flex-direction: row !important;
@@ -5033,9 +5517,12 @@ body.aqms-menu-open {
     align-items: flex-end !important;
     gap: 12px !important;
   }
+
   .reports-horizontal-filter-row.report-active {
-    display: none !important; /* Hide filter form completely on mobile when showing generated report */
+    display: none !important;
+    /* Hide filter form completely on mobile when showing generated report */
   }
+
   .reports-horizontal-filter-row .reports-form-group {
     flex: 1 1 100% !important;
     width: 100% !important;
@@ -5043,11 +5530,13 @@ body.aqms-menu-open {
     flex-direction: column !important;
     gap: 4px !important;
   }
+
   .reports-horizontal-filter-row .reports-form-group.button-group {
     flex: 1 1 100% !important;
     width: 100% !important;
     margin-top: 8px !important;
   }
+
   .reports-generate-btn {
     width: 100% !important;
     height: 40px !important;
@@ -5059,8 +5548,10 @@ body.aqms-menu-open {
     align-items: center !important;
     justify-content: flex-start !important;
     background: transparent !important;
-    color: #111827 !important; /* Pure black text color */
-    border: none !important; /* Remove borders completely */
+    color: #111827 !important;
+    /* Pure black text color */
+    border: none !important;
+    /* Remove borders completely */
     border-radius: 0 !important;
     padding: 4px 0 !important;
     font-size: 0.88rem !important;
@@ -5071,33 +5562,37 @@ body.aqms-menu-open {
     width: auto !important;
     box-sizing: border-box !important;
   }
+
   .reports-back-btn:hover {
-    color: #009fac !important; /* Elegant subtle teal color transition on hover */
+    color: #009fac !important;
+    /* Elegant subtle teal color transition on hover */
     background: transparent !important;
   }
 }
 
 /* Reports Mobile Responsive Accordion Layout */
-@media (min-width: 768px) {
+@media (min-width: 1025px) {
   .reports-table-wrapper {
     display: block !important;
   }
+
   .reports-mobile-accordion-list {
     display: none !important;
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1024px) {
   .reports-table-wrapper {
     display: none !important;
   }
+
   .reports-mobile-accordion-list {
     display: block !important;
     max-height: 480px;
     overflow-y: auto;
     padding-right: 4px;
   }
-  
+
   /* Reports Mobile Accordion Cards */
   .reports-mobile-card {
     background: #ffffff !important;
@@ -5124,7 +5619,8 @@ body.aqms-menu-open {
   }
 
   .reports-mobile-card.expanded .reports-mobile-card-header {
-    background: #e0f2f4 !important; /* Premium dashboard theme color background when expanded */
+    background: #e0f2f4 !important;
+    /* Premium dashboard theme color background when expanded */
   }
 
   .reports-mobile-card-body {
@@ -5142,6 +5638,7 @@ body.aqms-menu-open {
       opacity: 0;
       transform: translateY(-8px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -5156,6 +5653,7 @@ body.aqms-menu-open {
   .tabular-pagination-container {
     display: none !important;
   }
+
   .reports-pagination-container {
     display: none !important;
   }
@@ -5198,15 +5696,20 @@ body.aqms-menu-open {
     width: 100% !important;
     gap: 12px !important;
   }
+
   .reports-card-header .spacer-element {
     display: none !important;
   }
-  .reports-card-header > div {
+
+  .reports-card-header>div {
     width: auto !important;
   }
+
   .reports-generated-title {
-    display: none !important; /* Remove generated report title completely on mobile */
+    display: none !important;
+    /* Remove generated report title completely on mobile */
   }
+
   .chart-download-dropdown-btn {
     width: auto !important;
     min-width: 130px !important;
