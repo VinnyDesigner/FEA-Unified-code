@@ -169,27 +169,6 @@ const BuoysChart = ({
   // deduplicate active parameters by unique key
   const uniqueActiveParams = activeParams.filter((def, index, self) => self.findIndex(d => d.key === def.key) === index);
 
-  const renderLegend = () => (
-    <Legend 
-      verticalAlign="bottom" 
-      align="center"
-      height={60} 
-      iconType="circle"
-      iconSize={10}
-      formatter={(value) => <span className="text-white/90 font-medium ml-2 text-[12px] whitespace-normal">{value}</span>}
-      wrapperStyle={{ 
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "center",
-        gap: "10px",
-        textAlign: "center",
-        paddingTop: "20px",
-        width: "100%",
-        position: "relative"
-      }}
-    />
-  );
-
   return (
     <div className={`w-full flex flex-col ${isMobile ? 'min-h-[420px]' : (isGraphAndTableView ? 'h-auto min-h-0' : 'h-full')}`}>
       {showHeader && (
@@ -506,16 +485,53 @@ const BuoysChart = ({
           </>
         );
       })() : (
-        <div className={`w-full ${isMobile ? 'min-h-[340px] flex justify-center' : ''}`}>
-        <div 
-          className={isMobile ? 'w-full h-[320px]' : (height ? 'w-full' : 'w-full h-[300px]')}
-          style={!isMobile && height ? { height } : undefined}
-        >
+        <div className={`w-full flex flex-col relative group ${isMobile ? 'min-h-[340px]' : ''}`}>
+          {/* Mobile-only: Header with title and Maximize button */}
+          {isMobile && !isBuoysAnalytics && (
+            <div className="flex justify-between items-center mb-3 flex-shrink-0 px-1">
+              <h3 className="text-[13px] font-bold text-white/95 tracking-tight">
+                {t('analytics.liveData', 'Live Data')} Graph
+              </h3>
+              <button
+                onClick={() => setExpandedParam({
+                  filterName: 'Specific Conductivity',
+                  label: 'dashboard.specificConductivity',
+                  key: 'conductivity'
+                })}
+                className="text-white/70 hover:text-white transition-all p-1.5 bg-white/10 hover:bg-white/20 rounded-lg shadow-sm border border-white/10 cursor-pointer flex items-center justify-center"
+                title="Full Screen View"
+              >
+                <Maximize2 size={12} />
+              </button>
+            </div>
+          )}
+
+          {/* Floating Maximize Button (Desktop only) */}
+          {!isMobile && !isBuoysAnalytics && (
+            <div className="absolute top-2 right-2 z-10 opacity-80 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={() => setExpandedParam({
+                  filterName: 'Specific Conductivity',
+                  label: 'dashboard.specificConductivity',
+                  key: 'conductivity'
+                })}
+                className="p-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/70 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer shadow-lg flex items-center justify-center"
+                title="Full Screen View"
+              >
+                <Maximize2 size={16} />
+              </button>
+            </div>
+          )}
+
+          <div 
+            className={isMobile ? 'w-full h-[260px]' : (height ? 'w-full' : 'w-full h-[300px]')}
+            style={!isMobile && height ? { height } : undefined}
+          >
           <ResponsiveContainer width="100%" height="100%">
             {(() => {
               if (chartType === 'Bar Chart') {
                 return (
-                  <BarChart data={chartData} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 30 } : { top: 20, right: 30, left: -10, bottom: 10 }}>
+                  <BarChart data={chartData} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 15 } : { top: 20, right: 30, left: -10, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="5 5" vertical={true} stroke="#CACBCE" strokeWidth={1} strokeOpacity={0.2} />
                     <XAxis 
                       dataKey="month" 
@@ -551,14 +567,13 @@ const BuoysChart = ({
                         radius={[4, 4, 0, 0]}
                       />
                     ))}
-                    {isMobile && renderLegend()}
                   </BarChart>
                 );
               }
 
               if (chartType === 'Scatter Chart') {
                 return (
-                  <LineChart data={chartData} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 30 } : { top: 20, right: 30, left: -10, bottom: 10 }}>
+                  <LineChart data={chartData} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 15 } : { top: 20, right: 30, left: -10, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="5 5" vertical={true} stroke="#CACBCE" strokeWidth={1} strokeOpacity={0.2} />
                     <XAxis 
                       dataKey="month" 
@@ -597,14 +612,13 @@ const BuoysChart = ({
                         activeDot={{ r: 8, fill: param.stroke, stroke: '#ffffff', strokeWidth: 2 }}
                       />
                     ))}
-                    {isMobile && renderLegend()}
                   </LineChart>
                 );
               }
 
               // Default: Line/Area Chart
               return (
-                <AreaChart data={chartData} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 30 } : { top: 20, right: 30, left: -10, bottom: 10 }}>
+                <AreaChart data={chartData} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 15 } : { top: 20, right: 30, left: -10, bottom: 10 }}>
                   <defs>
                     <linearGradient id="colorConductivity" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10B981" stopOpacity={0.4}/><stop offset="95%" stopColor="#10B981" stopOpacity={0}/></linearGradient>
                     <linearGradient id="colorWater" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/><stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/></linearGradient>
@@ -657,12 +671,38 @@ const BuoysChart = ({
                       activeDot={{ r: 6, fill: '#ffffff', stroke: param.stroke, strokeWidth: 2 }}
                     />
                   ))}
-                  {isMobile && renderLegend()}
                 </AreaChart>
               );
             })()}
           </ResponsiveContainer>
         </div>
+
+        {isMobile && !isBuoysAnalytics && (
+          <div 
+            className="mt-4 p-4 flex flex-col gap-2.5"
+            style={{
+              borderRadius: '20px',
+              border: '1.5px solid rgba(255, 255, 255, 0.12)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.12) 100%)',
+              backdropFilter: 'blur(10px)',
+              boxShadow: 'inset 2px 2px 3px rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            <div className="grid grid-cols-2 gap-x-3.5 gap-y-2.5">
+              {uniqueActiveParams.map((param, idx) => (
+                <div key={idx} className="flex items-center gap-2 min-w-0">
+                  <span 
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
+                    style={{ background: param.stroke }} 
+                  />
+                  <span className="text-[12px] text-white/90 font-medium truncate leading-tight">
+                    {t(param.label)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     )}
 
@@ -687,22 +727,30 @@ const BuoysChart = ({
           isOpen={!!expandedParam}
           onClose={() => setExpandedParam(null)}
           metric={expandedParam.filterName}
-          translatedMetricTitle={t(expandedParam.label)}
+          translatedMetricTitle={isBuoysAnalytics ? t(expandedParam.label) : (Array.isArray(selectedBuoy) ? selectedBuoy.join(', ') : selectedBuoy)}
           selectedBuoy={Array.isArray(selectedBuoy) ? { name: selectedBuoy.join(', ') } : { name: selectedBuoy }}
           customData={chartData}
-          series={(Array.isArray(selectedBuoy) ? selectedBuoy : [selectedBuoy]).map(buoy => {
-            const buoyColors = {
-              'Near Shore Buoy': '#3B82F6',
-              'Offshore Buoy': '#F59E0B',
-              'Al Aqah Buoy': '#10B981',
-              'North Dibbah': '#EC4899'
-            };
-            return {
-              key: `${expandedParam.key}_${buoy}`,
-              name: buoy,
-              color: buoyColors[buoy] || '#1DCDDD'
-            };
-          })}
+          series={isBuoysAnalytics ? (
+            (Array.isArray(selectedBuoy) ? selectedBuoy : [selectedBuoy]).map(buoy => {
+              const buoyColors = {
+                'Near Shore Buoy': '#3B82F6',
+                'Offshore Buoy': '#F59E0B',
+                'Al Aqah Buoy': '#10B981',
+                'North Dibbah': '#EC4899'
+              };
+              return {
+                key: `${expandedParam.key}_${buoy}`,
+                name: buoy,
+                color: buoyColors[buoy] || '#1DCDDD'
+              };
+            })
+          ) : (
+            uniqueActiveParams.map(param => ({
+              key: param.key,
+              name: t(param.label),
+              color: param.stroke
+            }))
+          )}
           xAxisKey="month"
         />,
         document.body

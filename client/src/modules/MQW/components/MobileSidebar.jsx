@@ -38,7 +38,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
       >
         {/* Header inside drawer */}
         <div className="flex items-center justify-between mb-10">
-          <img src={logo} alt="Logo" className="h-8 object-contain" />
+          <img src={logo} alt="Logo" className="h-[44px] object-contain" />
           <button onClick={onClose} className="text-white/60 hover:text-white">
             <X size={24} />
           </button>
@@ -74,11 +74,11 @@ const MobileSidebar = ({ isOpen, onClose }) => {
         <div className="mt-auto flex flex-col gap-4 pt-6 border-t border-white/10">
           <LanguageSelector />
           
+          {/* User Profile header and links (Hidden/Commented for future use)
           <div className="text-[11px] text-white/40 font-bold uppercase tracking-wider px-4 mt-2">
             {t('nav.userProfile') || 'User Profile'}
           </div>
 
-          {/* Option 1: My Profile Link */}
           <NavLink
             to="/MQW/profile"
             onClick={onClose}
@@ -90,7 +90,6 @@ const MobileSidebar = ({ isOpen, onClose }) => {
             <span className="text-[14.5px] font-semibold">{t('nav.myProfile', 'My Profile')}</span>
           </NavLink>
 
-          {/* Option 2: User Management Link */}
           <NavLink
             to="/MQW/user-management"
             onClick={onClose}
@@ -101,6 +100,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
             <User size={18} className="flex-shrink-0" />
             <span className="text-[14.5px] font-semibold">{t('nav.userManagement', 'User Management')}</span>
           </NavLink>
+          */}
 
           {/* Logout Link */}
           <button 

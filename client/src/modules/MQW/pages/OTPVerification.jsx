@@ -1,10 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import AuthCard from '../components/AuthCard';
 
 const OTPVerification = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
   const [otp, setOtp] = useState(['', '', '', '']);
 
@@ -27,8 +29,8 @@ const OTPVerification = () => {
 
   return (
     <AuthCard 
-      title="Enter Your Passcode" 
-      subtitle="We've sent the code to your email ID"
+      title={t('auth.enterYourPasscode')} 
+      subtitle={t('auth.otpSentSubtitle')}
     >
       <form 
         className="w-full flex flex-col gap-6" 
@@ -37,7 +39,7 @@ const OTPVerification = () => {
           navigate('/MQW/reset-password');
         }}
       >
-        <div className="flex justify-between w-full gap-4 mt-4">
+        <div className="flex justify-between w-full gap-4 mt-4" dir="ltr">
           {[0, 1, 2, 3].map((index) => {
             const hasValue = otp[index] !== '';
             return (
@@ -63,10 +65,13 @@ const OTPVerification = () => {
 
         <div className="text-center flex flex-col gap-1 mt-2">
           <p className="text-[13px] text-white font-medium tracking-wide">
-            Code expires in : <span className="text-[#19D9F3]">00 : 02</span>
+            {t('auth.codeExpiresIn')} : <span className="text-[#19D9F3]">00 : 02</span>
           </p>
           <p className="text-[13px] text-white font-medium tracking-wide">
-            Didn't receive code? <button type="button" className="text-[#19D9F3] hover:underline cursor-pointer">Resend Code</button>
+            {t('auth.didNotReceiveCode')}{' '}
+            <button type="button" className="text-[#19D9F3] hover:underline cursor-pointer bg-transparent border-none outline-none font-bold">
+              {t('auth.resendCode')}
+            </button>
           </p>
         </div>
 
@@ -79,16 +84,16 @@ const OTPVerification = () => {
             boxShadow: '0 0 70px 0 rgba(0, 159, 172, 0.40), 0 0 1px 4px rgba(255, 255, 255, 0.10), 0 -4px 2px 0 rgba(0, 0, 0, 0.25) inset, 0 2px 1px 0 rgba(255, 255, 255, 0.25) inset'
           }}
         >
-          Verify
-          <ChevronRight size={18} strokeWidth={2.5} />
+          {t('auth.verify')}
+          <ChevronRight size={18} strokeWidth={2.5} className="rtl:rotate-180" />
         </button>
 
         <Link 
           to="/MQW/signin" 
           className="flex items-center justify-center gap-2 mt-1 text-xs text-white font-bold tracking-wide hover:text-[#19D9F3] transition-colors"
         >
-          <ArrowLeft size={16} strokeWidth={2.5} />
-          Back to Login
+          <ArrowLeft size={16} strokeWidth={2.5} className="rtl:rotate-180" />
+          {t('auth.backToLogin')}
         </Link>
       </form>
     </AuthCard>
