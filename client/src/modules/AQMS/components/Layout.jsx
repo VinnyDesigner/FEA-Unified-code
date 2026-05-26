@@ -54,6 +54,48 @@ const Layout = ({ children }) => {
   return (
     <div className="aqms-theme w-full min-h-screen">
       <div className={`nav-overlay ${mobileNavOpen ? 'active' : ''}`} onClick={() => setMobileNavOpen(false)}></div>
+      
+      {/* Mobile Off-canvas Drawer */}
+      <div className={`nav-tabs ${mobileNavOpen ? 'active' : ''}`}>
+        <div className="drawer-header">
+          <h3>{t('nav.menu', 'Menu')}</h3>
+          <button className="close-btn" onClick={() => setMobileNavOpen(false)}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <NavLink 
+          to="/" 
+          className="nav-tab" 
+          onClick={() => setMobileNavOpen(false)}
+        >
+          {t('nav.home', 'Home')}
+        </NavLink>
+        <NavLink 
+          to="/AQMS/live-data" 
+          className="nav-tab" 
+          onClick={() => setMobileNavOpen(false)}
+        >
+          {t('nav.live_data', 'Live Data')}
+        </NavLink>
+        <NavLink 
+          to="/AQMS/analytics" 
+          className="nav-tab" 
+          onClick={() => setMobileNavOpen(false)}
+        >
+          {t('nav.analytics', 'Analytics')}
+        </NavLink>
+        <NavLink 
+          to="/AQMS/data-capture" 
+          className="nav-tab" 
+          onClick={() => setMobileNavOpen(false)}
+        >
+          {t('nav.reports', 'Reports')}
+        </NavLink>
+      </div>
+
       <div className="app-container">
         {/* ── TOP NAV ─────────────────────────────────────── */}
         <header className="top-nav">
