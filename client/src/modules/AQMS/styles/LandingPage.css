@@ -423,7 +423,7 @@ body.aqms-theme {
   align-self: center;
 }
 [dir="rtl"] .combined-card, .rtl .combined-card {
-  flex-direction: row-reverse !important;
+  flex-direction: row !important;
 }
 
 .dash-card {

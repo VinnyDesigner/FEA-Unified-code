@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { X, ZoomIn, ZoomOut, Search, Hand, Home, Printer, ArrowLeft, ArrowRight } from 'lucide-react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -55,8 +56,26 @@ const generateChartData = (station, parameter) => {
 };
 
 const Analytics = () => {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
+  const isRtl = lang === 'ar';
   const navigate = useNavigate();
+
+  const translateDateTime = (timeStr) => {
+    if (!isRtl || !timeStr) return timeStr;
+    return timeStr
+      .replace('Jan', 'يناير')
+      .replace('Feb', 'فبراير')
+      .replace('Mar', 'مارس')
+      .replace('Apr', 'أبريل')
+      .replace('May', 'مايو')
+      .replace('Jun', 'يونيو')
+      .replace('Jul', 'يوليو')
+      .replace('Aug', 'أغسطس')
+      .replace('Sep', 'سبتمبر')
+      .replace('Oct', 'أكتوبر')
+      .replace('Nov', 'نوفمبر')
+      .replace('Dec', 'ديسمبر');
+  };
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeSubMenu, setActiveSubMenu] = useState(null);
 
@@ -71,6 +90,220 @@ const Analytics = () => {
   const [customDateOpen, setCustomDateOpen] = useState(false);
   const [endDate, setEndDate] = useState('2026-02-24');
   const [activeAccordionIdx, setActiveAccordionIdx] = useState(null);
+
+  // Full Screen Chart Modal States
+  const [expandedChart, setExpandedChart] = useState(null); // { param, station }
+  const [modalChartType, setModalChartType] = useState('Line');
+  const [modalOptimizeData, setModalOptimizeData] = useState(true);
+  const [modalMaxPoints, setModalMaxPoints] = useState(2000);
+  const [modalShowMarkers, setModalShowMarkers] = useState(true);
+  const [modalShowDashes, setModalShowDashes] = useState(false);
+  const [modalShowTooltip, setModalShowTooltip] = useState(true);
+  const [modalShowAnimation, setModalShowAnimation] = useState(true);
+  const [activeTool, setActiveTool] = useState('zoom'); // 'zoom', 'pan', 'select'
+  const [sortOrder, setSortOrder] = useState('asc');
+  
+  const chartRef = useRef(null);
+
+  const handleZoomIn = () => {
+    const chart = chartRef.current?.chart;
+    if (chart) {
+      const { min, max } = chart.xAxis[0].getExtremes();
+      const range = max - min;
+      const step = range * 0.15;
+      chart.xAxis[0].setExtremes(min + step, max - step);
+    }
+  };
+
+  const handleZoomOut = () => {
+    const chart = chartRef.current?.chart;
+    if (chart) {
+      const { min, max, dataMin, dataMax } = chart.xAxis[0].getExtremes();
+      const range = max - min;
+      const step = range * 0.2;
+      const newMin = Math.max(dataMin, min - step);
+      const newMax = Math.min(dataMax, max + step);
+      chart.xAxis[0].setExtremes(newMin, newMax);
+    }
+  };
+
+  const handleReset = () => {
+    const chart = chartRef.current?.chart;
+    if (chart) {
+      chart.xAxis[0].setExtremes(null, null);
+    }
+  };
+
+  const handlePan = (direction) => {
+    const chart = chartRef.current?.chart;
+    if (chart) {
+      const { min, max, dataMin, dataMax } = chart.xAxis[0].getExtremes();
+      const range = max - min;
+      const step = range * 0.25;
+      if (direction === 'left') {
+        const newMin = Math.max(dataMin, min - step);
+        const newMax = newMin + range;
+        chart.xAxis[0].setExtremes(newMin, newMax);
+      } else {
+        const newMax = Math.min(dataMax, max + step);
+        const newMin = newMax - range;
+        chart.xAxis[0].setExtremes(newMin, newMax);
+      }
+    }
+  };
+
+  const handlePrint = () => {
+    const chart = chartRef.current?.chart;
+    if (chart) {
+      chart.print();
+    }
+  };
+
+  const getToolbarTitle = (key, fallback) => {
+    const map = {
+      'Zoom In': isRtl ? 'تكبير' : 'Zoom In',
+      'Zoom Out': isRtl ? 'تصغير' : 'Zoom Out',
+      'Select Zoom': isRtl ? 'تحديد التكبير' : 'Select Zoom',
+      'Pan Mode': isRtl ? 'وضع التحريك' : 'Pan Mode',
+      'Pan Left': isRtl ? 'تحريك لليسار' : 'Pan Left',
+      'Pan Right': isRtl ? 'تحريك لليمين' : 'Pan Right',
+      'Reset/Home': isRtl ? 'إعادة تعيين' : 'Reset/Home',
+      'Print': isRtl ? 'طباعة' : 'Print',
+      'Menu': isRtl ? 'القائمة' : 'Menu'
+    };
+    return map[key] || fallback;
+  };
+
+  const getModalChartOptions = () => {
+    if (!expandedChart) return {};
+    const { param, station } = expandedChart;
+
+    const series = station
+      ? [{
+          name: station === 'Lafarge Cems' ? t('live.lafarge_cems', 'Lafarge Cems') :
+                station === 'City Centre' ? t('live.city_centre', 'City Centre') :
+                station === 'Mobile Station' ? t('live.mobile_station', 'Mobile Station') :
+                station === 'Qidfa' ? t('live.qidfa', 'Qidfa') : station,
+          data: generateChartData(station, param),
+          color: STATION_COLORS[station] || '#00b8c8'
+        }]
+      : selectedStations.map(st => ({
+          name: st === 'Lafarge Cems' ? t('live.lafarge_cems', 'Lafarge Cems') :
+                st === 'City Centre' ? t('live.city_centre', 'City Centre') :
+                st === 'Mobile Station' ? t('live.mobile_station', 'Mobile Station') :
+                st === 'Qidfa' ? t('live.qidfa', 'Qidfa') : st,
+          data: generateChartData(st, param),
+          color: STATION_COLORS[st] || '#00b8c8'
+        }));
+
+    let seriesType = 'spline';
+    if (modalChartType === 'Bars') {
+      seriesType = 'column';
+    } else if (modalChartType === 'Dots') {
+      seriesType = 'scatter';
+    }
+
+    const seriesConfig = {
+      lineWidth: modalChartType === 'Dots' ? 0 : 3,
+      step: modalChartType === 'Step Line' ? 'center' : undefined,
+      dashStyle: modalShowDashes ? 'Dash' : 'Solid',
+      animation: modalShowAnimation,
+      marker: {
+        enabled: modalShowMarkers || modalChartType === 'Dots',
+        radius: modalChartType === 'Dots' ? 5 : 4
+      }
+    };
+
+    const options = {
+      ...chartOptionsBase,
+      chart: {
+        ...chartOptionsBase.chart,
+        type: seriesType,
+        height: window.innerWidth < 768 ? 300 : 450,
+        spacing: [15, 15, 15, 15]
+      },
+      yAxis: {
+        ...chartOptionsBase.yAxis,
+        title: { text: getParamUnit(param) }
+      },
+      legend: {
+        enabled: false
+      },
+      plotOptions: {
+        ...chartOptionsBase.plotOptions,
+        spline: {
+          ...(chartOptionsBase.plotOptions?.spline || {}),
+          ...seriesConfig
+        },
+        line: {
+          ...seriesConfig
+        },
+        column: {
+          animation: modalShowAnimation
+        },
+        scatter: {
+          ...seriesConfig,
+          marker: {
+            enabled: true,
+            radius: 6
+          }
+        }
+      },
+      tooltip: {
+        ...chartOptionsBase.tooltip,
+        enabled: modalShowTooltip
+      },
+      series: series
+    };
+
+    if (modalOptimizeData) {
+      options.series = options.series.map(s => {
+        const slicedData = s.data ? s.data.slice(0, modalMaxPoints) : [];
+        return {
+          ...s,
+          data: slicedData
+        };
+      });
+    }
+
+    return options;
+  };
+
+  const SidebarToggle = ({ label, checked, onChange, subtext }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>{label}</span>
+        {subtext && <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>{subtext}</span>}
+      </div>
+      <div 
+        onClick={() => onChange(!checked)}
+        style={{
+          width: '38px',
+          height: '20px',
+          background: checked ? '#009FAC' : '#e2e8f0',
+          borderRadius: '999px',
+          position: 'relative',
+          cursor: 'pointer',
+          transition: 'background 0.2s ease',
+          flexShrink: 0
+        }}
+      >
+        <div 
+          style={{
+            width: '16px',
+            height: '16px',
+            background: '#ffffff',
+            borderRadius: '50%',
+            position: 'absolute',
+            top: '2px',
+            left: checked ? '20px' : '2px',
+            transition: 'left 0.2s ease',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}
+        />
+      </div>
+    </div>
+  );
 
   const generateTabularData = () => {
     const times = [
@@ -111,6 +344,21 @@ const Analytics = () => {
       });
     });
     return data;
+  };
+
+  const getSortedTabularData = () => {
+    const rawData = generateTabularData();
+    const sorted = [...rawData];
+    sorted.sort((a, b) => {
+      const dateA = new Date(a.time);
+      const dateB = new Date(b.time);
+      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+    return sorted;
+  };
+
+  const toggleDateSort = () => {
+    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
   const chartOptionsBase = {
@@ -478,7 +726,7 @@ const Analytics = () => {
           <div className="tabular-card">
             {/* Mobile View: Responsive Accordion Cards */}
             <div className="tabular-mobile-accordion-list">
-              {generateTabularData().map((row, idx) => {
+              {getSortedTabularData().map((row, idx) => {
                 const isExpanded = activeAccordionIdx === idx;
                 return (
                   <div 
@@ -533,18 +781,30 @@ const Analytics = () => {
               <table className="tabular-table">
                 <thead>
                   <tr>
-                    <th>Date & Time</th>
-                    <th>Station Name</th>
+                    <th onClick={toggleDateSort} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {t('live.date_time', 'Date & Time')}
+                        <span className="sort-icon" style={{ opacity: 1, display: 'inline-flex', flexDirection: 'column', verticalAlign: 'middle' }}>
+                          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke={sortOrder === 'asc' ? '#009fac' : '#9ca3af'} strokeWidth="4" strokeLinecap="round">
+                            <polyline points="18 15 12 9 6 15"/>
+                          </svg>
+                          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke={sortOrder === 'desc' ? '#009fac' : '#9ca3af'} strokeWidth="4" strokeLinecap="round" style={{ marginTop: '1px' }}>
+                            <polyline points="6 9 12 15 18 9"/>
+                          </svg>
+                        </span>
+                      </div>
+                    </th>
+                    <th>{t('datacapture.station_name', 'Station Name')}</th>
                     {selectedParams.map(param => (
                       <th key={param}>{param}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {generateTabularData().map((row, idx) => (
+                  {getSortedTabularData().map((row, idx) => (
                     <tr key={idx}>
-                      <td>{row.time}</td>
-                      <td>{row.station}</td>
+                      <td>{translateDateTime(row.time)}</td>
+                      <td>{t(`live.${row.station.toLowerCase().replace(' ', '_')}`, row.station)}</td>
                       {selectedParams.map(param => (
                         <td key={param}>{row.values[param] || '-'}</td>
                       ))}
@@ -598,9 +858,24 @@ const Analytics = () => {
 
                     return (
                       <div className="analytics-graph-card" key={param}>
-                        <div className="graph-card-header">
-                          <h3 className="graph-param-title">{param}</h3>
-                          <span className="graph-unit-label">{getParamUnit(param)}</span>
+                        <div className="graph-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <h3 className="graph-param-title">{param}</h3>
+                            <span className="graph-unit-label" style={{ marginTop: '2px' }}>{getParamUnit(param)}</span>
+                          </div>
+                          
+                          <button 
+                            className="chart-expand-icon-btn" 
+                            onClick={() => setExpandedChart({ param, station })}
+                            title="Expand Graph"
+                            style={{ background: 'none', border: 'none', padding: '6px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', transition: 'all 0.2s' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#0f172a'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#64748b'; }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                          </button>
                         </div>
                         
                         <div className="graph-canvas-wrapper">
@@ -648,9 +923,24 @@ const Analytics = () => {
 
             return (
               <div className="analytics-graph-card" key={param}>
-                <div className="graph-card-header">
-                  <h3 className="graph-param-title">{param}</h3>
-                  <span className="graph-unit-label">{getParamUnit(param)}</span>
+                <div className="graph-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <h3 className="graph-param-title">{param}</h3>
+                    <span className="graph-unit-label" style={{ marginTop: '2px' }}>{getParamUnit(param)}</span>
+                  </div>
+
+                  <button 
+                    className="chart-expand-icon-btn" 
+                    onClick={() => setExpandedChart({ param, station: null })}
+                    title="Expand Graph"
+                    style={{ background: 'none', border: 'none', padding: '6px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', transition: 'all 0.2s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#0f172a'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#64748b'; }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                    </svg>
+                  </button>
                 </div>
                 
                 <div className="graph-canvas-wrapper">
@@ -683,6 +973,280 @@ const Analytics = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {expandedChart && (
+        <div className="aqms-chart-modal-overlay" dir="ltr">
+          <div className="aqms-chart-modal-card">
+            
+            {/* Top Header */}
+            <div className="aqms-chart-modal-header">
+              <div>
+                <h2 className="aqms-chart-modal-title">
+                  {expandedChart.station 
+                    ? `${expandedChart.param} - ${expandedChart.station === 'Lafarge Cems' ? t('live.lafarge_cems', 'Lafarge Cems') :
+                       expandedChart.station === 'City Centre' ? t('live.city_centre', 'City Centre') :
+                       expandedChart.station === 'Mobile Station' ? t('live.mobile_station', 'Mobile Station') :
+                       expandedChart.station === 'Qidfa' ? t('live.qidfa', 'Qidfa') : expandedChart.station}`
+                    : expandedChart.param}
+                </h2>
+              </div>
+              
+              <div className="aqms-chart-type-container" style={{ marginRight: '36px', marginLeft: '0' }}>
+                {/* Chart Type Toggle pill */}
+                <div className="aqms-chart-type-pill">
+                  {[
+                    { id: 'Line', label: t('chart.line', 'Line') },
+                    { id: 'Step Line', label: t('chart.stepLine', 'Step Line') },
+                    { id: 'Dots', label: t('chart.dots', 'Dots') },
+                    { id: 'Stacked Lines', label: t('chart.stackedLines', 'Stacked Lines') },
+                    { id: 'Bars', label: t('chart.bars', 'Bars') }
+                  ].map((type) => {
+                    const isActive = modalChartType === type.id;
+                    return (
+                      <button
+                        key={type.id}
+                        onClick={() => setModalChartType(type.id)}
+                        className={`aqms-chart-type-btn ${isActive ? 'active' : ''}`}
+                      >
+                        {type.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Absolute Close Button */}
+              <button 
+                onClick={() => setExpandedChart(null)}
+                className="aqms-chart-modal-close-btn"
+                style={{
+                  right: '20px',
+                  left: 'auto'
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="aqms-chart-modal-content-body">
+              
+              {/* Left Side: Chart canvas and toolbar */}
+              <div className="aqms-chart-modal-left">
+                
+                {/* Chart Toolbar */}
+                <div className="aqms-chart-modal-toolbar">
+                  <div className="aqms-chart-modal-toolbar-group">
+                    {/* Zoom In */}
+                    <button 
+                      onClick={handleZoomIn} 
+                      className="aqms-chart-modal-toolbar-btn"
+                      title={getToolbarTitle('Zoom In', 'Zoom In')}
+                    >
+                      <ZoomIn size={18} />
+                    </button>
+
+                    {/* Zoom Out */}
+                    <button 
+                      onClick={handleZoomOut} 
+                      className="aqms-chart-modal-toolbar-btn"
+                      title={getToolbarTitle('Zoom Out', 'Zoom Out')}
+                    >
+                      <ZoomOut size={18} />
+                    </button>
+                    
+                    {/* Search / Zoom Select */}
+                    <button 
+                      onClick={() => setActiveTool('select')} 
+                      className={`aqms-chart-modal-toolbar-btn ${activeTool === 'select' ? 'active' : ''}`}
+                      title={getToolbarTitle('Select Zoom', 'Select Zoom')}
+                    >
+                      <Search size={18} />
+                    </button>
+                    
+                    {/* Pan Mode */}
+                    <button 
+                      onClick={() => setActiveTool('pan')} 
+                      className={`aqms-chart-modal-toolbar-btn ${activeTool === 'pan' ? 'active' : ''}`}
+                      title={getToolbarTitle('Pan Mode', 'Pan Mode')}
+                    >
+                      <Hand size={18} />
+                    </button>
+                    
+                    {/* Pan Controls */}
+                    {activeTool === 'pan' && (
+                      <>
+                        <button 
+                          onClick={() => handlePan('left')} 
+                          className="aqms-chart-modal-toolbar-btn"
+                          title={getToolbarTitle('Pan Left', 'Pan Left')}
+                        >
+                          <ArrowLeft size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handlePan('right')} 
+                          className="aqms-chart-modal-toolbar-btn"
+                          title={getToolbarTitle('Pan Right', 'Pan Right')}
+                        >
+                          <ArrowRight size={16} />
+                        </button>
+                      </>
+                    )}
+                    
+                    {/* Home / Reset */}
+                    <button 
+                      onClick={handleReset} 
+                      className="aqms-chart-modal-toolbar-btn"
+                      title={getToolbarTitle('Reset/Home', 'Reset/Home')}
+                    >
+                      <Home size={18} />
+                    </button>
+                    
+                    <div style={{ width: '1px', height: '16px', background: '#cbd5e1', margin: '0 4px' }}></div>
+                    
+                    {/* Print */}
+                    <button 
+                      onClick={handlePrint} 
+                      className="aqms-chart-modal-toolbar-btn"
+                      title={getToolbarTitle('Print', 'Print')}
+                    >
+                      <Printer size={18} />
+                    </button>
+
+                    {/* Menu */}
+                    <button 
+                      className="aqms-chart-modal-toolbar-btn"
+                      title={getToolbarTitle('Menu', 'Menu')}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="4" y1="12" x2="20" y2="12"></line>
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="18" x2="20" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Chart Canvas Container */}
+                <div className="aqms-chart-modal-canvas-container">
+                  <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
+                    <HighchartsReactComponent
+                      highcharts={Highcharts}
+                      options={getModalChartOptions()}
+                      ref={chartRef}
+                      containerProps={{ style: { height: '100%', width: '100%' } }}
+                    />
+                  </div>
+                </div>
+
+                {/* Legend beneath chart */}
+                <div className="chart-legend-container conc-legend" style={{ marginTop: '16px', padding: '12px', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '12px', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '16px' }}>
+                  {expandedChart.station ? (
+                    <div className="legend-item" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="legend-box" style={{ background: STATION_COLORS[expandedChart.station] || '#00b8c8', width: '8px', height: '8px', borderRadius: '50%' }}></span>
+                      <span style={{ fontSize: '0.72rem', fontWeight: '700', color: '#4b5563' }}>
+                        {expandedChart.station === 'Lafarge Cems' ? t('live.lafarge_cems', 'Lafarge Cems') :
+                         expandedChart.station === 'City Centre' ? t('live.city_centre', 'City Centre') :
+                         expandedChart.station === 'Mobile Station' ? t('live.mobile_station', 'Mobile Station') :
+                         expandedChart.station === 'Qidfa' ? t('live.qidfa', 'Qidfa') : expandedChart.station}
+                      </span>
+                    </div>
+                  ) : (
+                    selectedStations.map(st => (
+                      <div className="legend-item" key={st} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="legend-box" style={{ background: STATION_COLORS[st] || '#00b8c8', width: '8px', height: '8px', borderRadius: '50%' }}></span>
+                        <span style={{ fontSize: '0.72rem', fontWeight: '700', color: '#4b5563' }}>
+                          {st === 'Lafarge Cems' ? t('live.lafarge_cems', 'Lafarge Cems') :
+                           st === 'City Centre' ? t('live.city_centre', 'City Centre') :
+                           st === 'Mobile Station' ? t('live.mobile_station', 'Mobile Station') :
+                           st === 'Qidfa' ? t('live.qidfa', 'Qidfa') : st}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Right Side: Sidebar Controls */}
+              <div 
+                className="aqms-chart-modal-sidebar"
+                style={{
+                  borderLeft: '1px solid #f1f5f9',
+                  borderRight: 'none'
+                }}
+              >
+                {/* Toggles */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                  {/* Optimize large datasets */}
+                  <SidebarToggle 
+                    label={t('chart.optimize_large_datasets', 'Optimize large datasets')}
+                    subtext={t('chart.showing_all_points', 'Showing all points')} 
+                    checked={modalOptimizeData} 
+                    onChange={setModalOptimizeData} 
+                  />
+                  
+                  {/* Max points */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginTop: '4px' }}>
+                    <span style={{ fontSize: '14px', color: '#334155', fontWeight: '500' }}>{t('chart.max_points_optimized', 'Max points (optimized)')}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden', height: '28px' }}>
+                      <button 
+                        onClick={() => setModalMaxPoints(m => Math.max(100, m - 100))} 
+                        style={{ border: 'none', background: 'none', padding: '0 10px', height: '100%', cursor: 'pointer', color: '#64748b', fontSize: '16px', fontWeight: 'bold' }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                      >
+                        -
+                      </button>
+                      <span style={{ width: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '600', color: '#334155', borderLeft: '1px solid #cbd5e1', borderRight: '1px solid #cbd5e1', height: '100%' }}>
+                        {modalMaxPoints}
+                      </span>
+                      <button 
+                        onClick={() => setModalMaxPoints(m => m + 100)} 
+                        style={{ border: 'none', background: 'none', padding: '0 10px', height: '100%', cursor: 'pointer', color: '#64748b', fontSize: '16px', fontWeight: 'bold' }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div style={{ height: '1px', background: '#f1f5f9', margin: '8px 0' }}></div>
+                  
+                  {/* Marker */}
+                  <SidebarToggle 
+                    label={t('chart.marker', 'Marker')} 
+                    checked={modalShowMarkers} 
+                    onChange={setModalShowMarkers} 
+                  />
+
+                  {/* Dashes */}
+                  <SidebarToggle 
+                    label={t('chart.dashes', 'Dashes')} 
+                    checked={modalShowDashes} 
+                    onChange={setModalShowDashes} 
+                  />
+
+                  {/* Date Tooltip */}
+                  <SidebarToggle 
+                    label={t('chart.date_tooltip', 'Date Tooltip')} 
+                    checked={modalShowTooltip} 
+                    onChange={setModalShowTooltip} 
+                  />
+
+                  {/* Animation */}
+                  <SidebarToggle 
+                    label={t('chart.animation', 'Animation')} 
+                    checked={modalShowAnimation} 
+                    onChange={setModalShowAnimation} 
+                  />
+                </div>
+              </div>
+
+            </div>
+          </div>
         </div>
       )}
       </div>

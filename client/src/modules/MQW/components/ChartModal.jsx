@@ -202,7 +202,7 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
       data: visibleData,
       margin: isMobileResponsive 
         ? { top: 15, right: 15, left: -25, bottom: 5 } 
-        : (isRtl ? { top: 20, right: 20, left: 30, bottom: 60 } : { top: 20, right: 30, left: 20, bottom: 60 })
+        : { top: 20, right: 30, left: 20, bottom: 60 }
     };
 
     const xAxis = (
@@ -310,20 +310,20 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
   };
 
   return (
-    <div className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-4" dir={isRtl ? "rtl" : "ltr"}>
-      <div className="bg-white w-full max-w-7xl h-[95vh] md:h-[85vh] rounded-lg shadow-2xl flex flex-col overflow-hidden">
+    <div className="mwq-chart-modal-overlay" dir="ltr">
+      <div className="mwq-chart-modal-card">
         
         {/* Top Header */}
-        <div className={`flex flex-col md:flex-row items-start md:items-center px-4 md:px-6 py-3 md:py-4 border-b border-gray-100 gap-3 md:gap-4 relative ${isRtl ? 'pl-12 md:pl-16' : 'pr-12 md:pr-16'}`}>
+        <div className="mwq-chart-modal-header">
           <div className="flex items-center w-full md:w-auto">
-            <h2 className="text-lg md:text-xl font-bold text-[#072227]">
+            <h2 className="mwq-chart-modal-title">
               {selectedBuoy?.nameKey ? t(`stations.${selectedBuoy.nameKey}`) : translateStation(selectedBuoy?.name || 'Station')}
             </h2>
           </div>
           
-          <div className="flex items-center w-full md:w-auto overflow-x-auto no-scrollbar pb-1 md:pb-0">
+          <div className="mwq-chart-type-container">
             {/* Chart Type Buttons */}
-            <div className="flex bg-gray-100 rounded-lg p-0.5 min-w-max">
+            <div className="mwq-chart-type-pill">
               {[
                 { id: 'Line', key: 'line' },
                 { id: 'Step Line', key: 'stepLine' },
@@ -334,10 +334,8 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
                 <button
                   key={type.id}
                   onClick={() => setChartType(type.id)}
-                  className={`px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium rounded-md transition-all whitespace-nowrap ${
-                    chartType === type.id 
-                      ? 'bg-[#009FAC] text-white shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
+                  className={`mwq-chart-type-btn ${
+                    chartType === type.id ? 'active' : ''
                   }`}
                 >
                   {t(`chart.${type.key}`)}
@@ -349,30 +347,30 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
           {/* Absolute Close Button */}
           <button 
             onClick={onClose}
-            className={`absolute top-3 md:top-4 text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-100 rounded-full ${isRtl ? 'left-3 md:left-4' : 'right-3 md:right-4'}`}
+            className="mwq-chart-modal-close-btn"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
+        <div className="mwq-chart-modal-content-body">
           
           {/* Left Side: Chart */}
-          <div className="flex-1 flex flex-col p-4 md:p-6 bg-white min-w-0 min-h-[350px] md:min-h-0">
+          <div className="mwq-chart-modal-left">
             
             {/* Chart Toolbar */}
-            <div className="flex justify-end items-center mb-2 md:mb-4 overflow-x-auto no-scrollbar">
+            <div className="mwq-chart-modal-toolbar">
               
-              <div className="flex items-center gap-1 md:gap-2 text-gray-400 min-w-max">
+              <div className="mwq-chart-modal-toolbar-group">
                 {/* Zoom In/Out */}
-                <button onClick={handleZoomIn} className="hover:text-[#009FAC] p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer" title={getToolbarTitle('Zoom In', 'Zoom In')}><ZoomIn size={18} /></button>
-                <button onClick={handleZoomOut} className="hover:text-[#009FAC] p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer" title={getToolbarTitle('Zoom Out', 'Zoom Out')}><ZoomOut size={18} /></button>
+                <button onClick={handleZoomIn} className="mwq-chart-modal-toolbar-btn" title={getToolbarTitle('Zoom In', 'Zoom In')}><ZoomIn size={18} /></button>
+                <button onClick={handleZoomOut} className="mwq-chart-modal-toolbar-btn" title={getToolbarTitle('Zoom Out', 'Zoom Out')}><ZoomOut size={18} /></button>
                 
                 {/* Search / Zoom Select */}
                 <button 
                   onClick={() => setActiveTool('select')} 
-                  className={`p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer ${activeTool === 'select' ? 'text-[#009FAC] bg-gray-50' : 'hover:text-[#009FAC]'}`} 
+                  className={`mwq-chart-modal-toolbar-btn ${activeTool === 'select' ? 'active' : ''}`} 
                   title={getToolbarTitle('Select Zoom', 'Select Zoom')}
                 >
                   <Search size={18} />
@@ -381,7 +379,7 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
                 {/* Pan */}
                 <button 
                   onClick={() => setActiveTool('pan')} 
-                  className={`p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer ${activeTool === 'pan' ? 'text-[#009FAC] bg-gray-50' : 'hover:text-[#009FAC]'}`} 
+                  className={`mwq-chart-modal-toolbar-btn ${activeTool === 'pan' ? 'active' : ''}`} 
                   title={getToolbarTitle('Pan Mode', 'Pan Mode')}
                 >
                   <Hand size={18} />
@@ -390,24 +388,24 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
                 {/* Pan Controls (visible when pan mode is active) */}
                 {activeTool === 'pan' && (
                   <>
-                    <button onClick={() => handlePan('left')} className="hover:text-[#009FAC] p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer" title={getToolbarTitle('Pan Left', 'Pan Left')}><ArrowLeft size={16} /></button>
-                    <button onClick={() => handlePan('right')} className="hover:text-[#009FAC] p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer" title={getToolbarTitle('Pan Right', 'Pan Right')}><ArrowRight size={16} /></button>
+                    <button onClick={() => handlePan('left')} className="mwq-chart-modal-toolbar-btn" title={getToolbarTitle('Pan Left', 'Pan Left')}><ArrowLeft size={16} /></button>
+                    <button onClick={() => handlePan('right')} className="mwq-chart-modal-toolbar-btn" title={getToolbarTitle('Pan Right', 'Pan Right')}><ArrowRight size={16} /></button>
                   </>
                 )}
                 
                 {/* Home / Reset */}
-                <button onClick={handleReset} className="hover:text-[#009FAC] p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer" title={getToolbarTitle('Reset/Home', 'Reset/Home')}><Home size={18} /></button>
+                <button onClick={handleReset} className="mwq-chart-modal-toolbar-btn" title={getToolbarTitle('Reset/Home', 'Reset/Home')}><Home size={18} /></button>
                 
                 <div className="w-[1px] h-4 bg-gray-200 mx-1"></div>
                 
                 {/* Print & Menu */}
-                <button onClick={handlePrint} className="hover:text-[#009FAC] p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer" title={getToolbarTitle('Print', 'Print')}><Printer size={18} /></button>
-                <button className="hover:text-[#009FAC] p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer" title={getToolbarTitle('Menu', 'Menu')}><Menu size={18} /></button>
+                <button onClick={handlePrint} className="mwq-chart-modal-toolbar-btn" title={getToolbarTitle('Print', 'Print')}><Printer size={18} /></button>
+                <button className="mwq-chart-modal-toolbar-btn" title={getToolbarTitle('Menu', 'Menu')}><Menu size={18} /></button>
               </div>
             </div>
 
             {/* Chart Canvas */}
-            <div className="flex-1 w-full relative min-h-[260px] md:min-h-[400px]">
+            <div className="mwq-chart-modal-canvas-container">
               <div className="absolute inset-0">
                 <ResponsiveContainer width="100%" height="100%">
                   {renderChart()}
@@ -448,28 +446,24 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
           </div>
 
           {/* Right Side: Sidebar Controls */}
-          <div className={`w-full md:w-72 border-t md:border-t-0 border-gray-100 p-4 md:p-6 flex flex-col gap-4 md:gap-6 flex-shrink-0 ${isRtl ? 'md:border-r' : 'md:border-l'}`}>
+          <div className="mwq-chart-modal-sidebar">
+            <ToggleItem label={t('chart.optimize')} checked={optimizeData} onChange={setOptimizeData} subtext={t('chart.showingAll')} />
             
-            {/* Toggles */}
-            <div className="flex flex-col gap-4">
-              <ToggleItem label={t('chart.optimize')} checked={optimizeData} onChange={setOptimizeData} subtext={t('chart.showingAll')} />
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">{t('chart.maxPoints')}</span>
-                <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                  <button onClick={() => setMaxPoints(m => Math.max(100, m - 100))} className="px-2.5 py-1 hover:bg-gray-100 text-gray-600 transition-colors">-</button>
-                  <span className="w-14 text-center text-sm border-x border-gray-200 py-1 text-gray-700 font-medium">{maxPoints}</span>
-                  <button onClick={() => setMaxPoints(m => m + 100)} className="px-2.5 py-1 hover:bg-gray-100 text-gray-600 transition-colors">+</button>
-                </div>
+            <div className="sidebar-toggle-row items-center">
+              <span className="text-sm font-medium text-gray-700">{t('chart.maxPoints')}</span>
+              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+                <button onClick={() => setMaxPoints(m => Math.max(100, m - 100))} className="px-2.5 py-1 hover:bg-gray-100 text-gray-600 transition-colors">-</button>
+                <span className="w-14 text-center text-sm border-x border-gray-200 py-1 text-gray-700 font-medium">{maxPoints}</span>
+                <button onClick={() => setMaxPoints(m => m + 100)} className="px-2.5 py-1 hover:bg-gray-100 text-gray-600 transition-colors">+</button>
               </div>
-              
-              <div className="h-[1px] bg-gray-100 my-1 md:my-2"></div>
-              
-              <ToggleItem label={t('chart.marker')} checked={showMarkers} onChange={setShowMarkers} />
-              <ToggleItem label={t('chart.dashes')} checked={showDashes} onChange={setShowDashes} />
-              <ToggleItem label={t('chart.dateTooltip')} checked={showTooltip} onChange={setShowTooltip} />
-              <ToggleItem label={t('chart.animation')} checked={showAnimation} onChange={setShowAnimation} />
             </div>
+            
+            <div className="h-[1px] bg-gray-100 my-1"></div>
+            
+            <ToggleItem label={t('chart.marker')} checked={showMarkers} onChange={setShowMarkers} />
+            <ToggleItem label={t('chart.dashes')} checked={showDashes} onChange={setShowDashes} />
+            <ToggleItem label={t('chart.dateTooltip')} checked={showTooltip} onChange={setShowTooltip} />
+            <ToggleItem label={t('chart.animation')} checked={showAnimation} onChange={setShowAnimation} />
           </div>
         </div>
       </div>
@@ -478,7 +472,7 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
 };
 
 const ToggleItem = ({ label, checked, onChange, subtext }) => (
-  <div className="flex justify-between items-start">
+  <div className="sidebar-toggle-row">
     <div className="flex flex-col">
       <span className="text-sm font-medium text-gray-700">{label}</span>
       {subtext && <span className="text-xs text-gray-400">{subtext}</span>}

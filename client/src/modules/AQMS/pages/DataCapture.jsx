@@ -54,8 +54,20 @@ const generateChartData = (station, parameter) => {
 };
 
 const DataCapture = () => {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
+  const isRtl = lang === 'ar';
   const navigate = useNavigate();
+  const [isMobileResponsive, setIsMobileResponsive] = useState(false);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobileResponsive(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const [currentPage, setCurrentPage] = useState(3);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeSubMenu, setActiveSubMenu] = useState(null);
@@ -77,6 +89,51 @@ const DataCapture = () => {
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [activeDownloadCategory, setActiveDownloadCategory] = useState(null);
   const [showReport, setShowReport] = useState(false);
+  const [selectedReportName, setSelectedReportName] = useState('Generated Report');
+  const [generateDropdownOpen, setGenerateDropdownOpen] = useState(false);
+  const [activeReportCategory, setActiveReportCategory] = useState(null);
+
+  const reportMenu = [
+    {
+      category: "Average Reports",
+      items: [
+        "Basic Data Export",
+        "Average Data Trend Report"
+      ]
+    },
+    {
+      category: "Statistical Reports",
+      items: [
+        "Concentration Distribution",
+        "Frequency Distribution",
+        "Max Hourly Values",
+        "Network Data Recovery Report",
+        "Violation of Standards"
+      ]
+    },
+    {
+      category: "Summary Reports",
+      items: [
+        "24 Hour Avg Summary Reports",
+        "8 Hour Rolling Avg Report",
+        "Daily Summary Report",
+        "Monthly Report"
+      ]
+    },
+    {
+      category: "Met Reports",
+      items: [
+        "Windrose Report"
+      ]
+    },
+    {
+      category: "Pollutionrose Reports",
+      items: [
+        "Pollutionrose Report",
+        "Windrose Report"
+      ]
+    }
+  ];
 
   // Mobile responsive accordion states
   const [expandedCards, setExpandedCards] = useState({});
@@ -87,53 +144,12 @@ const DataCapture = () => {
     }));
   };
 
-  const downloadMenu = [
-    {
-      category: "1. Average Reports",
-      items: [
-        "Basic Data Export",
-        "Average Data Trend Report"
-      ]
-    },
-    {
-      category: "2. Statistical Reports",
-      items: [
-        "Concentration Distribution",
-        "Frequency Distribution",
-        "Max Hourly Values",
-        "Network Data Recovery Report",
-        "Violation of Standards"
-      ]
-    },
-    {
-      category: "3. Summary Reports",
-      items: [
-        "24 Hour Avg Summary Reports",
-        "8 Hour Rolling Avg Report",
-        "Daily Summary Report",
-        "Monthly Report"
-      ]
-    },
-    {
-      category: "4. Met Reports",
-      items: [
-        "Windrose Report"
-      ]
-    },
-    {
-      category: "5. Pollutionrose Reportss",
-      items: [
-        "Pollutionrose Reports"
-      ]
-    }
-  ];
-
   return (
     <div className="aqms-reports-container">
       {/* ── PAGE HEADER ─────────────────────────────────── */}
       <div className="dashboard-header">
         <div className="page-title">
-          <h1>{showReport ? t('nav.data_summary', 'Data Summary') : t('nav.reports', 'Reports')}</h1>
+          <h1>{t('nav.reports', 'Reports')}</h1>
           <p className="header-date">24 Feb 2026 11:30:42</p>
         </div>
 
@@ -356,17 +372,17 @@ const DataCapture = () => {
       <div className={`reports-horizontal-filter-row ${showReport ? 'report-active' : ''}`}>
          {/* Station dropdown */}
          <div className="reports-form-group">
-           <label className="reports-form-label">Station</label>
+           <label className="reports-form-label">{t('filter.station', 'Station')}</label>
            <div className="reports-form-input-wrapper" onClick={() => {
              setStationOpen(!stationOpen);
              setParamOpen(false);
            }}>
              <span className="reports-form-value-text">
                {stationValue.length === 0
-                 ? 'Select Station'
+                 ? t('filter.select_station', 'Select Station')
                  : stationValue.length === 4
-                   ? 'All Stations'
-                   : stationValue.join(', ')}
+                   ? t('filter.all_stations', 'All Stations')
+                   : stationValue.map(s => t(`live.${s.toLowerCase().replace(/ /g, '_')}`, s)).join(', ')}
              </span>
              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${stationOpen ? 'open' : ''}`}>
                <polyline points="6 9 12 15 18 9"></polyline>
@@ -395,7 +411,7 @@ const DataCapture = () => {
                          onChange={() => { }}
                          style={{ accentColor: '#009fac', cursor: 'pointer' }}
                        />
-                       <span>{option}</span>
+                       <span>{t(`live.${option.toLowerCase().replace(/ /g, '_')}`, option)}</span>
                      </div>
                    );
                  })}
@@ -406,16 +422,16 @@ const DataCapture = () => {
 
          {/* Parameters dropdown */}
          <div className="reports-form-group">
-           <label className="reports-form-label">Parameters</label>
+           <label className="reports-form-label">{t('analytics.parameters', 'Parameters')}</label>
            <div className="reports-form-input-wrapper" onClick={() => {
              setParamOpen(!paramOpen);
              setStationOpen(false);
            }}>
              <span className="reports-form-value-text">
                {paramValue.length === 0
-                 ? 'Select Parameter'
+                 ? t('filter.select_parameter', 'Select Parameter')
                  : paramValue.length === 7
-                   ? 'All Parameters'
+                   ? t('filter.all_parameters', 'All Parameters')
                    : paramValue.join(', ')}
              </span>
              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" className={`popover-arrow-svg ${paramOpen ? 'open' : ''}`}>
@@ -456,7 +472,7 @@ const DataCapture = () => {
 
          {/* Start Date input */}
          <div className="reports-form-group">
-           <label className="reports-form-label">Start Date</label>
+           <label className="reports-form-label">{t('filter.start_date', 'Start Date')}</label>
            <input 
              type="date"
              value={startDate}
@@ -467,7 +483,7 @@ const DataCapture = () => {
 
          {/* End Date input */}
          <div className="reports-form-group">
-           <label className="reports-form-label">End Date</label>
+           <label className="reports-form-label">{t('filter.end_date', 'End Date')}</label>
            <input 
              type="date"
              value={endDate}
@@ -476,18 +492,149 @@ const DataCapture = () => {
            />
          </div>
 
-         {/* Generate Report button */}
-         <div className="reports-form-group button-group">
+         {/* Generate Report dropdown button */}
+         <div className="reports-form-group button-group" style={{ position: 'relative' }}>
            <button
              className="reports-generate-btn"
-             onClick={() => setShowReport(true)}
+             onClick={() => setGenerateDropdownOpen(!generateDropdownOpen)}
+             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
            >
              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ marginRight: '6px' }}>
                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                <polyline points="22 4 12 14.01 9 11.01"></polyline>
              </svg>
-             Generate Report
+             {t('reports.generate_report', 'Generate Report')}
+             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: '6px', transform: generateDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+               <polyline points="6 9 12 15 18 9" />
+             </svg>
            </button>
+
+            {generateDropdownOpen && (
+              <div 
+                className="reports-sub-dropdown-menu" 
+                style={{ 
+                  position: 'absolute', 
+                  top: '100%', 
+                  left: 'auto', 
+                  right: 0,
+                  background: '#ffffff', 
+                  borderRadius: '12px', 
+                  boxShadow: '0 4px 22px rgba(0,0,0,0.12)', 
+                  border: '1px solid rgba(0,0,0,0.06)', 
+                  minWidth: '220px', 
+                  padding: '6px 0', 
+                  zIndex: 2200,
+                  marginTop: '4px',
+                  overflow: 'visible',
+                  maxHeight: 'none'
+                }}
+              >
+                {reportMenu.map(menu => (
+                  <div
+                    key={menu.category}
+                    className="popover-item"
+                    style={{
+                      position: 'relative',
+                      padding: '10px 16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'stretch',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={() => !isMobileResponsive && setActiveReportCategory(menu.category)}
+                    onMouseLeave={() => !isMobileResponsive && setActiveReportCategory(null)}
+                    onClick={() => {
+                      if (isMobileResponsive) {
+                        setActiveReportCategory(activeReportCategory === menu.category ? null : menu.category);
+                      }
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <span className="popover-item-label neutral-label" style={{ fontSize: '0.85rem', fontWeight: '600' }}>{t(`reports.${menu.category.toLowerCase().replace(/ /g, '_')}`, menu.category)}</span>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" style={{ transform: activeReportCategory === menu.category ? 'rotate(180deg)' : 'rotate(90deg)', marginLeft: '8px', transition: 'transform 0.2s' }}>
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
+
+                    {activeReportCategory === menu.category && (
+                      isMobileResponsive ? (
+                        <div
+                          style={{
+                            background: '#f8fafc',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(0,0,0,0.04)',
+                            marginTop: '8px',
+                            padding: '4px 0',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'stretch'
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {menu.items.map(item => (
+                            <div
+                              key={item}
+                              className="popover-sub-item"
+                              style={{ 
+                                padding: '10px 16px', 
+                                fontSize: '0.82rem', 
+                                cursor: 'pointer', 
+                                fontWeight: '600',
+                                color: '#475569',
+                                textAlign: 'start'
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedReportName(item);
+                                setShowReport(true);
+                                setGenerateDropdownOpen(false);
+                                setActiveReportCategory(null);
+                              }}
+                            >
+                              {t(`reports.${item.toLowerCase().replace(/ /g, '_')}`, item)}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          className="popover-sub-menu"
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            right: isRtl ? 'auto' : 'calc(100% + 4px)',
+                            left: isRtl ? 'calc(100% + 4px)' : 'auto',
+                            background: '#ffffff',
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 22px rgba(0,0,0,0.12)',
+                            border: '1px solid rgba(0,0,0,0.06)',
+                            minWidth: '240px',
+                            padding: '6px 0',
+                            zIndex: 2200
+                          }}
+                        >
+                          {menu.items.map(item => (
+                            <div
+                              key={item}
+                              className="popover-sub-item"
+                              style={{ padding: '10px 16px', fontSize: '0.82rem', cursor: 'pointer', fontWeight: '500', textAlign: 'start' }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedReportName(item);
+                                setShowReport(true);
+                                setGenerateDropdownOpen(false);
+                                setActiveReportCategory(null);
+                              }}
+                            >
+                              {t(`reports.${item.toLowerCase().replace(/ /g, '_')}`, item)}
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
          </div>
       </div>
 
@@ -504,11 +651,11 @@ const DataCapture = () => {
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
               </svg>
-              Back to Filter
+              {t('reports.back_to_filter', 'Back to Filter')}
             </button>
 
             <h2 className="reports-generated-title" style={{ fontSize: '1.1rem', fontWeight: '800', color: '#009fac', margin: 0 }}>
-              {selectedView === 'Graphical View' ? 'Generated Graph Summary' : 'Generated Report'}
+              {t(`reports.${selectedReportName.toLowerCase().replace(/ /g, '_')}`, selectedReportName)}
             </h2>
             <div className="spacer-element"></div>
 
@@ -532,7 +679,7 @@ const DataCapture = () => {
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                Download
+                {t('reports.download', 'Download')}
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: '6px' }} className={downloadOpen ? 'open' : ''}>
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
@@ -542,68 +689,41 @@ const DataCapture = () => {
                 <div
                   className="reports-sub-dropdown-menu"
                   style={{
-                    minWidth: '220px',
+                    minWidth: '150px',
                     right: 0,
                     left: 'auto',
                     overflow: 'visible',
-                    padding: '12px 0',
-                    maxHeight: 'none'
+                    padding: '6px 0',
+                    maxHeight: 'none',
+                    position: 'absolute',
+                    top: '100%',
+                    marginTop: '4px',
+                    background: '#ffffff',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 22px rgba(0,0,0,0.12)',
+                    border: '1px solid rgba(0,0,0,0.06)',
+                    zIndex: 2200
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {downloadMenu.map(menu => (
+                  {["Excel", "PDF", "Word"].map(format => (
                     <div
-                      key={menu.category}
-                      className="popover-item"
-                      style={{
-                        position: 'relative',
-                        padding: '10px 16px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        cursor: 'pointer'
+                      key={format}
+                      className="reports-sub-dropdown-item"
+                      style={{ 
+                        padding: '10px 16px', 
+                        fontSize: '0.85rem', 
+                        cursor: 'pointer',
+                        color: '#374151',
+                        fontWeight: '500',
+                        textAlign: 'start'
                       }}
-                      onMouseEnter={() => setActiveDownloadCategory(menu.category)}
-                      onMouseLeave={() => setActiveDownloadCategory(null)}
-                      onClick={() => setActiveDownloadCategory(activeDownloadCategory === menu.category ? null : menu.category)}
+                      onClick={() => {
+                        handleDownload("Report", format);
+                        setDownloadOpen(false);
+                      }}
                     >
-                      <span className="popover-item-label neutral-label" style={{ fontSize: '0.85rem' }}>{menu.category}</span>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" style={{ transform: 'rotate(-90deg)', marginLeft: '8px' }}>
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-
-                      {activeDownloadCategory === menu.category && (
-                        <div
-                          className="popover-sub-menu"
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            right: 'calc(100% + 4px)',
-                            background: '#ffffff',
-                            borderRadius: '12px',
-                            boxShadow: '0 4px 22px rgba(0,0,0,0.12)',
-                            border: '1px solid rgba(0,0,0,0.06)',
-                            minWidth: '240px',
-                            padding: '6px 0',
-                            zIndex: 2200
-                          }}
-                        >
-                          {menu.items.map(item => (
-                            <div
-                              key={item}
-                              className="popover-sub-item"
-                              style={{ padding: '8px 16px', fontSize: '0.8rem', cursor: 'pointer' }}
-                              onClick={() => {
-                                console.log(`Downloading report: ${item}`);
-                                setDownloadOpen(false);
-                                setActiveDownloadCategory(null);
-                              }}
-                            >
-                              {item}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      {format}
                     </div>
                   ))}
                 </div>
@@ -737,37 +857,37 @@ const DataCapture = () => {
                     <tr>
                       <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          S.No
+                          {t('datacapture.sno', 'S.No')}
                           <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                         </div>
                       </th>
                       <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          Station Name
+                          {t('datacapture.station_name', 'Station Name')}
                           <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                         </div>
                       </th>
                       <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          Parameter
+                          {t('datacapture.parameter', 'Parameter')}
                           <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                         </div>
                       </th>
                       <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          No.Of Expected Records
+                          {t('datacapture.expected_records', 'No.Of Expected Records')}
                           <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                         </div>
                       </th>
                       <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          No.Of Valid Records
+                          {t('datacapture.valid_records', 'No.Of Valid Records')}
                           <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                         </div>
                       </th>
                       <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          Percent Availability
+                          {t('datacapture.percent_avail', 'Percent Availability')}
                           <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
                         </div>
                       </th>
@@ -787,7 +907,7 @@ const DataCapture = () => {
                     ].map(row => (
                       <tr key={row.no}>
                         <td>{row.no}</td>
-                        <td>{row.station}</td>
+                        <td>{row.station === 'City Center' || row.station === 'City Centre' ? t('live.city_centre', 'City Centre') : row.station}</td>
                         <td>{row.param}</td>
                         <td>{row.expected}</td>
                         <td>{row.valid}</td>
@@ -843,7 +963,7 @@ const DataCapture = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '0.9rem', color: '#111827', fontWeight: '800' }}>
-                              {row.station}
+                              {row.station === 'City Center' || row.station === 'City Centre' ? t('live.city_centre', 'City Centre') : row.station}
                             </span>
                             <span style={{
                               fontSize: '0.7rem',
@@ -904,19 +1024,19 @@ const DataCapture = () => {
                           {/* Pollutants details */}
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>Parameter</span>
+                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>{t('datacapture.parameter', 'Parameter')}</span>
                               <span style={{ fontSize: '0.85rem', color: '#1f2937', fontWeight: '700' }}>{row.param}</span>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>Date Range</span>
-                              <span style={{ fontSize: '0.85rem', color: '#1f2937', fontWeight: '700' }}>{startDate} to {endDate}</span>
+                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>{isRtl ? 'نطاق التاريخ' : 'Date Range'}</span>
+                              <span style={{ fontSize: '0.85rem', color: '#1f2937', fontWeight: '700' }}>{startDate} {isRtl ? 'إلى' : 'to'} {endDate}</span>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>Expected Records</span>
+                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>{t('datacapture.expected_records', 'Expected Records')}</span>
                               <span style={{ fontSize: '0.85rem', color: '#1f2937', fontWeight: '700' }}>{row.expected}</span>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>Valid Records</span>
+                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>{t('datacapture.valid_records', 'Valid Records')}</span>
                               <span style={{ fontSize: '0.85rem', color: '#1f2937', fontWeight: '700' }}>{row.valid}</span>
                             </div>
                           </div>
@@ -926,7 +1046,7 @@ const DataCapture = () => {
                           {/* Pollutant stack with units - Responsive 3-column grid layout */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                              Pollutant Values
+                              {isRtl ? 'قيم الملوثات' : 'Pollutant Values'}
                             </div>
                             <div className="reports-pollutants-grid">
                               {[
