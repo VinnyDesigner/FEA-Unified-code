@@ -75,7 +75,7 @@ const ReportsPage = () => {
                 {/* Header Section */}
                 <div className="flex flex-col">
                   <h1 className="text-[28px] md:text-[36px] font-bold text-white tracking-tight leading-[1.2]">
-                    Reports
+                    {t('nav.reports', 'Reports')}
                   </h1>
                   <p className="text-[14px] md:text-[16px] text-gray-400 mt-3 max-w-[95%] md:max-w-[80%] leading-relaxed">
                     {t('reports.pageSubtitle')}
@@ -90,7 +90,7 @@ const ReportsPage = () => {
                   <div className="flex-1 mt-6 flex flex-col gap-6">
                     {!appliedFilters ? (
                       <div className="flex-1 flex items-center justify-center min-h-[300px]">
-                        <span className="text-white/50 text-[15px] font-semibold tracking-wide">No Reports Generated Yet</span>
+                        <span className="text-white/50 text-[15px] font-semibold tracking-wide">{t('reports.noReportsGenerated', 'No Reports Generated Yet')}</span>
                       </div>
                     ) : (
                       <div className="flex-1 rounded-[20px] flex flex-col relative z-[5] mt-2 mb-4"
@@ -149,16 +149,16 @@ const ReportsPage = () => {
                 boxShadow: '3px 3px 4px 0 rgba(255, 255, 255, 0.17) inset',
                 backdropFilter: 'blur(7px)',
                 WebkitBackdropFilter: 'blur(7px)',
-                padding: '20px 24px',
+                padding: '24px 32px',
                 overflow: 'hidden'
               }}
             >
-              {/* Header Section (Inside Card) */}
-              <div className="flex flex-col mb-4">
-                <h1 className="text-xl font-bold text-white tracking-tight">
-                  Reports
+              {/* Header Section */}
+              <div className="flex flex-col mb-8">
+                <h1 className="text-[32px] font-bold text-white tracking-tight leading-none mb-2">
+                  {t('nav.reports', 'Reports')}
                 </h1>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-[15px] text-gray-400 max-w-[600px] leading-relaxed">
                   {t('reports.pageSubtitle')}
                 </p>
               </div>
@@ -171,7 +171,7 @@ const ReportsPage = () => {
                 <div className="flex-grow mt-6 flex flex-col gap-6">
                   {!appliedFilters ? (
                     <div className="flex-1 flex items-center justify-center min-h-[300px]">
-                      <span className="text-white/50 text-[16px] font-semibold tracking-wide">No Reports Generated Yet</span>
+                      <span className="text-white/50 text-[16px] font-semibold tracking-wide">{t('reports.noReportsGenerated', 'No Reports Generated Yet')}</span>
                     </div>
                   ) : (
                       <div className="flex-1 rounded-[20px] flex flex-col relative z-[5] mb-2"

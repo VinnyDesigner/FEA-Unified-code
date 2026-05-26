@@ -83,9 +83,9 @@ const AlarmsTable = ({ isMobile = false }) => {
               {alarmsData.map((row, index) => (
                 <tr key={index} className="border-b border-white/10 h-[56px] transition-colors">
                   <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.dateTime}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.stationName}</td>
-                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{row.alertType}</td>
-                  <td className="px-6 py-3 text-white/80 text-[13px] leading-normal">{row.alertDescription}</td>
+                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{t(`stations.${row.stationName.replace(/ /g, '')}`, row.stationName)}</td>
+                  <td className="px-6 py-3 text-white/90 text-[14px] whitespace-nowrap">{t(`alarms.${row.alertType.charAt(0).toLowerCase() + row.alertType.slice(1).replace(/ /g, '')}`, row.alertType)}</td>
+                  <td className="px-6 py-3 text-white/80 text-[13px] leading-normal">{t(row.alertDescription.includes('communication') ? 'alarms.commAlertDesc' : row.alertDescription.includes('door') ? 'alarms.gpsAlertDesc1' : 'alarms.gpsAlertDesc2', row.alertDescription)}</td>
                 </tr>
               ))}
             </tbody>

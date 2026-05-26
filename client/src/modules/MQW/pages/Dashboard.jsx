@@ -10,7 +10,7 @@ import MobileHeader from '../components/MobileHeader';
 import MobileSidebar from '../components/MobileSidebar';
 
 import { motion } from 'framer-motion';
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Compass, Plus, Minus } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Compass, Plus, Minus, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const stations = [
@@ -85,13 +85,14 @@ const Dashboard = () => {
               className="absolute flex flex-col gap-2.5 transition-all duration-300"
               style={{
                 zIndex: (isTablet || isMobile) ? 10 : 1000,
-                top: isMobile ? '16px' : (isTablet ? '16px' : (isDesktop ? '24px' : '32px')),
+                top: isTablet ? 'auto' : (isMobile ? '16px' : (isDesktop ? '24px' : '32px')),
+                bottom: isTablet ? '16px' : 'auto',
                 right: isMobile 
                   ? (isRtl ? '16px' : 'auto') 
-                  : (isRtl ? 'auto' : (isTablet ? '16px' : (isRightPanelCollapsed ? (isDesktop ? '24px' : '32px') : `${panelWidth + (isDesktop ? 24 : 32)}px`))),
+                  : (isRtl ? 'auto' : (isTablet ? (isRightPanelCollapsed ? '16px' : `${panelWidth + 16}px`) : (isRightPanelCollapsed ? (isDesktop ? '24px' : '32px') : `${panelWidth + (isDesktop ? 24 : 32)}px`))),
                 left: isMobile 
                   ? (isRtl ? 'auto' : '16px') 
-                  : (isRtl ? (isTablet ? '16px' : (isRightPanelCollapsed ? (isDesktop ? '24px' : '32px') : `${panelWidth + (isDesktop ? 24 : 32)}px`)) : 'auto'),
+                  : (isRtl ? (isTablet ? (isRightPanelCollapsed ? '16px' : `${panelWidth + 16}px`) : (isRightPanelCollapsed ? (isDesktop ? '24px' : '32px') : `${panelWidth + (isDesktop ? 24 : 32)}px`)) : 'auto'),
               }}
             >
               {/* Compass/Recenter button */}
@@ -121,6 +122,16 @@ const Dashboard = () => {
                 title="Zoom Out"
               >
                 <Minus size={isDesktop ? 16 : 20} className="text-[#072227]" />
+              </button>
+              {/* Base Maps button */}
+              <button
+                onClick={() => {
+                  // Functionality placeholder as requested
+                }}
+                className={`${isDesktop ? 'w-8 h-8' : 'w-10 h-10'} rounded-full flex items-center justify-center bg-white border border-white/20 text-[#072227] shadow-lg cursor-pointer hover:bg-gray-50 active:scale-95 transition-all`}
+                title="Base Maps"
+              >
+                <Layers size={isDesktop ? 16 : 20} className="text-[#072227]" />
               </button>
             </div>
 

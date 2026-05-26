@@ -3,7 +3,7 @@ import { X, ZoomIn, ZoomOut, RotateCcw, Printer, Menu, Search, Hand, Home, Arrow
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { useTranslation } from 'react-i18next';
 
-const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBuoy }) => {
+const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBuoy, customData, series, xAxisKey = "fullLabel" }) => {
   const { t, i18n } = useTranslation();
   const [chartType, setChartType] = useState('Line');
   const [showMarkers, setShowMarkers] = useState(true);
@@ -17,6 +17,7 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
 
   // Generate dense data (200 points) to match the reference image
   const fullData = useMemo(() => {
+    if (customData) return customData;
     const data = [];
     const seed = (metric?.length || 0);
     const now = new Date();
@@ -98,9 +99,13 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg text-xs">
           <p className="font-medium text-gray-500 mb-1">{label}</p>
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 bg-[#009FAC] rounded-full"></div>
-            <span className="text-gray-700">{t('analytics.details') || 'Value'}: <strong className="text-gray-900">{payload[0].value}</strong></span>
+          <div className="flex flex-col gap-1.5">
+            {payload.map((item, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ background: item.color || item.stroke || '#009FAC' }}></div>
+                <span className="text-gray-700">{item.name || t('analytics.details')}: <strong className="text-gray-900">{typeof item.value === 'number' ? item.value.toFixed(2) : item.value}</strong></span>
+              </div>
+            ))}
           </div>
         </div>
       );
@@ -116,14 +121,23 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
 
     const xAxis = (
       <XAxis 
-        dataKey="fullLabel" 
+        dataKey={xAxisKey} 
         axisLine={{ stroke: '#E5E7EB' }}
         tickLine={false}
         tick={{ fontSize: 10, fill: "#6B7280" }}
         angle={-45}
         textAnchor="end"
         height={60}
-        interval={Math.floor(visibleData.length / 10)}
+        interval={customData ? 0 : Math.floor(visibleData.length / 10)}
+        tickFormatter={(val) => {
+          if (customData) {
+            const lowerVal = val ? val.toLowerCase() : '';
+            if (['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].includes(lowerVal)) {
+              return t(`analytics.months.${lowerVal}`, val);
+            }
+          }
+          return val;
+        }}
       />
     );
 
@@ -137,7 +151,7 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
     );
 
     const tooltip = showTooltip && (
-      <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#ddd', strokeWidth: 1, strokeDasharray: '3 3' }} />
+      <Tooltip wrapperStyle={{ zIndex: 9999, pointerEvents: 'none' }} content={<CustomTooltip />} cursor={{ stroke: '#ddd', strokeWidth: 1, strokeDasharray: '3 3' }} />
     );
 
     const legend = showLegend ? <Legend verticalAlign="top" align="center" height={36} wrapperStyle={{ paddingBottom: '10px' }} /> : null;
@@ -150,7 +164,11 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
           {yAxis}
           {tooltip}
           {legend}
-          <Bar dataKey="value" name={metricLabel} fill="#009FAC" isAnimationActive={showAnimation} />
+          {series ? series.map((s) => (
+            <Bar key={s.key} dataKey={s.key} name={s.name} fill={s.color} isAnimationActive={showAnimation} />
+          )) : (
+            <Bar dataKey="value" name={metricLabel} fill="#009FAC" isAnimationActive={showAnimation} />
+          )}
         </BarChart>
       );
     }
@@ -162,27 +180,44 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
         {yAxis}
         {tooltip}
         {legend}
-        <Line 
-          type={chartType === 'Step Line' ? 'stepAfter' : 'monotone'}
-          dataKey="value" 
-          name={metricLabel}
-          stroke="#009FAC" 
-          strokeWidth={chartType === 'Dots' ? 0 : 2}
-          strokeDasharray={showDashes ? "5 5" : "0"}
-          dot={showMarkers || chartType === 'Dots' ? { r: 3, fill: '#009FAC', stroke: '#fff', strokeWidth: 1 } : false}
-          activeDot={{ r: 5, fill: '#009FAC', stroke: '#fff', strokeWidth: 2 }}
-          isAnimationActive={showAnimation}
-        />
-        {chartType === 'Stacked Lines' && (
+        {series ? series.map((s) => (
           <Line 
-            type="monotone"
-            dataKey="value2" 
-            name={`${metricLabel} (Forecast)`}
-            stroke="#10B981" 
-            strokeWidth={2}
-            dot={showMarkers ? { r: 3, fill: '#10B981', stroke: '#fff', strokeWidth: 1 } : false}
+            key={s.key}
+            type={chartType === 'Step Line' ? 'stepAfter' : 'monotone'}
+            dataKey={s.key} 
+            name={s.name}
+            stroke={s.color} 
+            strokeWidth={chartType === 'Dots' ? 0 : 2}
+            strokeDasharray={showDashes ? "5 5" : "0"}
+            dot={showMarkers || chartType === 'Dots' ? { r: 3, fill: s.color, stroke: '#fff', strokeWidth: 1 } : false}
+            activeDot={{ r: 5, fill: s.color, stroke: '#fff', strokeWidth: 2 }}
             isAnimationActive={showAnimation}
           />
+        )) : (
+          <>
+            <Line 
+              type={chartType === 'Step Line' ? 'stepAfter' : 'monotone'}
+              dataKey="value" 
+              name={metricLabel}
+              stroke="#009FAC" 
+              strokeWidth={chartType === 'Dots' ? 0 : 2}
+              strokeDasharray={showDashes ? "5 5" : "0"}
+              dot={showMarkers || chartType === 'Dots' ? { r: 3, fill: '#009FAC', stroke: '#fff', strokeWidth: 1 } : false}
+              activeDot={{ r: 5, fill: '#009FAC', stroke: '#fff', strokeWidth: 2 }}
+              isAnimationActive={showAnimation}
+            />
+            {chartType === 'Stacked Lines' && (
+              <Line 
+                type="monotone"
+                dataKey="value2" 
+                name={`${metricLabel} (Forecast)`}
+                stroke="#10B981" 
+                strokeWidth={2}
+                dot={showMarkers ? { r: 3, fill: '#10B981', stroke: '#fff', strokeWidth: 1 } : false}
+                isAnimationActive={showAnimation}
+              />
+            )}
+          </>
         )}
       </LineChart>
     );
@@ -292,7 +327,7 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
           </div>
 
           {/* Right Side: Sidebar Controls */}
-          <div className="w-72 border-l border-gray-100 p-6 flex flex-col gap-6 overflow-y-auto">
+          <div className="w-72 border-l border-gray-100 p-6 flex flex-col gap-6 overflow-hidden">
             
             {/* Toggles */}
             <div className="flex flex-col gap-4">

@@ -5,6 +5,30 @@ import { useTranslation } from 'react-i18next';
 
 const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
   const { t } = useTranslation();
+
+  const getTransLabel = (val) => {
+    if (!val) return val;
+    const map = {
+      'Al Aqah New': 'stations.alAqahNew',
+      'North Dibbah': 'stations.northDibbah',
+      'OSB': 'stations.osb',
+      'NSB': 'stations.nsb',
+      'Sonde Information': 'analytics.sondeInformation',
+      'Weather Information': 'analytics.weatherInformation',
+      'Specific Conductivity': 'analytics.specificConductivity',
+      'Water Temperature': 'analytics.waterTemperature',
+      'Salinity': 'analytics.salinity',
+      'Chlorophyll': 'analytics.chlorophyll',
+      'Oxygen Saturation': 'analytics.oxygenSaturation',
+      'Dissolved Oxygen': 'analytics.dissolvedOxygen',
+      'Turbidity': 'analytics.turbidity',
+      'pH': 'analytics.ph',
+      'Depth': 'analytics.depth',
+      'Blue-Green Algae': 'analytics.blueGreenAlgae'
+    };
+    return map[val] ? t(map[val], val) : val;
+  };
+
   
   const initialState = {
     station: '',
@@ -52,11 +76,12 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
 
   // Callback to calculate exact coordinates for rendering float panels via react-portal
   const updatePositions = useCallback(() => {
+    const isRtl = document.documentElement.dir === 'rtl';
     if (stationBtnRef.current) {
       const rect = stationBtnRef.current.getBoundingClientRect();
       setStationPos({
         top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
+        left: isRtl ? rect.right + window.scrollX - rect.width : rect.left + window.scrollX,
         width: rect.width
       });
     }
@@ -64,7 +89,7 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
       const rect = monitoringTypeBtnRef.current.getBoundingClientRect();
       setMonitoringTypePos({
         top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
+        left: isRtl ? rect.right + window.scrollX - rect.width : rect.left + window.scrollX,
         width: rect.width
       });
     }
@@ -72,7 +97,7 @@ const ReportsFilterForm = ({ isDesktop = false, onApply }) => {
       const rect = parameterBtnRef.current.getBoundingClientRect();
       setParameterPos({
         top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
+        left: isRtl ? rect.right + window.scrollX - rect.width : rect.left + window.scrollX,
         width: rect.width
       });
     }
