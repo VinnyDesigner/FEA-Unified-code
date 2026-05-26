@@ -119,12 +119,13 @@ const BuoyStatusCard = ({ activeTab, selectedBuoy, isMobile = false, isDesktop =
     </div>
   );
 
-  // 3D Card Flip CSS Classes & Inline Styles
   const containerStyle = {
     perspective: '1000px',
     width: '100%',
+    maxWidth: isMobile ? '300px' : '100%',
+    margin: isMobile ? '0 auto' : '0',
     height: '100%',
-    minHeight: isMobile ? '420px' : '100%',
+    minHeight: isMobile ? '140px' : '100%',
     position: 'relative',
   };
 
@@ -177,16 +178,16 @@ const BuoyStatusCard = ({ activeTab, selectedBuoy, isMobile = false, isDesktop =
       {/* Printer/Flip Icon in Top Right - Raw White Icon to match mockup exactly */}
       <button 
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsFlipped(false); }}
-        className="absolute top-6 right-6 z-[100] text-white/90 hover:text-white hover:scale-105 active:scale-95 transition-all outline-none bg-transparent border-0 cursor-pointer"
+        className={`absolute ${isMobile ? 'top-3 right-3' : 'top-6 right-6'} z-[100] text-white/90 hover:text-white hover:scale-105 active:scale-95 transition-all outline-none bg-transparent border-0 cursor-pointer`}
         style={{ pointerEvents: 'auto' }}
       >
-        <RefreshCw size={20} className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:rotate-180" />
+        <RefreshCw size={isMobile ? 16 : 20} className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] transition-transform duration-300 hover:rotate-180" />
       </button>
 
       {/* Location Details Centered at the Bottom - Perfect replication of attached image */}
-      <div className="absolute bottom-8 left-0 right-0 z-10 flex flex-col items-center text-center px-4">
-        <h2 className="text-[32px] font-bold text-white tracking-wide flex items-center justify-center gap-2.5 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
-          <span className="w-3.5 h-3.5 rounded-full bg-[#10B981] shadow-[0_0_12px_#10B981] inline-block animate-pulse" />
+      <div className={`absolute ${isMobile ? 'bottom-3' : 'bottom-8'} left-0 right-0 z-10 flex flex-col items-center text-center px-4`}>
+        <h2 className={`${isMobile ? 'text-[18px]' : 'text-[32px]'} font-bold text-white tracking-wide flex items-center justify-center gap-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]`}>
+          <span className={`${isMobile ? 'w-2 h-2' : 'w-3.5 h-3.5'} rounded-full bg-[#10B981] shadow-[0_0_12px_#10B981] inline-block animate-pulse`} />
           {t(`stations.${buoyNameKey}`)}
         </h2>
       </div>
@@ -205,11 +206,11 @@ const BuoyStatusCard = ({ activeTab, selectedBuoy, isMobile = false, isDesktop =
           {/* MOBILE RENDER */}
           {isMobile && (
             <div
-              className="flex md:hidden flex-col w-full h-full relative"
+              className="flex md:hidden flex-col w-full h-full relative overflow-hidden"
               style={{
-                padding: '24px 20px',
+                padding: '12px',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '28px',
+                borderRadius: '20px',
               }}
             >
               <img 
@@ -219,54 +220,56 @@ const BuoyStatusCard = ({ activeTab, selectedBuoy, isMobile = false, isDesktop =
               />
               <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsFlipped(true); }}
-                className="absolute top-5 right-5 z-[100] text-white/80 hover:text-white hover:scale-105 active:scale-95 transition-all outline-none bg-transparent border-0 cursor-pointer"
+                className="absolute top-3 right-3 z-[100] text-white/80 hover:text-white hover:scale-105 active:scale-95 transition-all outline-none bg-transparent border-0 cursor-pointer"
                 style={{ pointerEvents: 'auto' }}
               >
-                <RefreshCw size={20} className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform duration-300 hover:rotate-180" />
+                <RefreshCw size={16} className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform duration-300 hover:rotate-180" />
               </button>
 
-              {/* Buoy image — large, top */}
-              <div className="flex justify-center relative z-10 mb-4 mt-2">
-                <div className="w-28 h-28 flex items-center justify-center">
+              <div className="flex flex-row items-center z-10 gap-3 mt-1">
+                {/* Buoy Image */}
+                <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center bg-white/5 rounded-full border border-white/10 p-1">
                   <img 
                     src="/assets/buoy-icon.png" 
                     alt="Buoy Illustration" 
-                    className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(29,205,221,0.4)]" 
+                    className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(29,205,221,0.4)]" 
                   />
                 </div>
-              </div>
 
-              {/* Name & coords — centered below image */}
-              <div className="flex flex-col items-center z-10 text-center">
-                <p className="text-[11px] text-white/50 font-medium mb-1 tracking-wider uppercase">{t('dashboard.locationName') || 'Location Name'}</p>
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <div className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_#10B981] animate-pulse" />
-                  <p className="text-[20px] font-bold text-white tracking-wide">{t(`stations.${buoyNameKey}`)}</p>
-                </div>
-                <div 
-                  className="px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-3 text-[11px] text-white/80 font-medium"
-                  style={{ background: 'rgba(255, 255, 255, 0.08)', backdropFilter: 'blur(4px)' }}
-                >
-                  <span>{t('dashboard.longitude')}: {coordinates.long}</span>
-                  <span>{t('dashboard.latitude')}: {coordinates.lat}</span>
+                {/* Name and Basic Info */}
+                <div className="flex flex-col pr-6">
+                  <p className="text-[9px] text-white/50 font-medium tracking-wider uppercase mb-0.5">{t('dashboard.locationName') || 'Location Name'}</p>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <div className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981] animate-pulse" />
+                    <p className="text-[14px] font-bold text-white tracking-wide truncate">{t(`stations.${buoyNameKey}`)}</p>
+                  </div>
+                  <p className="text-[9px] text-white/70 font-medium m-0 truncate">
+                    {coordinates.long} • {coordinates.lat}
+                  </p>
                 </div>
               </div>
 
-              {/* Spacer pushes pills to the bottom */}
               <div className="flex-1" />
 
-              {/* Alarm pills — anchored to bottom */}
-              {renderAlarmPills()}
-
-              {/* Footer */}
-              <div className="flex justify-between items-center z-10 pt-3 border-t border-white/10 mt-3">
-                <div className="flex items-center gap-1.5 text-[10px] text-white/60">
-                  <Clock size={12} />
-                  <span>{t('dashboard.updated')} {updatedTime}</span>
+              {/* Compact Alarms and Time for Mobile Thumbnail */}
+              <div className="flex z-10 justify-between items-end mt-2">
+                <div className="flex gap-2">
+                  <div title={t('dashboard.commStatus')} className="flex items-center justify-center p-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
+                     {renderAlarmIcon(alarms.comm)}
+                  </div>
+                  <div title={t('dashboard.gpsAlarm')} className="flex items-center justify-center p-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
+                     {renderAlarmIcon(alarms.gps)}
+                  </div>
+                  <div title={t('dashboard.enclosureDoorOpen')} className="flex items-center justify-center p-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
+                     {renderAlarmIcon(alarms.door)}
+                  </div>
                 </div>
-                <span className="text-[10px] text-white/60">
-                  {t('dashboard.dataInterval')}: {dataInterval}
-                </span>
+                <div className="flex flex-col items-end text-[9px] text-white/60 pb-1">
+                  <div className="flex items-center gap-1 font-medium">
+                    <Clock size={10} />
+                    <span>{updatedTime}</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}

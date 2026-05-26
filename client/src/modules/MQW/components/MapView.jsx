@@ -114,31 +114,7 @@ const MapView = forwardRef(({ onBuoySelect, selectedBuoy, isMobile = false }, re
         ))}
       </MapContainer>
 
-      {/* Map zoom controls - mobile only */}
-      {isMobile && (
-        <div className="absolute top-4 right-4 rtl:right-auto rtl:left-4 flex flex-col gap-2 z-[1000]">
-          <button
-            onClick={() => controlRef.current?.zoomIn()}
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:opacity-90 active:scale-95"
-            style={{ 
-              background: '#FFF', 
-              boxShadow: '0 4px 4px 0 rgba(0, 0, 0, 0.25) inset' 
-            }}
-          >
-            <Plus size={20} className="text-[#072227]" />
-          </button>
-          <button
-            onClick={() => controlRef.current?.zoomOut()}
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:opacity-90 active:scale-95"
-            style={{ 
-              background: '#FFF', 
-              boxShadow: '0 4px 4px 0 rgba(0, 0, 0, 0.25) inset' 
-            }}
-          >
-            <Minus size={20} className="text-[#072227]" />
-          </button>
-        </div>
-      )}
+
     </div>
   );
 });

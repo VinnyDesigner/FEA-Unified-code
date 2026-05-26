@@ -349,11 +349,11 @@ const BatteryHealthView = ({ isMobile = false, selectedBuoy = 'Al Aqah Buoy', se
 
       {/* ROW 1: Nearshore Buoy Battery Health */}
       {showNearshore && (
-        <div className="flex flex-row w-full animate-fadeIn">
+        <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-row'} w-full animate-fadeIn`}>
           
           {/* Left Side: Chart */}
           <div 
-            className="w-[70%] flex flex-col p-6 min-h-[240px]"
+            className={`${isMobile ? 'w-full p-4' : 'w-[70%] p-6'} flex flex-col min-h-[240px]`}
             style={{
               borderRadius: '22px',
               border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -412,7 +412,7 @@ const BatteryHealthView = ({ isMobile = false, selectedBuoy = 'Al Aqah Buoy', se
           </div>
 
           {/* Right Side: Barometer Gauge */}
-          <div className="w-[30%] flex flex-col pl-6">
+          <div className={`${isMobile ? 'w-full' : 'w-[30%] pl-6'} flex flex-col`}>
             <CircularBarometer label="Nearshore" value={13.2} />
           </div>
 
@@ -421,11 +421,11 @@ const BatteryHealthView = ({ isMobile = false, selectedBuoy = 'Al Aqah Buoy', se
 
       {/* ROW 2: Offshore Buoy Battery Health */}
       {showOffshore && (
-        <div className="flex flex-row w-full animate-fadeIn">
+        <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-row'} w-full animate-fadeIn`}>
           
           {/* Left Side: Chart */}
           <div 
-            className="w-[70%] flex flex-col p-6 min-h-[240px]"
+            className={`${isMobile ? 'w-full p-4' : 'w-[70%] p-6'} flex flex-col min-h-[240px]`}
             style={{
               borderRadius: '22px',
               border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -484,7 +484,7 @@ const BatteryHealthView = ({ isMobile = false, selectedBuoy = 'Al Aqah Buoy', se
           </div>
 
           {/* Right Side: Barometer Gauge */}
-          <div className="w-[30%] flex flex-col pl-6">
+          <div className={`${isMobile ? 'w-full' : 'w-[30%] pl-6'} flex flex-col`}>
             <CircularBarometer label="Offshore" value={13.5} />
           </div>
 
@@ -493,11 +493,11 @@ const BatteryHealthView = ({ isMobile = false, selectedBuoy = 'Al Aqah Buoy', se
 
       {/* ROW 3: Al Aqah Buoy Battery Health */}
       {showAlAqah && (
-        <div className="flex flex-row w-full animate-fadeIn">
+        <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-row'} w-full animate-fadeIn`}>
           
           {/* Left Side: Chart */}
           <div 
-            className="w-[70%] flex flex-col p-6 min-h-[240px]"
+            className={`${isMobile ? 'w-full p-4' : 'w-[70%] p-6'} flex flex-col min-h-[240px]`}
             style={{
               borderRadius: '22px',
               border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -556,7 +556,7 @@ const BatteryHealthView = ({ isMobile = false, selectedBuoy = 'Al Aqah Buoy', se
           </div>
 
           {/* Right Side: Barometer Gauge */}
-          <div className="w-[30%] flex flex-col pl-6">
+          <div className={`${isMobile ? 'w-full' : 'w-[30%] pl-6'} flex flex-col`}>
             <CircularBarometer label="Al Aqah" value={13.6} />
           </div>
 
@@ -565,11 +565,11 @@ const BatteryHealthView = ({ isMobile = false, selectedBuoy = 'Al Aqah Buoy', se
 
       {/* ROW 4: North Dibbah Buoy Battery Health */}
       {showNorthDibbah && (
-        <div className="flex flex-row w-full pb-6 animate-fadeIn">
+        <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-row'} w-full pb-6 animate-fadeIn`}>
           
           {/* Left Side: Chart */}
           <div 
-            className="w-[70%] flex flex-col p-6 min-h-[240px]"
+            className={`${isMobile ? 'w-full p-4' : 'w-[70%] p-6'} flex flex-col min-h-[240px]`}
             style={{
               borderRadius: '22px',
               border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -628,7 +628,7 @@ const BatteryHealthView = ({ isMobile = false, selectedBuoy = 'Al Aqah Buoy', se
           </div>
 
           {/* Right Side: Barometer Gauge */}
-          <div className="w-[30%] flex flex-col pl-6">
+          <div className={`${isMobile ? 'w-full' : 'w-[30%] pl-6'} flex flex-col`}>
             <CircularBarometer label="North Dibbah" value={13.3} />
           </div>
 
