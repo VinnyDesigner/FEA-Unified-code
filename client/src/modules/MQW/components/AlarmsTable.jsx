@@ -32,6 +32,27 @@ const alarmsData = [
 const AlarmsTable = ({ isMobile = false }) => {
   const { t } = useTranslation();
 
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-4 w-full pb-4">
+        {alarmsData.map((row, index) => (
+          <div key={index} className="bg-white/5 border border-white/10 rounded-[20px] p-4 flex flex-col gap-2.5">
+            <div className="flex justify-between items-start gap-2">
+              <span className="text-white font-bold text-[14px]">{t(`stations.${row.stationName.replace(/ /g, '')}`, row.stationName)}</span>
+              <span className="text-white/60 text-[12px]">{row.dateTime}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[#00CFE8] font-semibold text-[13px]">{t(`alarms.${row.alertType.charAt(0).toLowerCase() + row.alertType.slice(1).replace(/ /g, '')}`, row.alertType)}</span>
+              <p className="text-white/80 text-[12px] leading-relaxed">
+                {t(row.alertDescription.includes('communication') ? 'alarms.commAlertDesc' : row.alertDescription.includes('door') ? 'alarms.gpsAlertDesc1' : 'alarms.gpsAlertDesc2', row.alertDescription)}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col min-h-0 w-full">
       <div className="flex flex-col min-h-0 w-full">

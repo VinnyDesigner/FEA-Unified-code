@@ -51,7 +51,7 @@ const AnalyticsTabs = ({ activeTab = 'Live Data', onTabChange, isMobile = false,
               key={tab}
               onClick={() => onTabChange?.(tab)}
               className={`transition-all duration-300 whitespace-nowrap text-center outline-none cursor-pointer ${
-                isMobile ? 'px-2 py-1.5 text-[10px] flex-1' : (isTablet ? 'px-4 py-2 text-[11px] min-w-max' : 'px-6 py-2.5 text-xs min-w-max')
+                isMobile ? 'px-2 py-1 flex items-center justify-center h-[36px] text-[10px] flex-1' : (isTablet ? 'px-4 py-2 text-[11px] min-w-max' : 'px-6 py-2.5 text-xs min-w-max')
               }`}
               style={
                 isActive

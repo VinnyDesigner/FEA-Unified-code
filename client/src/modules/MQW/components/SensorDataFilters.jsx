@@ -212,7 +212,7 @@ const SensorDataFilters = ({
     color: '#FFFFFF',
     fontWeight: '400',
     backdropFilter: 'blur(10px)',
-    height: '40px'
+    height: isMobile ? '36px' : '40px'
   };
 
   const applyButtonStyle = {

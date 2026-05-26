@@ -224,18 +224,20 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
   };
 
   return (
-    <div className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" dir="ltr">
-      <div className="bg-white w-full max-w-7xl h-[85vh] rounded-lg shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 md:p-4" dir="ltr">
+      <div className="bg-white w-full max-w-7xl h-[95vh] md:h-[85vh] rounded-lg shadow-2xl flex flex-col overflow-hidden">
         
         {/* Top Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-[#072227]">
-            {selectedBuoy?.nameKey ? t(`stations.${selectedBuoy.nameKey}`) : (selectedBuoy?.name || 'Station')}
-          </h2>
+        <div className="flex flex-col md:flex-row items-start md:items-center px-4 md:px-6 py-3 md:py-4 border-b border-gray-100 gap-3 md:gap-4 relative pr-12 md:pr-16">
+          <div className="flex items-center w-full md:w-auto">
+            <h2 className="text-lg md:text-xl font-bold text-[#072227]">
+              {selectedBuoy?.nameKey ? t(`stations.${selectedBuoy.nameKey}`) : (selectedBuoy?.name || 'Station')}
+            </h2>
+          </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center w-full md:w-auto overflow-x-auto no-scrollbar pb-1 md:pb-0">
             {/* Chart Type Buttons */}
-            <div className="flex bg-gray-100 rounded-lg p-0.5">
+            <div className="flex bg-gray-100 rounded-lg p-0.5 min-w-max">
               {[
                 { id: 'Line', key: 'line' },
                 { id: 'Step Line', key: 'stepLine' },
@@ -246,7 +248,7 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
                 <button
                   key={type.id}
                   onClick={() => setChartType(type.id)}
-                  className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  className={`px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium rounded-md transition-all whitespace-nowrap ${
                     chartType === type.id 
                       ? 'bg-[#009FAC] text-white shadow-sm' 
                       : 'text-gray-600 hover:text-gray-900'
@@ -256,27 +258,27 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
                 </button>
               ))}
             </div>
-            
-            {/* Close Button */}
-            <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-100 rounded-full"
-            >
-              <X size={20} />
-            </button>
           </div>
+
+          {/* Absolute Close Button */}
+          <button 
+            onClick={onClose}
+            className="absolute top-3 right-3 md:top-4 md:right-4 text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-100 rounded-full"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
           
           {/* Left Side: Chart */}
-          <div className="flex-1 flex flex-col p-6 bg-white min-w-0">
+          <div className="flex-1 flex flex-col p-4 md:p-6 bg-white min-w-0 min-h-[350px] md:min-h-0">
             
             {/* Chart Toolbar */}
-            <div className="flex justify-end items-center mb-4">
+            <div className="flex justify-end items-center mb-2 md:mb-4 overflow-x-auto no-scrollbar">
               
-              <div className="flex items-center gap-2 text-gray-400">
+              <div className="flex items-center gap-1 md:gap-2 text-gray-400 min-w-max">
                 {/* Zoom In/Out */}
                 <button onClick={handleZoomIn} className="hover:text-[#009FAC] p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer" title="Zoom In"><ZoomIn size={18} /></button>
                 <button onClick={handleZoomOut} className="hover:text-[#009FAC] p-1.5 hover:bg-gray-50 rounded-full transition-colors cursor-pointer" title="Zoom Out"><ZoomOut size={18} /></button>
@@ -327,7 +329,7 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
           </div>
 
           {/* Right Side: Sidebar Controls */}
-          <div className="w-72 border-l border-gray-100 p-6 flex flex-col gap-6 overflow-hidden">
+          <div className="w-full md:w-72 border-t md:border-t-0 md:border-l border-gray-100 p-4 md:p-6 flex flex-col gap-4 md:gap-6 flex-shrink-0">
             
             {/* Toggles */}
             <div className="flex flex-col gap-4">
@@ -342,7 +344,7 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
                 </div>
               </div>
               
-              <div className="h-[1px] bg-gray-100 my-2"></div>
+              <div className="h-[1px] bg-gray-100 my-1 md:my-2"></div>
               
               <ToggleItem label={t('chart.marker')} checked={showMarkers} onChange={setShowMarkers} />
               <ToggleItem label={t('chart.dashes')} checked={showDashes} onChange={setShowDashes} />
