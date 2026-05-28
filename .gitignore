@@ -1,0 +1,17 @@
+# Defense-in-depth: server/.gitignore already covers .env inside server/,
+# but keep an explicit repo-root rule so a stray `git add server/.env` from
+# the repo root cannot re-track it. See .omc/plans/phase2-auth-plan.md §0.
+server/.env
+server/.env.local
+.env
+.env.local
+.env.*.local
+
+node_modules/
+dist/
+build/
+*.log
+tmp/
+.DS_Store
+.omc/state/
+.omc/logs/
