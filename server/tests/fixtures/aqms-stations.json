@@ -1,0 +1,19 @@
+{
+  "_fixture_source": "LiveData.jsx stationsData keys (lines 85-457)",
+  "_endpoint": "GET /api/v1/aqms/stations",
+  "_fe_fields_used": ["id", "name", "lat", "lng", "color", "intervalSeconds"],
+  "_divergences": [],
+  "happy": [
+    {
+      "id": "TODO_cuid",
+      "name": "City Centre",
+      "lat": 25.115,
+      "lng": 56.315,
+      "color": "#f97316",
+      "intervalSeconds": 120,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "_required_keys": ["id", "name", "lat", "lng", "color", "intervalSeconds", "createdAt", "updatedAt"]
+}

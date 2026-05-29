@@ -1,0 +1,23 @@
+{
+  "_fixture_source": "BuoyStatusCard.jsx selectedBuoy prop shape (lines 9-16): name, lat, lng, updatedTime, interval; Dashboard.jsx buoy list",
+  "_endpoint": "GET /api/v1/mwq/buoys",
+  "_fe_fields_used": ["id", "name", "lat", "lng", "color", "intervalSeconds"],
+  "_divergences": [
+    "BuoyStatusCard receives 'selectedBuoy.name', 'selectedBuoy.updated', 'selectedBuoy.interval' (lines 9-16); API returns 'name', 'intervalSeconds' — FE needs to map interval",
+    "getBuoyCoordinates() (lines 19-30) uses hardcoded coords by name — MUST be deleted once API returns real lat/lng",
+    "getAlarmStates() (lines 33-44) uses hardcoded alarm booleans by name — MUST be deleted once /api/v1/alarms is wired"
+  ],
+  "happy": [
+    {
+      "id": "TODO_cuid",
+      "name": "Al Aqah Buoy",
+      "lat": 25.371,
+      "lng": 56.836,
+      "color": "#10B981",
+      "intervalSeconds": 120,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-05-27T10:00:00.000Z"
+    }
+  ],
+  "_required_keys": ["id", "name", "lat", "lng", "color", "intervalSeconds", "createdAt", "updatedAt"]
+}

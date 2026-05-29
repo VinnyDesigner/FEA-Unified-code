@@ -1,0 +1,30 @@
+{
+  "_fixture_source": "LiveData.jsx stationsData fields (lines 85-457): pm25, pm10, co, o3, no2, so2, co2, ch4, h2s, nmhc, aqi, aqiCategory, aqiColor",
+  "_endpoint": "GET /api/v1/aqms/air-quality/latest",
+  "_fe_fields_used": ["stationId", "recordedAt", "pm25", "pm10", "co", "o3", "no2", "so2", "co2", "ch4", "h2s", "nmhc", "aqiValue", "aqiCategory", "aqiColor"],
+  "_divergences": [
+    "FE uses 'category' key in stationsData (line 92) but plan normalizes to 'aqiCategory' (schema field AqmsAirQualityReading.aqiCategory)",
+    "FE uses 'aqi' (integer) in stationsData but schema field is 'aqiValue' (Float)"
+  ],
+  "happy": [
+    {
+      "id": "TODO_bigint_as_string",
+      "stationId": "TODO_cuid",
+      "recordedAt": "2026-05-27T10:00:00.000Z",
+      "pm25": 14.0,
+      "pm10": 28.0,
+      "co": 0.45,
+      "o3": 52.0,
+      "no2": 18.0,
+      "so2": 5.0,
+      "co2": 4.0,
+      "ch4": 0.1,
+      "h2s": 0.02,
+      "nmhc": 1.2,
+      "aqiValue": 120.0,
+      "aqiCategory": "Unhealthy for Sensitive Groups",
+      "aqiColor": "#f97316"
+    }
+  ],
+  "_required_keys": ["id", "stationId", "recordedAt", "pm25", "pm10", "co", "o3", "no2", "so2", "co2", "ch4", "h2s", "nmhc", "aqiValue", "aqiCategory", "aqiColor"]
+}

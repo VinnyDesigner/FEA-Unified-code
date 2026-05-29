@@ -1,0 +1,521 @@
+// mwq.prisma — Marine Water Quality module (26 entities)
+// All models prefixed Mwq* to avoid collision with AQMS namespace.
+
+// Entity 1: BuoysData
+model MwqBuoy {
+  id        Int     @id @default(autoincrement()) @map("BuoyID")
+  buoyName  String  @map("BuoyName") @db.VarChar(120)
+  latitude  Decimal @map("Latitude") @db.Decimal(9, 6)
+  longitude Decimal @map("Longitude") @db.Decimal(9, 6)
+  remarks   String? @map("Remarks")
+
+  buoySensors         MwqBuoySensor[]
+  sondeObservations   MwqSondeObservation[]
+  weatherObservations MwqWeatherObservation[]
+  gpsObservations     MwqGpsObservation[]
+  batteryObservations MwqBatteryObservation[]
+  doorObservations    MwqDoorObservation[]
+  dataCaptureRates    MwqDataCaptureRate[]
+  dataCaptureHourly   MwqDataCaptureRateHourly[]
+  dataCaptureMonthly  MwqDataCaptureRateMonthly[]
+  hourlySummaries     MwqHourlySummary[]
+  dailySummaries      MwqDailySummary[]
+  monthlySummaries    MwqMonthlySummary[]
+  stationAlerts       MwqStationAlert[]
+  stationMedia        MwqStationMedia[]
+  windRoseSummaries   MwqWindRoseSummary[]
+  loggerSystemInfos   MwqLoggerSystemInfo[]
+
+  @@map("mwq_buoys")
+}
+
+// Entity 2: SensorDetails (MWQ sensor catalog)
+model MwqSensorCatalog {
+  id           Int     @id @default(autoincrement()) @map("SensorID")
+  sensorName   String  @map("SensorName") @db.VarChar(120)
+  sensorType   String  @map("SensorType") @db.VarChar(60)
+  model        String  @map("Model") @db.VarChar(120)
+  manufacturer String  @map("Manufacturer") @db.VarChar(120)
+  remarks      String? @map("Remarks")
+
+  buoySensors         MwqBuoySensor[]
+  sondeObservations   MwqSondeObservation[]
+  weatherObservations MwqWeatherObservation[]
+  gpsObservations     MwqGpsObservation[]
+  batteryObservations MwqBatteryObservation[]
+  doorObservations    MwqDoorObservation[]
+  dataCaptureRates    MwqDataCaptureRate[]
+  dataCaptureHourly   MwqDataCaptureRateHourly[]
+  dataCaptureMonthly  MwqDataCaptureRateMonthly[]
+  hourlySummaries     MwqHourlySummary[]
+  dailySummaries      MwqDailySummary[]
+  monthlySummaries    MwqMonthlySummary[]
+
+  @@map("mwq_sensor_catalog")
+}
+
+// Entity 3: BuoySensorDetails (junction)
+model MwqBuoySensor {
+  id            Int     @id @default(autoincrement()) @map("BuoySensorID")
+  buoyId        Int     @map("BuoyID")
+  sensorId      Int     @map("SensorID")
+  dataFrequency String  @map("DataFrequency") @db.VarChar(40)
+  status        String  @map("Status") @db.VarChar(20)
+  remarks       String? @map("Remarks")
+
+  buoy   MwqBuoy          @relation(fields: [buoyId], references: [id])
+  sensor MwqSensorCatalog @relation(fields: [sensorId], references: [id])
+
+  sondeObservations   MwqSondeObservation[]
+  weatherObservations MwqWeatherObservation[]
+  gpsObservations     MwqGpsObservation[]
+  batteryObservations MwqBatteryObservation[]
+  doorObservations    MwqDoorObservation[]
+  dataCaptureRates    MwqDataCaptureRate[]
+  dataCaptureHourly   MwqDataCaptureRateHourly[]
+  dataCaptureMonthly  MwqDataCaptureRateMonthly[]
+  hourlySummaries     MwqHourlySummary[]
+  dailySummaries      MwqDailySummary[]
+  monthlySummaries    MwqMonthlySummary[]
+
+  @@map("mwq_buoy_sensors")
+}
+
+// Entity 4: ParameterUnit
+model MwqParameterUnit {
+  id       Int    @id @default(autoincrement()) @map("UnitID")
+  unitName String @map("UnitName") @db.VarChar(60)
+  unit     String @map("Unit") @db.VarChar(40)
+
+  parameters MwqParameterMaster[]
+
+  @@map("mwq_parameter_units")
+}
+
+// Entity 5: MonitoringParameterMaster
+model MwqParameterMaster {
+  id            Int     @id @default(autoincrement()) @map("ParameterID")
+  sensorType    String  @map("SensorType") @db.VarChar(60)
+  parameterName String  @map("ParameterName") @db.VarChar(120)
+  unitId        Int     @map("UnitID")
+  description   String? @map("Description")
+
+  unit MwqParameterUnit @relation(fields: [unitId], references: [id])
+
+  thresholds          MwqParameterThreshold[]
+  sondeObservations   MwqSondeObservation[]
+  weatherObservations MwqWeatherObservation[]
+  gpsObservations     MwqGpsObservation[]
+  batteryObservations MwqBatteryObservation[]
+  doorObservations    MwqDoorObservation[]
+  dataCaptureRates    MwqDataCaptureRate[]
+  dataCaptureHourly   MwqDataCaptureRateHourly[]
+  dataCaptureMonthly  MwqDataCaptureRateMonthly[]
+  hourlySummaries     MwqHourlySummary[]
+  dailySummaries      MwqDailySummary[]
+  monthlySummaries    MwqMonthlySummary[]
+  alertMasters        MwqAlertMaster[]
+
+  @@map("mwq_parameter_masters")
+}
+
+// Entity 6: ParameterThreshold
+model MwqParameterThreshold {
+  id          Int     @id @default(autoincrement()) @map("ThresholdID")
+  parameterId Int     @map("ParameterID")
+  minValue    Decimal @map("MinValue") @db.Decimal(12, 4)
+  maxValue    Decimal @map("MaxValue") @db.Decimal(12, 4)
+  remarks     String? @map("Remarks")
+
+  parameter    MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  alertMasters MwqAlertMaster[]
+
+  @@map("mwq_parameter_thresholds")
+}
+
+// Entity 7: SondeObservation [partition weekly] [BigInt PK]
+model MwqSondeObservation {
+  id              BigInt   @id @default(autoincrement()) @map("ObservationID")
+  buoySensorId    Int      @map("BuoySensorID")
+  observationTime DateTime @map("ObservationTime") @db.Timestamptz(6)
+  parameterId     Int      @map("ParameterID")
+  value           Decimal  @map("Value") @db.Decimal(12, 4)
+  buoyId          Int      @map("BuoyID")
+  sensorId        Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@index([buoyId, parameterId, observationTime(sort: Desc)])
+  @@map("mwq_sonde_observations")
+}
+
+// Entity 8: WeatherObservation [partition weekly] [BigInt PK]
+model MwqWeatherObservation {
+  id              BigInt   @id @default(autoincrement()) @map("ObservationID")
+  buoySensorId    Int      @map("BuoySensorID")
+  observationTime DateTime @map("ObservationTime") @db.Timestamptz(6)
+  parameterId     Int      @map("ParameterID")
+  value           Decimal  @map("Value") @db.Decimal(12, 4)
+  buoyId          Int      @map("BuoyID")
+  sensorId        Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@index([buoyId, parameterId, observationTime(sort: Desc)])
+  @@map("mwq_weather_observations")
+}
+
+// Entity 9: GPSObservation [partition weekly] [BigInt PK]
+model MwqGpsObservation {
+  id              BigInt   @id @default(autoincrement()) @map("ObservationID")
+  buoySensorId    Int      @map("BuoySensorID")
+  observationTime DateTime @map("ObservationTime") @db.Timestamptz(6)
+  parameterId     Int      @map("ParameterID")
+  value           Decimal  @map("Value") @db.Decimal(12, 4)
+  buoyId          Int      @map("BuoyID")
+  sensorId        Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@index([buoyId, parameterId, observationTime(sort: Desc)])
+  @@map("mwq_gps_observations")
+}
+
+// Entity 10: BatteryHealthDataObserved [partition weekly] [BigInt PK]
+model MwqBatteryObservation {
+  id              BigInt   @id @default(autoincrement()) @map("ObservationID")
+  buoySensorId    Int      @map("BuoySensorID")
+  observationTime DateTime @map("ObservationTime") @db.Timestamptz(6)
+  parameterId     Int      @map("ParameterID")
+  value           Decimal  @map("Value") @db.Decimal(12, 4)
+  buoyId          Int      @map("BuoyID")
+  sensorId        Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@index([buoyId, parameterId, observationTime(sort: Desc)])
+  @@map("mwq_battery_observations")
+}
+
+// Entity 11: DoorOpenObservation [partition weekly] [BigInt PK]
+model MwqDoorObservation {
+  id              BigInt   @id @default(autoincrement()) @map("ObservationID")
+  buoySensorId    Int      @map("BuoySensorID")
+  observationTime DateTime @map("ObservationTime") @db.Timestamptz(6)
+  parameterId     Int      @map("ParameterID")
+  value           Decimal  @map("Value") @db.Decimal(12, 4)
+  buoyId          Int      @map("BuoyID")
+  sensorId        Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@index([buoyId, parameterId, observationTime(sort: Desc)])
+  @@map("mwq_door_observations")
+}
+
+// Entity 12: DataCaptureRate (daily)
+model MwqDataCaptureRate {
+  id                         Int      @id @default(autoincrement()) @map("CaptureRateID")
+  buoySensorId               Int      @map("BuoySensorID")
+  parameterId                Int      @map("ParameterID")
+  date                       DateTime @map("Date") @db.Date
+  expectedRecords            Int      @map("ExpectedRecords")
+  receivedRecords            Int      @map("ReceivedRecords")
+  validRecords               Int      @map("ValidRecords")
+  captureRatePercentage      Decimal  @map("CaptureRatePercentage") @db.Decimal(5, 2)
+  validCaptureRatePercentage Decimal  @map("ValidCaptureRatePercentage") @db.Decimal(5, 2)
+  buoyId                     Int      @map("BuoyID")
+  sensorId                   Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@unique([buoyId, sensorId, parameterId, date])
+  @@map("mwq_data_capture_rates")
+}
+
+// Entity 13: DataCaptureRateHourly
+model MwqDataCaptureRateHourly {
+  id                         Int      @id @default(autoincrement()) @map("CaptureRateID")
+  buoySensorId               Int      @map("BuoySensorID")
+  parameterId                Int      @map("ParameterID")
+  date                       DateTime @map("Date") @db.Timestamptz(6)
+  expectedRecords            Int      @map("ExpectedRecords")
+  receivedRecords            Int      @map("ReceivedRecords")
+  validRecords               Int      @map("ValidRecords")
+  captureRatePercentage      Decimal  @map("CaptureRatePercentage") @db.Decimal(5, 2)
+  validCaptureRatePercentage Decimal  @map("ValidCaptureRatePercentage") @db.Decimal(5, 2)
+  buoyId                     Int      @map("BuoyID")
+  sensorId                   Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@map("mwq_data_capture_rates_hourly")
+}
+
+// Entity 14: DataCaptureRateMonthly
+model MwqDataCaptureRateMonthly {
+  id                         Int      @id @default(autoincrement()) @map("CaptureRateID")
+  buoySensorId               Int      @map("BuoySensorID")
+  parameterId                Int      @map("ParameterID")
+  date                       DateTime @map("Date") @db.Date
+  expectedRecords            Int      @map("ExpectedRecords")
+  receivedRecords            Int      @map("ReceivedRecords")
+  validRecords               Int      @map("ValidRecords")
+  captureRatePercentage      Decimal  @map("CaptureRatePercentage") @db.Decimal(5, 2)
+  validCaptureRatePercentage Decimal  @map("ValidCaptureRatePercentage") @db.Decimal(5, 2)
+  buoyId                     Int      @map("BuoyID")
+  sensorId                   Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@map("mwq_data_capture_rates_monthly")
+}
+
+// Entity 15: HourlySummary [BigInt PK]
+model MwqHourlySummary {
+  id           BigInt   @id @default(autoincrement()) @map("HourlySummaryID")
+  buoySensorId Int      @map("BuoySensorID")
+  parameterId  Int      @map("ParameterID")
+  dateTime     DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue     Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  minValue     Decimal  @map("MinValue") @db.Decimal(12, 4)
+  maxValue     Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  buoyId       Int      @map("BuoyID")
+  sensorId     Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@index([buoyId, parameterId, dateTime(sort: Desc)])
+  @@map("mwq_hourly_summaries")
+}
+
+// Entity 16: DailySummary [BigInt PK]
+model MwqDailySummary {
+  id           BigInt   @id @default(autoincrement()) @map("DailySummaryID")
+  buoySensorId Int      @map("BuoySensorID")
+  parameterId  Int      @map("ParameterID")
+  dateTime     DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue     Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  minValue     Decimal  @map("MinValue") @db.Decimal(12, 4)
+  maxValue     Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  buoyId       Int      @map("BuoyID")
+  sensorId     Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@index([buoyId, parameterId, dateTime(sort: Desc)])
+  @@map("mwq_daily_summaries")
+}
+
+// Entity 17: MonthlySummary [BigInt PK]
+model MwqMonthlySummary {
+  id           BigInt   @id @default(autoincrement()) @map("MonthlySummaryID")
+  buoySensorId Int      @map("BuoySensorID")
+  parameterId  Int      @map("ParameterID")
+  dateTime     DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue     Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  minValue     Decimal  @map("MinValue") @db.Decimal(12, 4)
+  maxValue     Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  buoyId       Int      @map("BuoyID")
+  sensorId     Int      @map("SensorID")
+
+  buoySensor MwqBuoySensor      @relation(fields: [buoySensorId], references: [id])
+  parameter  MwqParameterMaster @relation(fields: [parameterId], references: [id])
+  buoy       MwqBuoy            @relation(fields: [buoyId], references: [id])
+  sensor     MwqSensorCatalog   @relation(fields: [sensorId], references: [id])
+
+  @@index([buoyId, parameterId, dateTime(sort: Desc)])
+  @@map("mwq_monthly_summaries")
+}
+
+// Entity 18: AlertMaster
+model MwqAlertMaster {
+  id            Int       @id @default(autoincrement()) @map("AlertMasterID")
+  alertCode     String    @unique @map("AlertCode") @db.VarChar(40)
+  alertType     String    @map("AlertType") @db.VarChar(60)
+  alertMessage  String    @map("AlertMessage")
+  alertLevel    String    @map("AlertLevel") @db.VarChar(20)
+  alertTime     DateTime? @map("AlertTime") @db.Timestamptz(6)
+  alertCategory String    @map("AlertCategory") @db.VarChar(60)
+  thresholdId   Int?      @map("ThresholdID")
+  parameterId   Int?      @map("ParameterID")
+
+  threshold     MwqParameterThreshold? @relation(fields: [thresholdId], references: [id])
+  parameter     MwqParameterMaster?    @relation(fields: [parameterId], references: [id])
+  stationAlerts MwqStationAlert[]
+
+  @@map("mwq_alert_masters")
+}
+
+// Entity 19: StationAlert [BigInt PK]
+model MwqStationAlert {
+  id            BigInt    @id @default(autoincrement()) @map("AlertID")
+  buoyId        Int       @map("BuoyID")
+  sensorId      Int       @map("SensorID")
+  alertMasterId Int       @map("AlertMasterID")
+  alertTime     DateTime  @map("AlertTime") @db.Timestamptz(6)
+  alertStatus   String    @map("AlertStatus") @db.VarChar(20)
+  resolvedTime  DateTime? @map("ResolvedTime") @db.Timestamptz(6)
+  alertValue    Decimal?  @map("AlertValue") @db.Decimal(12, 4)
+  remarks       String?   @map("Remarks")
+
+  buoy        MwqBuoy        @relation(fields: [buoyId], references: [id])
+  alertMaster MwqAlertMaster @relation(fields: [alertMasterId], references: [id])
+
+  @@index([buoyId, alertTime(sort: Desc)])
+  @@map("mwq_station_alerts")
+}
+
+// Entity 20: StationMedia
+model MwqStationMedia {
+  id        Int     @id @default(autoincrement()) @map("MediaID")
+  buoyId    Int     @map("BuoyID")
+  mediaType String  @map("MediaType") @db.VarChar(40)
+  fileName  String  @map("FileName") @db.VarChar(255)
+  filePath  String  @map("FilePath") @db.VarChar(512)
+  remarks   String? @map("Remarks")
+
+  buoy MwqBuoy @relation(fields: [buoyId], references: [id])
+
+  @@map("mwq_station_media")
+}
+
+// Entity 21: WindRoseSummary
+model MwqWindRoseSummary {
+  id               Int      @id @default(autoincrement()) @map("WindRoseID")
+  buoyId           Int      @map("BuoyID")
+  observationTime  DateTime @map("ObservationTime") @db.Timestamptz(6)
+  directionSector  String   @map("DirectionSector") @db.VarChar(8)
+  windSpeedClass   String   @map("WindSpeedClass") @db.VarChar(40)
+  frequencyPercent Decimal  @map("FrequencyPercent") @db.Decimal(5, 2)
+  remarks          String?  @map("Remarks")
+
+  buoy MwqBuoy @relation(fields: [buoyId], references: [id])
+
+  @@map("mwq_wind_rose_summaries")
+}
+
+// Entity 22: LoggerSystemInfo
+model MwqLoggerSystemInfo {
+  id               Int      @id @default(autoincrement()) @map("LoggerID")
+  buoyId           Int      @map("BuoyID")
+  serialNumber     String   @map("SerialNumber") @db.VarChar(60)
+  revBoard         String   @map("RevBoard") @db.VarChar(40)
+  osVersion        String   @map("OSVersion") @db.VarChar(40)
+  osDate           DateTime @map("OSDate") @db.Date
+  osSignature      String   @map("OSSignature") @db.VarChar(64)
+  programName      String   @map("ProgramName") @db.VarChar(120)
+  programSignature String   @map("ProgramSignature") @db.VarChar(64)
+  runSignature     String   @map("RunSignature") @db.VarChar(64)
+  startTime        DateTime @map("StartTime") @db.Timestamptz(6)
+  compileResults   String   @map("CompileResults")
+
+  buoy             MwqBuoy                    @relation(fields: [buoyId], references: [id])
+  runtimeStatuses  MwqLoggerRuntimeStatus[]
+  calibrationInfos MwqLoggerCalibrationInfo[]
+  healthMetaData   MwqStationHealthMetaData[]
+
+  @@map("mwq_logger_system_infos")
+}
+
+// Entity 23: LoggerRuntimeStatus [BigInt PK]
+model MwqLoggerRuntimeStatus {
+  id                 BigInt   @id @default(autoincrement()) @map("StatusID")
+  loggerId           Int      @map("LoggerID")
+  timestamp          DateTime @map("Timestamp") @db.Timestamptz(6)
+  watchdogErrors     Int      @map("WatchdogErrors")
+  progErrors         Int      @map("ProgErrors")
+  varOutOfBound      Int      @map("VarOutOfBound")
+  skippedScan        Int      @map("SkippedScan")
+  programName        String   @map("ProgramName") @db.VarChar(120)
+  skippedSlowScan    Int      @map("SkippedSlowScan")
+  serialFlashErrors  Int      @map("SerialFlashErrors")
+  wifiUpdateRequired Boolean  @map("WiFiUpdateRequired")
+  sw12Volts          Decimal  @map("SW12Volts") @db.Decimal(5, 2)
+  commsMemFree       Int      @map("CommsMemFree")
+
+  logger       MwqLoggerSystemInfo   @relation(fields: [loggerId], references: [id])
+  portStatuses MwqLoggerPortStatus[]
+
+  @@index([loggerId, timestamp(sort: Desc)])
+  @@map("mwq_logger_runtime_statuses")
+}
+
+// Entity 24: LoggerPortStatus [BigInt PK]
+model MwqLoggerPortStatus {
+  id         BigInt @id @default(autoincrement()) @map("PortStatusID")
+  statusId   BigInt @map("StatusID")
+  portNumber Int    @map("PortNumber")
+  portStatus String @map("PortStatus") @db.VarChar(20)
+  portConfig String @map("PortConfig")
+
+  runtimeStatus MwqLoggerRuntimeStatus @relation(fields: [statusId], references: [id])
+
+  @@map("mwq_logger_port_statuses")
+}
+
+// Entity 25: LoggerCalibrationInfo
+model MwqLoggerCalibrationInfo {
+  id              Int     @id @default(autoincrement()) @map("CalibrationID")
+  loggerId        Int     @map("LoggerID")
+  calGainFast2500 Decimal @map("CalGainFast2500") @db.Decimal(12, 6)
+  calGainSlow34   Decimal @map("CalGainSlow34") @db.Decimal(12, 6)
+  calGainMed34    Decimal @map("CalGainMed34") @db.Decimal(12, 6)
+  calGainFast34   Decimal @map("CalGainFast34") @db.Decimal(12, 6)
+  calOffset       Decimal @map("CalOffset") @db.Decimal(12, 6)
+
+  logger MwqLoggerSystemInfo @relation(fields: [loggerId], references: [id])
+
+  @@map("mwq_logger_calibration_infos")
+}
+
+// Entity 26: StationHealthMetaData [BigInt PK]
+model MwqStationHealthMetaData {
+  id              BigInt   @id @default(autoincrement()) @map("HealthID")
+  loggerId        Int      @map("LoggerID")
+  timestamp       DateTime @map("Timestamp") @db.Timestamptz(6)
+  battery         Decimal  @map("Battery") @db.Decimal(5, 2)
+  panelTemp       Decimal  @map("PanelTemp") @db.Decimal(5, 2)
+  memoryFree      Int      @map("MemoryFree")
+  cpuDriveFree    Int      @map("CPUDriveFree")
+  dataStorageSize Int      @map("DataStorageSize")
+  dataStorageFree Int      @map("DataStorageFree")
+  processTime     Int      @map("ProcessTime")
+  maxProcessTime  Int      @map("MaxProcessTime")
+  measureTime     Int      @map("MeasureTime")
+  fullMemReset    Boolean  @map("FullMemReset")
+
+  logger MwqLoggerSystemInfo @relation(fields: [loggerId], references: [id])
+
+  @@map("mwq_station_health_metadata")
+}

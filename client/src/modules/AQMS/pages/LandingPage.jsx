@@ -6,6 +6,7 @@ import HighchartsReact from 'highcharts-react-official';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getAqmsPublicOverview } from '../../../lib/queries';
 import '../styles/index.css';
 import '../styles/LandingPage.css';
 
@@ -47,8 +48,11 @@ const createCustomIcon = (value, bgColor) => {
   });
 };
 
-// High-fidelity telemetry dataset for exactly three custom stations
-const stationsData = [
+// Template dataset supplying the rich descriptive fields (pollutant breakdown,
+// causes, activities, contributing pollutant, coordinates) that the PUBLIC
+// overview endpoint does not return. The live numeric data (aqi/color/name/trend)
+// is merged over this template from getAqmsPublicOverview() at runtime.
+const FALLBACK_STATIONS = [
   {
     id: 'ncm_dibba_station',
     nameEn: 'NCM Dibba Station',
@@ -397,17 +401,71 @@ const getCoordinatesForParameter = (baseCoords, param) => {
   }
 };
 
+// Default AQI color when the API omits one (mirrors the AQI category scale).
+const colorForAqi = (aqi) => {
+  if (aqi == null) return '#9ca3af';
+  if (aqi <= 50) return '#84cc16';
+  if (aqi <= 100) return '#fcd34d';
+  if (aqi <= 150) return '#f97316';
+  if (aqi <= 200) return '#ef4444';
+  if (aqi <= 300) return '#a855f7';
+  return '#7f1d1d';
+};
+
+// Merge a live overview station onto a fallback template (round-robin) so the
+// descriptive fields stay populated while aqi/color/name/trend come from the API.
+const mergeStation = (live, template, idx, trendData) => {
+  const base = template || FALLBACK_STATIONS[idx % FALLBACK_STATIONS.length];
+  const aqi = live.aqi != null ? Number(live.aqi) : base.aqi;
+  return {
+    ...base,
+    id: live.stationCode || base.id,
+    nameEn: live.name || base.nameEn,
+    nameAr: live.name || base.nameAr,
+    aqi,
+    color: live.color || colorForAqi(aqi),
+    trendData: trendData && trendData.length ? trendData : base.trendData,
+  };
+};
+
 const LandingPage = () => {
   const navigate = useNavigate();
   const { t, lang, toggleLanguage } = useLanguage();
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
   const [mobileMapPanelOpen, setMobileMapPanelOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('causes'); // 'causes' or 'activities'
-  const [selectedStation, setSelectedStation] = React.useState(stationsData[0]);
+
+  // Live PUBLIC overview data (no auth). Falls back to template stations until loaded.
+  const [overviewLoading, setOverviewLoading] = React.useState(true);
+  const [stations, setStations] = React.useState(FALLBACK_STATIONS);
+  const [stationCount, setStationCount] = React.useState(null);
+  const [trendPoints, setTrendPoints] = React.useState([]); // [{observationTime, aqi}]
+
+  const [selectedStation, setSelectedStation] = React.useState(FALLBACK_STATIONS[0]);
   const [selectedParameter, setSelectedParameter] = React.useState('AQI');
   const heroSectionRef = useRef(null);
   const mapSectionRef = useRef(null);
   const footerSectionRef = useRef(null);
+
+  React.useEffect(() => {
+    let active = true;
+    getAqmsPublicOverview()
+      .then((data) => {
+        if (!active) return;
+        const latest = Array.isArray(data?.latestAqiByStation) ? data.latestAqiByStation : [];
+        const trend = Array.isArray(data?.trend) ? data.trend : [];
+        const merged = latest.length
+          ? latest.map((live, i) => mergeStation(live, FALLBACK_STATIONS[i % FALLBACK_STATIONS.length], i, trend.map((p) => Number(p.aqi))))
+          : FALLBACK_STATIONS;
+        setStations(merged);
+        setSelectedStation(merged[0] || FALLBACK_STATIONS[0]);
+        setStationCount(data?.stationCount != null ? Number(data.stationCount) : latest.length || null);
+        setTrendPoints(trend);
+      })
+      .catch(() => { /* keep fallback template data */ })
+      .finally(() => { if (active) setOverviewLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   React.useEffect(() => {
     document.body.classList.add('aqms-theme');
@@ -452,6 +510,16 @@ const LandingPage = () => {
     setMobileNavOpen(false);
   };
 
+  // Real AQI trend derived from the public overview endpoint. Falls back to the
+  // selected station's template trend when the API returns no trend points.
+  const trendTimeLabels = trendPoints.map((p) =>
+    new Date(p.observationTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })
+  );
+  const trendSeriesData = trendPoints.length
+    ? trendPoints.map((p) => (p.aqi != null ? Number(p.aqi) : null))
+    : selectedStation.trendData;
+  const trendCategories = trendTimeLabels.length ? trendTimeLabels : null;
+
   // Highcharts options for Hourly Trend
   const trendOptions = {
     chart: { 
@@ -465,9 +533,9 @@ const LandingPage = () => {
       spacingRight: 0
     },
     title: { text: '' },
-    xAxis: { 
-      categories: ['1:00PM', '3:00PM', '4:00PM', '5:00PM', '6:00PM', '7:00PM', '8:00PM', '9:00PM', '10:00PM', '11:00PM', '12:00PM', '13:00AM', '14:00AM'], 
-      visible: true, 
+    xAxis: {
+      categories: trendCategories,
+      visible: true,
       lineWidth: 0, 
       tickWidth: 0, 
       reversed: lang === 'ar',
@@ -523,9 +591,9 @@ const LandingPage = () => {
         threshold: null
       }
     },
-    series: [{ 
-      name: t('landing.map.aqi_index', 'AQI'), 
-      data: selectedStation.trendData, 
+    series: [{
+      name: t('landing.map.aqi_index', 'AQI'),
+      data: trendSeriesData,
       color: {
         linearGradient: { x1: 0, y1: 0, x2: 1, y2: 0 },
         stops: [
@@ -696,16 +764,20 @@ const LandingPage = () => {
             </svg>
           </button>
 
-          {/* Stats Grid */}
+          {/* Stats Grid (driven by the public overview endpoint) */}
           <div className="landing-stats">
             <div className="landing-stat-card">
               <div className="stat-label">{t('landing.stats.current_aqi')}</div>
-              <div className="stat-value">42</div>
-              <div className="stat-desc">{t('landing.stats.good')}</div>
+              <div className="stat-value">
+                {overviewLoading ? '…' : (stations[0]?.aqi != null ? stations[0].aqi : '—')}
+              </div>
+              <div className="stat-desc">{getAqiStatus(stations[0]?.aqi ?? 0, t).label}</div>
             </div>
             <div className="landing-stat-card">
               <div className="stat-label">{t('landing.stats.active_stations')}</div>
-              <div className="stat-value">12</div>
+              <div className="stat-value">
+                {overviewLoading ? '…' : (stationCount != null ? stationCount : stations.length)}
+              </div>
               <div className="stat-desc">{t('landing.stats.monitoring')}</div>
             </div>
             <div className="landing-stat-card">
@@ -744,7 +816,7 @@ const LandingPage = () => {
             <select
               value={selectedStation.id}
               onChange={(e) => {
-                const stn = stationsData.find(s => s.id === e.target.value);
+                const stn = stations.find(s => s.id === e.target.value);
                 if (stn) setSelectedStation(stn);
               }}
               className="custom-select"
@@ -761,7 +833,7 @@ const LandingPage = () => {
                 cursor: 'pointer'
               }}
             >
-              {stationsData.map(stn => (
+              {stations.map(stn => (
                 <option key={stn.id} value={stn.id} style={{ background: '#fff', color: '#333' }}>
                   {lang === 'ar' ? stn.nameAr : stn.nameEn}
                 </option>
@@ -809,7 +881,7 @@ const LandingPage = () => {
                 const points = [];
                 
                 paramsToRender.forEach(param => {
-                  stationsData.forEach(stn => {
+                  stations.forEach(stn => {
                     let displayVal = stn.aqi;
                     let displayColor = stn.color;
                     
@@ -911,7 +983,7 @@ const LandingPage = () => {
             <select
               value={selectedStation.id}
               onChange={(e) => {
-                const stn = stationsData.find(s => s.id === e.target.value);
+                const stn = stations.find(s => s.id === e.target.value);
                 if (stn) setSelectedStation(stn);
               }}
               className="custom-select"
@@ -928,7 +1000,7 @@ const LandingPage = () => {
                 cursor: 'pointer'
               }}
             >
-              {stationsData.map(stn => (
+              {stations.map(stn => (
                 <option key={stn.id} value={stn.id} style={{ background: '#fff', color: '#333' }}>
                   {lang === 'ar' ? stn.nameAr : stn.nameEn}
                 </option>

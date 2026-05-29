@@ -1,0 +1,37 @@
+{
+  "_fixture_source": "LiveData.jsx tabular data shape (lines 124-136): time, co, co2, o3, no2, so2, pm25, pm10, ch4, h2s, nmhc; history endpoint wraps in pagination envelope",
+  "_endpoint": "GET /api/v1/aqms/air-quality/history",
+  "_fe_fields_used": ["stationId", "recordedAt", "pm25", "pm10", "co", "o3", "no2", "so2", "co2", "ch4", "h2s", "nmhc", "aqiValue", "aqiCategory", "aqiColor"],
+  "_divergences": [
+    "FE tabular has 'station' (name string) but API returns 'stationId' (FK); FE maps by selected station"
+  ],
+  "happy": {
+    "data": [
+      {
+        "id": "TODO_bigint_as_string",
+        "stationId": "TODO_cuid",
+        "recordedAt": "2026-05-27T09:00:00.000Z",
+        "pm25": 12.0,
+        "pm10": 22.0,
+        "co": 0.40,
+        "o3": 45.0,
+        "no2": 16.0,
+        "so2": 4.0,
+        "co2": 3.0,
+        "ch4": 0.08,
+        "h2s": 0.02,
+        "nmhc": 1.0,
+        "aqiValue": 110.0,
+        "aqiCategory": "Unhealthy for Sensitive Groups",
+        "aqiColor": "#f97316"
+      }
+    ],
+    "pagination": {
+      "offset": 0,
+      "limit": 100,
+      "total": 1
+    }
+  },
+  "_required_keys_data_item": ["id", "stationId", "recordedAt", "pm25", "pm10", "co", "o3", "no2", "so2", "co2", "ch4", "h2s", "nmhc", "aqiValue", "aqiCategory", "aqiColor"],
+  "_required_keys_pagination": ["offset", "limit", "total"]
+}

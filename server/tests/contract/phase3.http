@@ -1,0 +1,229 @@
+# Phase 3 REST Collection
+# Run with REST Client (VS Code) or httpYac.
+# BASE_URL must point to running dev server (default port 5001).
+# Each endpoint: 1 happy-path + 1 validation-failure case.
+
+@BASE_URL = http://localhost:5001
+@AQMS_STATION_ID = REPLACE_WITH_REAL_STATION_CUID
+@MQW_BUOY_ID = REPLACE_WITH_REAL_BUOY_CUID
+
+# ─────────────────────────────────────────────────────────────────────────────
+# /healthz
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [healthz] happy-path — expect { ok: true, db: "ok" }
+GET {{BASE_URL}}/healthz
+Accept: application/json
+
+###
+
+# No validation-failure case for healthz (no params); instead test 404 on unknown path
+### [healthz-fail] 404 on unknown path
+GET {{BASE_URL}}/api/v1/does-not-exist
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AQMS: stations
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [aqms-stations] happy-path — list all stations
+GET {{BASE_URL}}/api/v1/aqms/stations
+Accept: application/json
+
+###
+
+### [aqms-stations-fail] validation failure — limit is not a number
+GET {{BASE_URL}}/api/v1/aqms/stations?limit=abc
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AQMS: air-quality/latest
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [aqms-aq-latest] happy-path — latest reading for all stations
+GET {{BASE_URL}}/api/v1/aqms/air-quality/latest
+Accept: application/json
+
+###
+
+### [aqms-aq-latest-fail] validation failure — invalid stationId format
+GET {{BASE_URL}}/api/v1/aqms/air-quality/latest?stationId=not-a-valid-id!!!
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AQMS: air-quality/history
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [aqms-aq-history] happy-path — last 7 days for first station
+GET {{BASE_URL}}/api/v1/aqms/air-quality/history?stationId={{AQMS_STATION_ID}}&startDate=2026-05-20&endDate=2026-05-27&limit=100&offset=0
+Accept: application/json
+
+###
+
+### [aqms-aq-history-fail] validation failure — startDate after endDate
+GET {{BASE_URL}}/api/v1/aqms/air-quality/history?stationId={{AQMS_STATION_ID}}&startDate=2026-05-27&endDate=2026-05-01
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AQMS: weather/latest
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [aqms-weather-latest] happy-path — latest weather for all stations
+GET {{BASE_URL}}/api/v1/aqms/weather/latest
+Accept: application/json
+
+###
+
+### [aqms-weather-latest-fail] validation failure — invalid stationId
+GET {{BASE_URL}}/api/v1/aqms/weather/latest?stationId=!!!
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AQMS: weather/history
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [aqms-weather-history] happy-path — last 7 days
+GET {{BASE_URL}}/api/v1/aqms/weather/history?stationId={{AQMS_STATION_ID}}&startDate=2026-05-20&endDate=2026-05-27&limit=100&offset=0
+Accept: application/json
+
+###
+
+### [aqms-weather-history-fail] validation failure — missing required stationId (if required) or bad dates
+GET {{BASE_URL}}/api/v1/aqms/weather/history?startDate=2026-05-27&endDate=2026-05-01
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AQMS: data-capture-rate (per-station-per-parameter)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [aqms-dcr] happy-path — today's capture rate for all stations
+GET {{BASE_URL}}/api/v1/aqms/data-capture-rate?periodStart=2026-05-27&periodEnd=2026-05-27
+Accept: application/json
+
+###
+
+### [aqms-dcr-fail] validation failure — periodEnd before periodStart
+GET {{BASE_URL}}/api/v1/aqms/data-capture-rate?periodStart=2026-05-27&periodEnd=2026-05-01
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MQW: buoys
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [mqw-buoys] happy-path — list all buoys
+GET {{BASE_URL}}/api/v1/mwq/buoys
+Accept: application/json
+
+###
+
+### [mqw-buoys-fail] validation failure — limit out of range
+GET {{BASE_URL}}/api/v1/mwq/buoys?limit=9999999
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MQW: sensor-data (list)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [mqw-sensor-data] happy-path — last day of readings for first buoy
+GET {{BASE_URL}}/api/v1/mwq/sensor-data?buoyId={{MQW_BUOY_ID}}&startDate=2026-05-26&endDate=2026-05-27&limit=100&offset=0
+Accept: application/json
+
+###
+
+### [mqw-sensor-data-fail] validation failure — startDate after endDate
+GET {{BASE_URL}}/api/v1/mwq/sensor-data?buoyId={{MQW_BUOY_ID}}&startDate=2026-05-27&endDate=2026-05-01
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MQW: sensor-data/latest
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [mqw-sensor-data-latest] happy-path — latest reading per buoy
+GET {{BASE_URL}}/api/v1/mwq/sensor-data/latest
+Accept: application/json
+
+###
+
+### [mqw-sensor-data-latest-fail] validation failure — invalid buoyId
+GET {{BASE_URL}}/api/v1/mwq/sensor-data/latest?buoyId=!!!invalid
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MQW: battery-health
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [mqw-battery-health] happy-path — last month of readings for first buoy
+GET {{BASE_URL}}/api/v1/mwq/battery-health?buoyId={{MQW_BUOY_ID}}&startDate=2026-04-27&endDate=2026-05-27&limit=100&offset=0
+Accept: application/json
+
+###
+
+### [mqw-battery-health-fail] validation failure — bad date format
+GET {{BASE_URL}}/api/v1/mwq/battery-health?buoyId={{MQW_BUOY_ID}}&startDate=not-a-date
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MQW: data-capture-rate (per-buoy)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [mqw-dcr] happy-path — today's capture rate for all buoys
+GET {{BASE_URL}}/api/v1/mwq/data-capture-rate?periodStart=2026-05-27&periodEnd=2026-05-27
+Accept: application/json
+
+###
+
+### [mqw-dcr-fail] validation failure — periodEnd before periodStart
+GET {{BASE_URL}}/api/v1/mwq/data-capture-rate?periodStart=2026-05-27&periodEnd=2026-05-01
+Accept: application/json
+
+###
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Shared: alarms
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [alarms] happy-path — all alarms (no filter)
+GET {{BASE_URL}}/api/v1/alarms?limit=100&offset=0
+Accept: application/json
+
+###
+
+### [alarms-aqms] happy-path — filter by module=AQMS
+GET {{BASE_URL}}/api/v1/alarms?module=AQMS&limit=100&offset=0
+Accept: application/json
+
+###
+
+### [alarms-mqw] happy-path — filter by module=MQW
+GET {{BASE_URL}}/api/v1/alarms?module=MQW&limit=100&offset=0
+Accept: application/json
+
+###
+
+### [alarms-fail] validation failure — invalid module value
+GET {{BASE_URL}}/api/v1/alarms?module=INVALID
+Accept: application/json
+
+###

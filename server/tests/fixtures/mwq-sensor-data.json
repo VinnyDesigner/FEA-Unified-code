@@ -1,0 +1,38 @@
+{
+  "_fixture_source": "SensorDataTable.jsx sensorData + paramDefs (lines 5-76): station, dateTime, conductivity, temp, salinity, chlorophyll, oxygenSat, dissolvedOxygen, turbidity, ph, depth, algae",
+  "_endpoint": "GET /api/v1/mwq/sensor-data",
+  "_fe_fields_used": ["buoyId", "recordedAt", "conductivity", "temperature", "salinity", "chlorophyll", "oxygenSaturation", "dissolvedO2", "turbidity", "ph", "depth", "algae"],
+  "_divergences": [
+    "SensorDataTable key 'temp' (line 8) maps to schema field 'temperature'",
+    "SensorDataTable key 'oxygenSat' (line 14) maps to schema field 'oxygenSaturation'",
+    "SensorDataTable key 'dissolvedOxygen' (line 15) maps to schema field 'dissolvedO2'",
+    "SensorDataTable key 'algae' (line 18) maps to schema field 'algae'",
+    "SensorDataTable key 'station' (line 7) is a display name; API returns 'buoyId' FK"
+  ],
+  "happy": {
+    "data": [
+      {
+        "id": "TODO_bigint_as_string",
+        "buoyId": "TODO_cuid",
+        "recordedAt": "2026-02-17T09:30:00.000Z",
+        "conductivity": 57994.83,
+        "temperature": 25.0,
+        "salinity": 38.76,
+        "chlorophyll": 17.71,
+        "oxygenSaturation": 103.37,
+        "dissolvedO2": 5.82,
+        "turbidity": 9.94,
+        "ph": 7.91,
+        "depth": 0.49,
+        "algae": 0.68
+      }
+    ],
+    "pagination": {
+      "offset": 0,
+      "limit": 100,
+      "total": 1
+    }
+  },
+  "_required_keys_data_item": ["id", "buoyId", "recordedAt", "conductivity", "temperature", "salinity", "chlorophyll", "oxygenSaturation", "dissolvedO2", "turbidity", "ph", "depth", "algae"],
+  "_required_keys_pagination": ["offset", "limit", "total"]
+}

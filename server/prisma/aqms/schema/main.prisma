@@ -1,0 +1,58 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../../../node_modules/.prisma/client-aqms"
+  previewFeatures = ["prismaSchemaFolder"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_AQMS")
+}
+
+enum Module {
+  AQMS
+  MWQ
+}
+
+enum ReportFormat {
+  XLSX
+  DOCX
+  PDF
+}
+
+enum AlarmSeverity {
+  INFO
+  WARN
+  CRITICAL
+}
+
+enum AlarmCode {
+  COMM_LOST
+  DOOR_OPEN
+  GPS_LOST
+  BATTERY_LOW
+  SENSOR_FAULT
+  POWER_FAULT
+  THRESHOLD_EXCEEDED
+  OFFLINE
+}
+
+enum Role {
+  ADMIN
+  MWQ_MEMBER
+  AQMS_MEMBER
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum ReportStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}

@@ -1,0 +1,8 @@
+{
+  "_fixture_source": "routes/index.js (plan section 4.2)",
+  "_endpoint": "GET /healthz",
+  "happy": {
+    "ok": true,
+    "db": "ok"
+  }
+}

@@ -1,6 +1,7 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuthStore } from '../../../stores/useAuthStore';
 
 const Layout = ({ children }) => {
   const [profileOpen, setProfileOpen] = useState(false);
@@ -9,6 +10,8 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { lang, toggleLanguage, t } = useLanguage();
+  const user = useAuthStore((s) => s.user);
+  const displayName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '';
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -103,7 +106,7 @@ const Layout = ({ children }) => {
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
               </svg>
             </div>
-            <span>{t('profile.user_name', 'Jahangir Mian')}</span>
+            <span>{displayName}</span>
           </div>
           <div className="mobile-profile-logout" onClick={() => { setMobileNavOpen(false); navigate('/AQMS/login'); }}>
             {t('profile.logout', 'Logout')}
@@ -248,7 +251,7 @@ const Layout = ({ children }) => {
                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                   </svg>
                 </div>
-                <span>{t('profile.user_name', 'Jahangir Mian')}</span>
+                <span>{displayName}</span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>

@@ -1,0 +1,104 @@
+// shared.prisma (MWQ DB) — User, Otp, Report, AuditLog
+// AqmsNotificationLog relation omitted — that model only lives in fea_aqms_dev
+
+model User {
+  id            Int           @id @default(autoincrement()) @map("UserID")
+  userName      String        @unique @map("UserName") @db.VarChar(60)
+  email         String        @unique @db.VarChar(120)
+  passwordHash  String        @map("Password") @db.VarChar(255)
+  firstName     String        @map("FirstName") @db.VarChar(80)
+  middleName    String?       @map("MiddleName") @db.VarChar(80)
+  lastName      String        @map("LastName") @db.VarChar(80)
+  phoneNumber   String?       @map("PhoneNumber") @db.VarChar(40)
+  emiratesId    String?       @map("EmiratesId") @db.VarChar(40)
+  role          Role          @default(MWQ_MEMBER)
+  accountStatus AccountStatus @default(PENDING)
+  isActive      Boolean       @default(true) @map("IsActive")
+  createdAt     DateTime      @default(now()) @map("CreatedAt") @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @map("UpdatedAt") @db.Timestamptz(6)
+
+  otps          Otp[]
+  reports       Report[]
+  auditLogs     AuditLog[]
+  refreshTokens RefreshToken[]
+
+  @@index([accountStatus])
+  @@map("users")
+}
+
+model RefreshToken {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("UserID")
+  tokenHash    String    @map("TokenHash") @db.VarChar(255)
+  familyId     String    @map("FamilyID") @db.Uuid
+  issuedAt     DateTime  @default(now()) @map("IssuedAt") @db.Timestamptz(6)
+  expiresAt    DateTime  @map("ExpiresAt") @db.Timestamptz(6)
+  revokedAt    DateTime? @map("RevokedAt") @db.Timestamptz(6)
+  rotatedToId  Int?      @map("RotatedToID")
+  userAgent    String?   @map("UserAgent") @db.VarChar(255)
+  ipAddress    String?   @map("IpAddress") @db.VarChar(60)
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rotatedTo   RefreshToken?  @relation("Rotation", fields: [rotatedToId], references: [id])
+  rotatedFrom RefreshToken[] @relation("Rotation")
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
+
+model Otp {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("UserID")
+  codeHash     String    @map("CodeHash") @db.VarChar(255)
+  channel      String    @map("Channel") @db.VarChar(20)
+  expiresAt    DateTime  @map("ExpiresAt") @db.Timestamptz(6)
+  consumedAt   DateTime? @map("ConsumedAt") @db.Timestamptz(6)
+  attemptCount Int       @default(0) @map("AttemptCount")
+  ipAddress    String?   @map("IpAddress") @db.VarChar(60)
+  createdAt    DateTime  @default(now()) @map("CreatedAt") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("otps")
+}
+
+model Report {
+  id           Int            @id @default(autoincrement())
+  userId       Int            @map("UserID")
+  module       Module
+  reportType   String?        @map("ReportType") @db.VarChar(40)
+  parameterIds Int[]          @map("ParameterIds")
+  stationIds   Int[]          @map("StationIds")
+  startDate    DateTime       @map("StartDate") @db.Timestamptz(6)
+  endDate      DateTime       @map("EndDate") @db.Timestamptz(6)
+  formats      ReportFormat[]
+  storagePaths Json           @map("StoragePaths")
+  status       ReportStatus   @default(PENDING)
+  createdAt    DateTime       @default(now()) @map("CreatedAt") @db.Timestamptz(6)
+  completedAt  DateTime?      @map("CompletedAt") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("reports")
+}
+
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     Int?     @map("UserID")
+  action     String   @map("Action") @db.VarChar(60)
+  entityType String?  @map("EntityType") @db.VarChar(60)
+  entityId   String?  @map("EntityId") @db.VarChar(60)
+  changes    Json?    @map("Changes")
+  ipAddress  String?  @map("IpAddress") @db.VarChar(60)
+  createdAt  DateTime @default(now()) @map("CreatedAt") @db.Timestamptz(6)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}

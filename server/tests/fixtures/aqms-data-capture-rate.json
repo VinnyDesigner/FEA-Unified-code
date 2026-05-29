@@ -1,0 +1,35 @@
+{
+  "_fixture_source": "DataCapture.jsx table rows (lines 897-932): station, param, expected, valid, percent; per-station-per-parameter shape",
+  "_endpoint": "GET /api/v1/aqms/data-capture-rate",
+  "_fe_fields_used": ["stationId", "stationName", "parameter", "captureRatePct", "validRecords", "totalExpected", "periodStart", "periodEnd"],
+  "_divergences": [
+    "FE table column is 'Station Name' but uses 'station' key (line 898) — plan normalizes to 'stationName' in response",
+    "FE table column is 'Parameter' using 'param' key (line 899) — plan normalizes to 'parameter'",
+    "FE table shows 'No.Of Expected Records' using 'expected' key — plan normalizes to 'totalExpected'",
+    "FE table shows 'No.Of Valid Records' using 'valid' key — plan normalizes to 'validRecords'",
+    "FE table shows 'Percent Availability' using 'percent' string '100.00' — plan normalizes to 'captureRatePct' (float)"
+  ],
+  "happy": [
+    {
+      "stationId": "TODO_cuid",
+      "stationName": "City Centre",
+      "parameter": "SO2",
+      "captureRatePct": 100.0,
+      "validRecords": 24,
+      "totalExpected": 24,
+      "periodStart": "2026-05-27T00:00:00.000Z",
+      "periodEnd": "2026-05-27T23:59:59.000Z"
+    },
+    {
+      "stationId": "TODO_cuid",
+      "stationName": "City Centre",
+      "parameter": "NO2",
+      "captureRatePct": 100.0,
+      "validRecords": 24,
+      "totalExpected": 24,
+      "periodStart": "2026-05-27T00:00:00.000Z",
+      "periodEnd": "2026-05-27T23:59:59.000Z"
+    }
+  ],
+  "_required_keys": ["stationId", "stationName", "parameter", "captureRatePct", "validRecords", "totalExpected", "periodStart", "periodEnd"]
+}

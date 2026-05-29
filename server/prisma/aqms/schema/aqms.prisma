@@ -1,0 +1,742 @@
+// aqms.prisma — AQMS module: 37 entities
+// Enums Role, AccountStatus, ReportFormat, Module defined in main.prisma
+// User model defined in shared.prisma
+
+// ─── 1. MonitoringSite ───────────────────────────────────────────────────────
+model AqmsMonitoringSite {
+  id               Int     @id @default(autoincrement()) @map("StationID")
+  stationCode      String  @unique @map("StationCode") @db.VarChar(40)
+  stationName      String  @map("StationName") @db.VarChar(120)
+  description      String  @map("Description") @db.Text
+  stationType      String  @map("StationType") @db.VarChar(40)
+  latitude         Decimal @map("Latitude") @db.Decimal(9, 6)
+  longitude        Decimal @map("Longitude") @db.Decimal(9, 6)
+  street           String? @map("Street") @db.VarChar(255)
+  city             String? @map("City") @db.VarChar(80)
+  state            String? @map("State") @db.VarChar(80)
+  zipCode          String? @map("ZipCode") @db.VarChar(20)
+  areaType         String  @map("AreaType") @db.VarChar(40)
+  operationalState String  @map("OperationalState") @db.VarChar(40)
+  status           String  @map("Status") @db.VarChar(20)
+
+  sensorDetails   AqmsSensorDetails[]
+  siteParameters  AqmsSiteParameter[]
+  ambientObs      AqmsAmbientAirQualityObservation[]
+  metObs          AqmsMeteorologicalObservation[]
+  cemsObs         AqmsCEMSAirQualityObservation[]
+  aqiHourly       AqmsAirQualityIndexHourlyStats[]
+  aqiDaily        AqmsAirQualityIndexDailyStats[]
+  aqiMonthly      AqmsAirQualityIndexMonthlyStats[]
+  aqiYearly       AqmsAirQualityIndexYearlyStats[]
+  ambientHourly   AqmsAmbientAirQualityHourlyStats[]
+  ambientDaily    AqmsAmbientAirQualityDailyStats[]
+  ambientMonthly  AqmsAmbientAirQualityMonthlyStats[]
+  metHourly       AqmsMeteorologicalHourlyStats[]
+  metDaily        AqmsMeteorologicalDailyStats[]
+  metMonthly      AqmsMeteorologicalMonthlyStats[]
+  cemsHourly      AqmsCEMSAirQualityHourlyStats[]
+  cemsDaily       AqmsCEMSAirQualityDailyStats[]
+  cemsMonthly     AqmsCEMSAirQualityMonthlyStats[]
+  dataCompHourly  AqmsDataCompletenessHourlyStats[]
+  dataCompDaily   AqmsDataCompletenessDailyStats[]
+  dataCompMonthly AqmsDataCompletenessMonthlyStats[]
+  violationLogs   AqmsDataViolationLog[]
+  windRoseLogs    AqmsWindRoseLog[]
+
+  @@map("aqms_monitoring_sites")
+}
+
+// ─── 2. SensorDetails (AQMS asset registry) ──────────────────────────────────
+model AqmsSensorDetails {
+  id                  Int       @id @default(autoincrement()) @map("AssetID")
+  stationId           Int       @map("StationID")
+  serialNumber        String    @map("SerialNumber") @db.VarChar(60)
+  manufacturer        String    @map("Manufacturer") @db.VarChar(120)
+  modelNumber         String    @map("ModelNumber") @db.VarChar(120)
+  installationDate    DateTime  @map("InstallationDate") @db.Date
+  purchaseDate        DateTime  @map("PurchaseDate") @db.Date
+  retiredDate         DateTime? @map("RetiredDate") @db.Date
+  assetTag            String    @map("AssetTag") @db.VarChar(60)
+  certifyingAuthority String?   @map("CertifyingAuthority") @db.VarChar(120)
+  certificationDate   DateTime? @map("CertificationDate") @db.Date
+  owner               String    @map("Owner") @db.VarChar(120)
+
+  station AqmsMonitoringSite @relation(fields: [stationId], references: [id])
+
+  @@index([stationId])
+  @@map("aqms_sensor_details")
+}
+
+// ─── 3. SamplingFrequency ────────────────────────────────────────────────────
+model AqmsSamplingFrequency {
+  id            Int    @id @default(autoincrement()) @map("SamplingFrequencyID")
+  frequencyName String @map("FrequencyName") @db.VarChar(60)
+  timeInterval  String @map("TimeInterval") @db.VarChar(20)
+  intervalValue Int    @map("IntervalValue")
+
+  siteParameters AqmsSiteParameter[]
+
+  @@map("aqms_sampling_frequencies")
+}
+
+// ─── 4. ParameterMaster ──────────────────────────────────────────────────────
+model AqmsParameterMaster {
+  id                Int    @id @default(autoincrement()) @map("ParameterID")
+  parameterName     String @map("ParameterName") @db.VarChar(80)
+  parameterTypeCode String  @map("ParameterTypeCode") @db.VarChar(40)
+  unitId            Int?    @map("UnitID")
+
+  unit               AqmsMeasurementUnit?                @relation(fields: [unitId], references: [id])
+  siteParameters     AqmsSiteParameter[]
+  thresholds         AqmsAQParametersThreshold[]
+  healthAdvisories   AqmsHealthAdvisory[]
+  ambientObs         AqmsAmbientAirQualityObservation[]
+  metObs             AqmsMeteorologicalObservation[]
+  cemsObs            AqmsCEMSAirQualityObservation[]
+  ambientHourly      AqmsAmbientAirQualityHourlyStats[]
+  ambientDaily       AqmsAmbientAirQualityDailyStats[]
+  ambientMonthly     AqmsAmbientAirQualityMonthlyStats[]
+  metHourly          AqmsMeteorologicalHourlyStats[]
+  metDaily           AqmsMeteorologicalDailyStats[]
+  metMonthly         AqmsMeteorologicalMonthlyStats[]
+  cemsHourly         AqmsCEMSAirQualityHourlyStats[]
+  cemsDaily          AqmsCEMSAirQualityDailyStats[]
+  cemsMonthly        AqmsCEMSAirQualityMonthlyStats[]
+  dataCompHourly     AqmsDataCompletenessHourlyStats[]
+  dataCompDaily      AqmsDataCompletenessDailyStats[]
+  dataCompMonthly    AqmsDataCompletenessMonthlyStats[]
+  aqiHourlyDominant  AqmsAirQualityIndexHourlyStats[]
+  aqiDailyDominant   AqmsAirQualityIndexDailyStats[]
+  aqiMonthlyDominant AqmsAirQualityIndexMonthlyStats[]
+  aqiYearlyDominant  AqmsAirQualityIndexYearlyStats[]
+  violationLogs      AqmsDataViolationLog[]
+  windRoseLogs       AqmsWindRoseLog[]
+  measurementUnits   AqmsMeasurementUnit[]               @relation("ParameterDefaultUnit")
+
+  @@map("aqms_parameter_masters")
+}
+
+// ─── 5. MeasurementUnit ──────────────────────────────────────────────────────
+model AqmsMeasurementUnit {
+  id          Int     @id @default(autoincrement()) @map("UnitID")
+  unitType    String  @map("UnitType") @db.VarChar(40)
+  parameterId Int?    @map("ParameterID")
+  unitName    String  @map("UnitName") @db.VarChar(60)
+  description String  @map("Description") @db.Text
+
+  defaultForParameter AqmsParameterMaster?                @relation("ParameterDefaultUnit", fields: [parameterId], references: [id])
+  parameters          AqmsParameterMaster[]
+  ambientObs          AqmsAmbientAirQualityObservation[]
+  metObs              AqmsMeteorologicalObservation[]
+  cemsObs             AqmsCEMSAirQualityObservation[]
+  ambientHourly       AqmsAmbientAirQualityHourlyStats[]
+  ambientDaily        AqmsAmbientAirQualityDailyStats[]
+  ambientMonthly      AqmsAmbientAirQualityMonthlyStats[]
+  metHourly           AqmsMeteorologicalHourlyStats[]
+  metDaily            AqmsMeteorologicalDailyStats[]
+  metMonthly          AqmsMeteorologicalMonthlyStats[]
+  cemsHourly          AqmsCEMSAirQualityHourlyStats[]
+  cemsDaily           AqmsCEMSAirQualityDailyStats[]
+  cemsMonthly         AqmsCEMSAirQualityMonthlyStats[]
+
+  @@map("aqms_measurement_units")
+}
+
+// ─── 6. SiteParameter ────────────────────────────────────────────────────────
+model AqmsSiteParameter {
+  id          Int @id @default(autoincrement()) @map("SiteParameterID")
+  stationId   Int @map("StationID")
+  parameterId Int @map("ParameterID")
+  frequencyId Int @map("FrequencyID")
+
+  station   AqmsMonitoringSite    @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster   @relation(fields: [parameterId], references: [id])
+  frequency AqmsSamplingFrequency @relation(fields: [frequencyId], references: [id])
+
+  @@index([stationId, parameterId])
+  @@map("aqms_site_parameters")
+}
+
+// ─── 7. AmbientAirQualityObservation [partition weekly] [BigInt PK] ──────────
+model AqmsAmbientAirQualityObservation {
+  id          BigInt   @id @default(autoincrement()) @map("AmbientObservationID")
+  stationId   Int      @map("StationID")
+  parameterId Int      @map("ParameterID")
+  dateTime    DateTime @map("DateTime") @db.Timestamptz(6)
+  value       Decimal  @map("Value") @db.Decimal(12, 4)
+  unitId      Int      @map("UnitID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+
+  flaggedObservations AqmsFlaggedObservation[]
+  violationLogs       AqmsDataViolationLog[]   @relation("AmbientViolation")
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_ambient_air_quality_observations")
+}
+
+// ─── 8. MeteorologicalObservation [partition weekly] [BigInt PK] ─────────────
+model AqmsMeteorologicalObservation {
+  id          BigInt   @id @default(autoincrement()) @map("MetObservationID")
+  stationId   Int      @map("StationID")
+  parameterId Int      @map("ParameterID")
+  dateTime    DateTime @map("DateTime") @db.Timestamptz(6)
+  value       Decimal  @map("Value") @db.Decimal(12, 4)
+  unitId      Int      @map("UnitID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+
+  flaggedObservations AqmsFlaggedObservation[]
+  violationLogs       AqmsDataViolationLog[]   @relation("MetViolation")
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_meteorological_observations")
+}
+
+// ─── 9. CEMSAirQualityObservation [partition weekly] [BigInt PK] ─────────────
+model AqmsCEMSAirQualityObservation {
+  id          BigInt   @id @default(autoincrement()) @map("CEMSObservationID")
+  stationId   Int      @map("StationID")
+  parameterId Int      @map("ParameterID")
+  dateTime    DateTime @map("DateTime") @db.Timestamptz(6)
+  value       Decimal  @map("Value") @db.Decimal(12, 4)
+  unitId      Int      @map("UnitID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+
+  flaggedObservations AqmsFlaggedObservation[]
+  violationLogs       AqmsDataViolationLog[]   @relation("CEMSViolation")
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_cems_air_quality_observations")
+}
+
+// ─── 10. AQParametersThreshold ───────────────────────────────────────────────
+model AqmsAQParametersThreshold {
+  id           Int     @id @default(autoincrement()) @map("ThresholdID")
+  parameterId  Int     @map("ParameterID")
+  standardType String  @map("StandardType") @db.VarChar(40)
+  minValue     Decimal @map("MinValue") @db.Decimal(12, 4)
+  maxValue     Decimal @map("MaxValue") @db.Decimal(12, 4)
+
+  parameter     AqmsParameterMaster    @relation(fields: [parameterId], references: [id])
+  violationLogs AqmsDataViolationLog[]
+
+  @@index([parameterId])
+  @@map("aqms_aq_parameters_thresholds")
+}
+
+// ─── 11. AQIndexMaster ───────────────────────────────────────────────────────
+model AqmsAQIndexMaster {
+  id                  Int    @id @default(autoincrement()) @map("IndexID")
+  indexMin            Int    @map("IndexMin")
+  indexMax            Int    @map("IndexMax")
+  category            String @map("Category") @db.VarChar(40)
+  color               String @map("Color") @db.VarChar(20)
+  categoryDescription String @map("CategoryDescription") @db.Text
+
+  healthAdvisories AqmsHealthAdvisory[]
+  aqiHourly        AqmsAirQualityIndexHourlyStats[]
+  aqiDaily         AqmsAirQualityIndexDailyStats[]
+  aqiMonthly       AqmsAirQualityIndexMonthlyStats[]
+  aqiYearly        AqmsAirQualityIndexYearlyStats[]
+
+  @@map("aqms_aq_index_masters")
+}
+
+// ─── 12. HealthAdvisory ──────────────────────────────────────────────────────
+model AqmsHealthAdvisory {
+  id              Int    @id @default(autoincrement()) @map("AdvisoryID")
+  parameterId     Int    @map("ParameterID")
+  indexId         Int    @map("IndexID")
+  sensitiveGroups String @map("SensitiveGroups") @db.Text
+  healthAdvisory  String @map("HealthAdvisory") @db.Text
+
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+  index     AqmsAQIndexMaster   @relation(fields: [indexId], references: [id])
+
+  @@index([parameterId, indexId])
+  @@map("aqms_health_advisories")
+}
+
+// ─── 13. AirQualityIndexHourlyStats [BigInt PK] ───────────────────────────────
+model AqmsAirQualityIndexHourlyStats {
+  id                  BigInt   @id @default(autoincrement()) @map("AirQualityIndexID")
+  stationId           Int      @map("StationID")
+  dateTime            DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue            Int      @map("AvgValue")
+  maxValue            Int      @map("MaxValue")
+  minValue            Int      @map("MinValue")
+  notes               String?  @map("Notes") @db.Text
+  dominantPollutantId Int      @map("DominantPollutantID")
+  indexId             Int      @map("IndexID")
+
+  station           AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  dominantPollutant AqmsParameterMaster @relation(fields: [dominantPollutantId], references: [id])
+  index             AqmsAQIndexMaster   @relation(fields: [indexId], references: [id])
+
+  @@index([stationId, dateTime(sort: Desc)])
+  @@map("aqms_air_quality_index_hourly_stats")
+}
+
+// ─── 14. AirQualityIndexDailyStats [BigInt PK] ────────────────────────────────
+model AqmsAirQualityIndexDailyStats {
+  id                  BigInt   @id @default(autoincrement()) @map("AirQualityIndexID")
+  stationId           Int      @map("StationID")
+  dateTime            DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue            Int      @map("AvgValue")
+  maxValue            Int      @map("MaxValue")
+  minValue            Int      @map("MinValue")
+  notes               String?  @map("Notes") @db.Text
+  dominantPollutantId Int      @map("DominantPollutantID")
+  indexId             Int      @map("IndexID")
+
+  station           AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  dominantPollutant AqmsParameterMaster @relation(fields: [dominantPollutantId], references: [id])
+  index             AqmsAQIndexMaster   @relation(fields: [indexId], references: [id])
+
+  @@index([stationId, dateTime(sort: Desc)])
+  @@map("aqms_air_quality_index_daily_stats")
+}
+
+// ─── 15. AirQualityIndexMonthlyStats [BigInt PK] ──────────────────────────────
+model AqmsAirQualityIndexMonthlyStats {
+  id                  BigInt   @id @default(autoincrement()) @map("AirQualityIndexID")
+  stationId           Int      @map("StationID")
+  dateTime            DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue            Int      @map("AvgValue")
+  maxValue            Int      @map("MaxValue")
+  minValue            Int      @map("MinValue")
+  notes               String?  @map("Notes") @db.Text
+  dominantPollutantId Int      @map("DominantPollutantID")
+  indexId             Int      @map("IndexID")
+
+  station           AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  dominantPollutant AqmsParameterMaster @relation(fields: [dominantPollutantId], references: [id])
+  index             AqmsAQIndexMaster   @relation(fields: [indexId], references: [id])
+
+  @@index([stationId, dateTime(sort: Desc)])
+  @@map("aqms_air_quality_index_monthly_stats")
+}
+
+// ─── 16. AirQualityIndexYearlyStats [BigInt PK] ───────────────────────────────
+model AqmsAirQualityIndexYearlyStats {
+  id                  BigInt   @id @default(autoincrement()) @map("AirQualityIndexID")
+  stationId           Int      @map("StationID")
+  dateTime            DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue            Int      @map("AvgValue")
+  maxValue            Int      @map("MaxValue")
+  minValue            Int      @map("MinValue")
+  notes               String?  @map("Notes") @db.Text
+  dominantPollutantId Int      @map("DominantPollutantID")
+  indexId             Int      @map("IndexID")
+
+  station           AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  dominantPollutant AqmsParameterMaster @relation(fields: [dominantPollutantId], references: [id])
+  index             AqmsAQIndexMaster   @relation(fields: [indexId], references: [id])
+
+  @@index([stationId, dateTime(sort: Desc)])
+  @@map("aqms_air_quality_index_yearly_stats")
+}
+
+// ─── 17. AmbientAirQualityHourlyStats [BigInt PK] ────────────────────────────
+model AqmsAmbientAirQualityHourlyStats {
+  id          BigInt   @id @default(autoincrement()) @map("ID")
+  stationId   Int      @map("StationID")
+  dateTime    DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue    Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  maxValue    Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  minValue    Decimal  @map("MinValue") @db.Decimal(12, 4)
+  unitId      Int      @map("UnitID")
+  parameterId Int      @map("ParameterID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_ambient_air_quality_hourly_stats")
+}
+
+// ─── 18. AmbientAirQualityDailyStats [BigInt PK] ─────────────────────────────
+model AqmsAmbientAirQualityDailyStats {
+  id          BigInt   @id @default(autoincrement()) @map("ID")
+  stationId   Int      @map("StationID")
+  dateTime    DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue    Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  maxValue    Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  minValue    Decimal  @map("MinValue") @db.Decimal(12, 4)
+  unitId      Int      @map("UnitID")
+  parameterId Int      @map("ParameterID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_ambient_air_quality_daily_stats")
+}
+
+// ─── 19. AmbientAirQualityMonthlyStats [BigInt PK] ───────────────────────────
+model AqmsAmbientAirQualityMonthlyStats {
+  id          BigInt   @id @default(autoincrement()) @map("ID")
+  stationId   Int      @map("StationID")
+  dateTime    DateTime @map("DateTime") @db.Timestamptz(6)
+  month       Int      @map("Month")
+  year        Int      @map("Year")
+  avgValue    Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  maxValue    Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  minValue    Decimal  @map("MinValue") @db.Decimal(12, 4)
+  unitId      Int      @map("UnitID")
+  parameterId Int      @map("ParameterID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_ambient_air_quality_monthly_stats")
+}
+
+// ─── 20. MeteorologicalHourlyStats [BigInt PK] ───────────────────────────────
+model AqmsMeteorologicalHourlyStats {
+  id          BigInt   @id @default(autoincrement()) @map("ID")
+  stationId   Int      @map("StationID")
+  dateTime    DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue    Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  maxValue    Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  minValue    Decimal  @map("MinValue") @db.Decimal(12, 4)
+  unitId      Int      @map("UnitID")
+  parameterId Int      @map("ParameterID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_meteorological_hourly_stats")
+}
+
+// ─── 21. MeteorologicalDailyStats [BigInt PK] ────────────────────────────────
+model AqmsMeteorologicalDailyStats {
+  id          BigInt   @id @default(autoincrement()) @map("ID")
+  stationId   Int      @map("StationID")
+  dateTime    DateTime @map("DateTime") @db.Timestamptz(6)
+  avgValue    Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  maxValue    Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  minValue    Decimal  @map("MinValue") @db.Decimal(12, 4)
+  unitId      Int      @map("UnitID")
+  parameterId Int      @map("ParameterID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_meteorological_daily_stats")
+}
+
+// ─── 22. MeteorologicalMonthlyStats [BigInt PK] ──────────────────────────────
+model AqmsMeteorologicalMonthlyStats {
+  id          BigInt   @id @default(autoincrement()) @map("ID")
+  stationId   Int      @map("StationID")
+  dateTime    DateTime @map("DateTime") @db.Timestamptz(6)
+  month       Int      @map("Month")
+  year        Int      @map("Year")
+  avgValue    Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  maxValue    Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  minValue    Decimal  @map("MinValue") @db.Decimal(12, 4)
+  unitId      Int      @map("UnitID")
+  parameterId Int      @map("ParameterID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_meteorological_monthly_stats")
+}
+
+// ─── 23. CEMSAirQualityHourlyStats [BigInt PK] ───────────────────────────────
+model AqmsCEMSAirQualityHourlyStats {
+  id          BigInt   @id @default(autoincrement()) @map("CEMSStatsID")
+  stationId   Int      @map("StationID")
+  date        DateTime @map("Date") @db.Date
+  avgValue    Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  maxValue    Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  minValue    Decimal  @map("MinValue") @db.Decimal(12, 4)
+  parameterId Int      @map("ParameterID")
+  unitId      Int      @map("UnitID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+
+  @@index([stationId, parameterId, date(sort: Desc)])
+  @@map("aqms_cems_air_quality_hourly_stats")
+}
+
+// ─── 24. CEMSAirQualityDailyStats [BigInt PK] ────────────────────────────────
+model AqmsCEMSAirQualityDailyStats {
+  id          BigInt   @id @default(autoincrement()) @map("CEMSStatsID")
+  stationId   Int      @map("StationID")
+  date        DateTime @map("Date") @db.Date
+  avgValue    Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  maxValue    Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  minValue    Decimal  @map("MinValue") @db.Decimal(12, 4)
+  parameterId Int      @map("ParameterID")
+  unitId      Int      @map("UnitID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+
+  @@index([stationId, parameterId, date(sort: Desc)])
+  @@map("aqms_cems_air_quality_daily_stats")
+}
+
+// ─── 25. CEMSAirQualityMonthlyStats [BigInt PK] ──────────────────────────────
+model AqmsCEMSAirQualityMonthlyStats {
+  id          BigInt   @id @default(autoincrement()) @map("CEMSStatsID")
+  stationId   Int      @map("StationID")
+  date        DateTime @map("Date") @db.Date
+  month       Int      @map("Month")
+  year        Int      @map("Year")
+  avgValue    Decimal  @map("AvgValue") @db.Decimal(12, 4)
+  maxValue    Decimal  @map("MaxValue") @db.Decimal(12, 4)
+  minValue    Decimal  @map("MinValue") @db.Decimal(12, 4)
+  parameterId Int      @map("ParameterID")
+  unitId      Int      @map("UnitID")
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+  unit      AqmsMeasurementUnit @relation(fields: [unitId], references: [id])
+
+  @@index([stationId, parameterId, date(sort: Desc)])
+  @@map("aqms_cems_air_quality_monthly_stats")
+}
+
+// ─── 26. DataCompletenessHourlyStats [BigInt PK] ─────────────────────────────
+model AqmsDataCompletenessHourlyStats {
+  id                       BigInt   @id @default(autoincrement()) @map("DataCompletenessID")
+  stationId                Int      @map("StationID")
+  parameterId              Int      @map("ParameterID")
+  dataFrequency            String   @map("DataFrequency") @db.VarChar(40)
+  dateTime                 DateTime @map("DateTime") @db.Timestamptz(6)
+  numberOfValidRecords     Int      @map("NumberOfValidRecords")
+  numberOfOutageRecords    Int      @map("NumberOfOutageRecords")
+  numberOfPotentialRecords Int      @map("NumberOfPotentialRecords")
+  percentAvailability      Decimal  @map("PercentAvailability") @db.Decimal(5, 2)
+  percentValidRecords      Decimal  @map("PercentValidRecords") @db.Decimal(5, 2)
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_data_completeness_hourly_stats")
+}
+
+// ─── 27. DataCompletenessDailyStats [BigInt PK] ──────────────────────────────
+model AqmsDataCompletenessDailyStats {
+  id                       BigInt   @id @default(autoincrement()) @map("DataCompletenessID")
+  stationId                Int      @map("StationID")
+  parameterId              Int      @map("ParameterID")
+  dataFrequency            String   @map("DataFrequency") @db.VarChar(40)
+  dateTime                 DateTime @map("DateTime") @db.Timestamptz(6)
+  numberOfValidRecords     Int      @map("NumberOfValidRecords")
+  numberOfOutageRecords    Int      @map("NumberOfOutageRecords")
+  numberOfPotentialRecords Int      @map("NumberOfPotentialRecords")
+  percentAvailability      Decimal  @map("PercentAvailability") @db.Decimal(5, 2)
+  percentValidRecords      Decimal  @map("PercentValidRecords") @db.Decimal(5, 2)
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_data_completeness_daily_stats")
+}
+
+// ─── 28. DataCompletenessMonthlyStats [BigInt PK] ────────────────────────────
+model AqmsDataCompletenessMonthlyStats {
+  id                       BigInt   @id @default(autoincrement()) @map("DataCompletenessID")
+  stationId                Int      @map("StationID")
+  parameterId              Int      @map("ParameterID")
+  dataFrequency            String   @map("DataFrequency") @db.VarChar(40)
+  dateTime                 DateTime @map("DateTime") @db.Timestamptz(6)
+  numberOfValidRecords     Int      @map("NumberOfValidRecords")
+  numberOfOutageRecords    Int      @map("NumberOfOutageRecords")
+  numberOfPotentialRecords Int      @map("NumberOfPotentialRecords")
+  percentAvailability      Decimal  @map("PercentAvailability") @db.Decimal(5, 2)
+  percentValidRecords      Decimal  @map("PercentValidRecords") @db.Decimal(5, 2)
+
+  station   AqmsMonitoringSite  @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster @relation(fields: [parameterId], references: [id])
+
+  @@index([stationId, parameterId, dateTime(sort: Desc)])
+  @@map("aqms_data_completeness_monthly_stats")
+}
+
+// ─── 29. DataQualityFlagDefinition ───────────────────────────────────────────
+model AqmsDataQualityFlagDefinition {
+  id          Int    @id @default(autoincrement()) @map("FlagID")
+  flagName    String @map("FlagName") @db.VarChar(80)
+  flagType    String @map("FlagType") @db.VarChar(40)
+  flagCode    String @unique @map("FlagCode") @db.VarChar(20)
+  description String @map("Description") @db.Text
+
+  flaggedObservations AqmsFlaggedObservation[]
+
+  @@map("aqms_data_quality_flag_definitions")
+}
+
+// ─── 30. FlaggedObservation [BigInt PK] ──────────────────────────────────────
+model AqmsFlaggedObservation {
+  id                   BigInt   @id @default(autoincrement()) @map("DataFlagID")
+  ambientObservationId BigInt?  @map("AmbientObservationID")
+  metObservationId     BigInt?  @map("MetObservationID")
+  cemsObservationId    BigInt?  @map("CEMSObservationID")
+  flagId               Int      @map("FlagID")
+  flagValue            Decimal? @map("FlagValue") @db.Decimal(12, 4)
+  flagReason           String   @map("FlagReason") @db.Text
+  notes                String?  @map("Notes") @db.Text
+
+  ambientObservation AqmsAmbientAirQualityObservation? @relation(fields: [ambientObservationId], references: [id])
+  metObservation     AqmsMeteorologicalObservation?    @relation(fields: [metObservationId], references: [id])
+  cemsObservation    AqmsCEMSAirQualityObservation?    @relation(fields: [cemsObservationId], references: [id])
+  flag               AqmsDataQualityFlagDefinition     @relation(fields: [flagId], references: [id])
+
+  @@index([ambientObservationId])
+  @@index([metObservationId])
+  @@index([cemsObservationId])
+  @@map("aqms_flagged_observations")
+}
+
+// ─── 31. DataViolationLog [BigInt PK] ────────────────────────────────────────
+model AqmsDataViolationLog {
+  id                   BigInt  @id @default(autoincrement()) @map("ViolationID")
+  ambientObservationId BigInt? @map("AmbientObservationID")
+  metObservationId     BigInt? @map("MetObservationID")
+  cemsObservationId    BigInt? @map("CEMSObservationID")
+  stationId            Int     @map("StationID")
+  parameterId          Int     @map("ParameterID")
+  thresholdId          Int     @map("ThresholdID")
+  status               String  @map("Status") @db.VarChar(20)
+  remarks              String? @map("Remarks") @db.Text
+
+  ambientObservation AqmsAmbientAirQualityObservation? @relation("AmbientViolation", fields: [ambientObservationId], references: [id])
+  metObservation     AqmsMeteorologicalObservation?    @relation("MetViolation", fields: [metObservationId], references: [id])
+  cemsObservation    AqmsCEMSAirQualityObservation?    @relation("CEMSViolation", fields: [cemsObservationId], references: [id])
+  station            AqmsMonitoringSite                @relation(fields: [stationId], references: [id])
+  parameter          AqmsParameterMaster               @relation(fields: [parameterId], references: [id])
+  threshold          AqmsAQParametersThreshold         @relation(fields: [thresholdId], references: [id])
+
+  @@index([stationId, parameterId])
+  @@map("aqms_data_violation_logs")
+}
+
+// ─── 32. CalibrationDefinition ───────────────────────────────────────────────
+model AqmsCalibrationDefinition {
+  id                 Int      @id @default(autoincrement()) @map("CalibrationSequenceID")
+  calibrationName    String   @map("CalibrationName") @db.VarChar(120)
+  sourceId           String   @map("SourceID") @db.VarChar(60)
+  calibrationType    String   @map("CalibrationType") @db.VarChar(40)
+  dateTime           DateTime @map("DateTime") @db.Timestamptz(6)
+  enabled            Boolean  @map("Enabled")
+  phaseNumber        Int      @map("PhaseNumber")
+  phaseName          String   @map("PhaseName") @db.VarChar(80)
+  calibrationLevelId Int      @map("CalibrationLevelID")
+  outOfControlLimit  Decimal  @map("OutOfControlLimit") @db.Decimal(12, 4)
+  autoCorrect        Boolean  @map("AutoCorrect")
+  durationType       String   @map("DurationType") @db.VarChar(40)
+  responseTime       Int      @map("ResponseTime")
+
+  calibrationData AqmsCalibrationData[]
+
+  @@map("aqms_calibration_definitions")
+}
+
+// ─── 33. CalibrationData [BigInt PK] ─────────────────────────────────────────
+model AqmsCalibrationData {
+  id                    BigInt   @id @default(autoincrement()) @map("CalibrationDataID")
+  calibrationSequenceId Int      @map("CalibrationSequenceID")
+  expectedValue         Decimal  @map("ExpectedValue") @db.Decimal(12, 4)
+  value                 Decimal  @map("Value") @db.Decimal(12, 4)
+  startDate             DateTime @map("StartDate") @db.Timestamptz(6)
+  endDate               DateTime @map("EndDate") @db.Timestamptz(6)
+  excludeFromReporting  Boolean  @map("ExcludeFromReporting")
+
+  calibrationDefinition AqmsCalibrationDefinition @relation(fields: [calibrationSequenceId], references: [id])
+
+  @@index([calibrationSequenceId])
+  @@map("aqms_calibration_data")
+}
+
+// ─── 34. WindRoseLog [BigInt PK] ─────────────────────────────────────────────
+model AqmsWindRoseLog {
+  id               BigInt   @id @default(autoincrement()) @map("WindRoseID")
+  stationId        Int      @map("StationID")
+  parameterId      Int?     @map("ParameterID")
+  dateTime         DateTime @map("DateTime") @db.Timestamptz(6)
+  windSpeedClass   String   @map("WindSpeedClass") @db.VarChar(40)
+  averageWindSpeed Decimal  @map("AverageWindSpeed") @db.Decimal(8, 2)
+  windDirection    String   @map("WindDirection") @db.VarChar(8)
+  n                Decimal  @map("N") @db.Decimal(5, 2)
+  nne              Decimal  @map("NNE") @db.Decimal(5, 2)
+  ne               Decimal  @map("NE") @db.Decimal(5, 2)
+  ene              Decimal  @map("ENE") @db.Decimal(5, 2)
+  e                Decimal  @map("E") @db.Decimal(5, 2)
+  ese              Decimal  @map("ESE") @db.Decimal(5, 2)
+  se               Decimal  @map("SE") @db.Decimal(5, 2)
+  sse              Decimal  @map("SSE") @db.Decimal(5, 2)
+  s                Decimal  @map("S") @db.Decimal(5, 2)
+  ssw              Decimal  @map("SSW") @db.Decimal(5, 2)
+  sw               Decimal  @map("SW") @db.Decimal(5, 2)
+  wsw              Decimal  @map("WSW") @db.Decimal(5, 2)
+  w                Decimal  @map("W") @db.Decimal(5, 2)
+  wnw              Decimal  @map("WNW") @db.Decimal(5, 2)
+  nw               Decimal  @map("NW") @db.Decimal(5, 2)
+  nnw              Decimal  @map("NNW") @db.Decimal(5, 2)
+  remarks          String?  @map("Remarks") @db.Text
+
+  station   AqmsMonitoringSite   @relation(fields: [stationId], references: [id])
+  parameter AqmsParameterMaster? @relation(fields: [parameterId], references: [id])
+
+  @@index([stationId, dateTime(sort: Desc)])
+  @@map("aqms_wind_rose_logs")
+}
+
+// ─── 35. NotificationMaster ──────────────────────────────────────────────────
+model AqmsNotificationMaster {
+  id               Int    @id @default(autoincrement()) @map("NotificationTypeID")
+  notificationCode String @unique @map("NotificationCode") @db.VarChar(40)
+  notificationName String @map("NotificationName") @db.VarChar(120)
+  severityLevel    String @map("SeverityLevel") @db.VarChar(20)
+  description      String @map("Description") @db.Text
+
+  notificationLogs AqmsNotificationLog[]
+
+  @@map("aqms_notification_masters")
+}
+
+// ─── 36. NotificationLog [BigInt PK] ─────────────────────────────────────────
+model AqmsNotificationLog {
+  id                 BigInt @id @default(autoincrement()) @map("NotificationID")
+  notificationTypeId Int    @map("NotificationTypeID")
+  userId             Int    @map("UserID")
+  priority           String @map("Priority") @db.VarChar(20)
+  subject            String @map("Subject") @db.VarChar(255)
+  message            String @map("Message") @db.Text
+  notificationStatus String @map("NotificationStatus") @db.VarChar(20)
+
+  notificationType AqmsNotificationMaster @relation(fields: [notificationTypeId], references: [id])
+  user             User                   @relation(fields: [userId], references: [id])
+
+  @@index([userId, notificationTypeId])
+  @@map("aqms_notification_logs")
+}

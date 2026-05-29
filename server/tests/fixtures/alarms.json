@@ -1,0 +1,46 @@
+{
+  "_fixture_source": "AlarmsTable.jsx alarmsData (lines 5-30): dateTime, stationName, alertType, alertDescription; plan uses alarmCode enum instead of English strings",
+  "_endpoint": "GET /api/v1/alarms",
+  "_fe_fields_used": ["id", "module", "sourceId", "raisedAt", "alarmCode", "alarmDetails", "severity", "acknowledgedAt"],
+  "_divergences": [
+    "AlarmsTable uses 'alertType' string ('Comm Alert', 'GPS Alert', 'Enclosure Door Open Alert') — plan uses 'alarmCode' enum (COMM_LOST, GPS_LOST, DOOR_OPEN)",
+    "AlarmsTable uses 'alertDescription' free-text string — plan returns structured 'alarmDetails' JSON",
+    "AlarmsTable uses 'stationName' display string — API returns 'sourceId' (FK to station/buoy id)",
+    "AlarmsTable uses 'dateTime' string format '10-05-2026, 12:00:00' — API returns ISO 'raisedAt' datetime"
+  ],
+  "happy": {
+    "data": [
+      {
+        "id": "TODO_bigint_as_string",
+        "module": "MQW",
+        "sourceId": "TODO_cuid",
+        "raisedAt": "2026-05-10T12:00:00.000Z",
+        "alarmCode": "COMM_LOST",
+        "alarmDetails": { "sensor": "comm", "value": null, "threshold": null },
+        "severity": "WARN",
+        "acknowledgedAt": null,
+        "acknowledgedBy": null,
+        "createdAt": "2026-05-10T12:00:00.000Z"
+      },
+      {
+        "id": "TODO_bigint_as_string",
+        "module": "AQMS",
+        "sourceId": "TODO_cuid",
+        "raisedAt": "2026-05-10T13:00:00.000Z",
+        "alarmCode": "DOOR_OPEN",
+        "alarmDetails": { "sensor": "door", "value": null, "threshold": null },
+        "severity": "WARN",
+        "acknowledgedAt": null,
+        "acknowledgedBy": null,
+        "createdAt": "2026-05-10T13:00:00.000Z"
+      }
+    ],
+    "pagination": {
+      "offset": 0,
+      "limit": 100,
+      "total": 2
+    }
+  },
+  "_required_keys_data_item": ["id", "module", "sourceId", "raisedAt", "alarmCode", "severity", "createdAt"],
+  "_required_keys_pagination": ["offset", "limit", "total"]
+}

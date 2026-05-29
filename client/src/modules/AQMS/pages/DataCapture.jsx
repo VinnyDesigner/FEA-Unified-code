@@ -1,8 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getAqmsStations, getAqmsParameters, getAqmsAirQualityHistory, getAqmsWeatherHistory, generateReport, downloadReportFile } from '../../../lib/queries';
+
+// ── Backend wiring maps ───────────────────────────────────────────────────────
+// Maps the /data-capture "Generate Report" menu labels to the backend reportType
+// keys implemented in server/src/modules/shared/reports/report-types.
+const REPORT_TYPE_BY_LABEL = {
+  'Basic Data Export':            'basic_data_export',
+  'Average Data Trend Report':    'average_data_trend',
+  'Concentration Distribution':   'concentration_distribution',
+  'Frequency Distribution':       'frequency_distribution',
+  'Max Hourly Values':            'max_hourly_values',
+  'Network Data Recovery Report': 'network_data_recovery',
+  'Violation of Standards':       'violation_of_standards',
+  '24 Hour Avg Summary Reports':  'summary_24h_avg',
+  '8 Hour Rolling Avg Report':    'rolling_8h_avg',
+  'Daily Summary Report':         'daily_summary',
+  'Monthly Report':               'monthly_report',
+  'Windrose Report':              'windrose',
+  'Pollutionrose Report':         'pollutionrose',
+};
+
+// Download menu label -> backend ReportFormat (and file extension).
+const FORMAT_BY_LABEL = { Excel: 'XLSX', PDF: 'PDF', Word: 'DOCX' };
+const EXT_BY_FORMAT = { XLSX: 'xlsx', PDF: 'pdf', DOCX: 'docx' };
 
 // Robust unwrapper for legacy CommonJS highcharts-react-official wrapper in React 19/Vite ESM
 const HighchartsReactComponent = (() => {
@@ -35,23 +59,18 @@ const getParamUnit = (param) => {
   return units[param] || 'ppb';
 };
 
-const generateChartData = (station, parameter) => {
-  const seed = (station.charCodeAt(0) || 1) + (parameter.charCodeAt(0) || 1);
-  const baseMap = {
-    'SO2': 15, 'H2S': 2, 'NO2': 25, 'CO': 0.4, 'O3': 35, 'PM2.5': 20, 'PM10': 45
-  };
-  const base = baseMap[parameter] || 10;
-  const data = [];
-  for (let i = 0; i < 25; i++) {
-    const sinVal = Math.sin((i + seed) * 0.4) * (base * 0.25);
-    const cosVal = Math.cos((i - seed) * 0.7) * (base * 0.1);
-    const noise = (Math.sin(i * 1.5) * 0.05) * base;
-    let val = base + sinVal + cosVal + noise;
-    if (val < 0) val = 0;
-    data.push(parseFloat(val.toFixed(parameter === 'CO' ? 2 : 1)));
-  }
-  return data;
+// AQMS history endpoints return long-format rows (one per parameter). These maps
+// pivot parameterName -> the per-row field names the charts consume.
+const AQ_HISTORY_FIELD = {
+  'PM2.5': 'pm25', 'PM10': 'pm10', 'CO': 'co', 'O3': 'o3', 'NO2': 'no2',
+  'SO2': 'so2', 'CO2': 'co2', 'CH4': 'ch4', 'H2S': 'h2s', 'NMHC': 'nmhc',
 };
+const WX_HISTORY_FIELD = {
+  'Temperature': 'temperature', 'Pressure': 'pressure', 'Solar Radiation': 'solar',
+  'Humidity': 'humidity', 'Wind Speed': 'windSpeed', 'Wind Direction': 'windDirection',
+};
+// Parameter name -> pivoted field name (across both air-quality and weather rows).
+const HISTORY_FIELD_BY_PARAM = { ...AQ_HISTORY_FIELD, ...WX_HISTORY_FIELD };
 
 const DataCapture = () => {
   const { lang, t } = useLanguage();
@@ -70,6 +89,21 @@ const DataCapture = () => {
 
   const [currentPage, setCurrentPage] = useState(3);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // Live-updating header date/time (replaces previously hard-coded value)
+  const [currentDateTime, setCurrentDateTime] = useState('');
+  useEffect(() => {
+    const formatNow = () => {
+      const now = new Date();
+      const datePart = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const timePart = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      return `${datePart} ${timePart}`;
+    };
+    setCurrentDateTime(formatNow());
+    const interval = setInterval(() => setCurrentDateTime(formatNow()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [activeSubMenu, setActiveSubMenu] = useState(null);
 
   const [selectedStations, setSelectedStations] = useState(['City Centre']);
@@ -79,15 +113,28 @@ const DataCapture = () => {
   // Reports-specific multi-select filters
   const [stationValue, setStationValue] = useState(['City Centre']);
   const [paramValue, setParamValue] = useState(['SO2', 'H2S']);
-  const [startDate, setStartDate] = useState('2026-01-01');
-  const [endDate, setEndDate] = useState('2026-01-30');
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date(Date.now() - 7 * 86400 * 1000);
+    return d.toISOString().slice(0, 10);
+  });
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
+
+  // Backend report generation state
+  const [stationIdByName, setStationIdByName] = useState({});
+  const [paramIdByName, setParamIdByName] = useState({});
+  const [stationsList, setStationsList] = useState([]);
+  const [paramsList, setParamsList] = useState([]);
+  const [currentReport, setCurrentReport] = useState(null);
+  const [historyByStation, setHistoryByStation] = useState({});
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState('');
+  const [downloadingFormat, setDownloadingFormat] = useState(null);
 
   const [stationOpen, setStationOpen] = useState(false);
   const [paramOpen, setParamOpen] = useState(false);
 
   // Multi-level download dropdown states
   const [downloadOpen, setDownloadOpen] = useState(false);
-  const [activeDownloadCategory, setActiveDownloadCategory] = useState(null);
   const [showReport, setShowReport] = useState(false);
   const [selectedReportName, setSelectedReportName] = useState('Generated Report');
   const [generateDropdownOpen, setGenerateDropdownOpen] = useState(false);
@@ -135,14 +182,184 @@ const DataCapture = () => {
     }
   ];
 
-  // Mobile responsive accordion states
-  const [expandedCards, setExpandedCards] = useState({});
-  const toggleCard = (no) => {
-    setExpandedCards(prev => ({
-      ...prev,
-      [no]: !prev[no]
-    }));
+  // Resolve station and parameter names -> IDs for report generation from the
+  // real AQMS masters (replaces the previously hard-coded fallback maps).
+  useEffect(() => {
+    getAqmsStations()
+      .then((stations) => {
+        setStationsList(stations);
+        const map = {};
+        stations.forEach((s) => {
+          if (s.stationName) map[s.stationName] = s.id;
+          if (s.name && !map[s.name]) map[s.name] = s.id;
+        });
+        setStationIdByName(map);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    getAqmsParameters()
+      .then((params) => {
+        const list = params || [];
+        setParamsList(list);
+        const map = {};
+        list.forEach((p) => { if (p.name) map[p.name] = p.id; });
+        setParamIdByName(map);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Names available in the Reports filter dropdowns (driven by real masters).
+  const stationNameOptions = stationsList.map((s) => s.stationName || s.name).filter(Boolean);
+  const paramNameOptions = paramsList.map((p) => p.name).filter(Boolean);
+
+  // Load real history for the Graphical View whenever the selection or range changes.
+  useEffect(() => {
+    if (selectedView !== 'Graphical View') return;
+    if (Object.keys(stationIdByName).length === 0) return;
+    if (stationValue.length === 0 || !startDate || !endDate) {
+      setHistoryByStation({});
+      return;
+    }
+    const startTime = new Date(startDate + 'T00:00:00Z').toISOString();
+    const endTime = new Date(endDate + 'T23:59:59Z').toISOString();
+    const pivot = (rows) => {
+      const byTime = {};
+      (rows || []).forEach((r) => {
+        const ts = r.observationTime;
+        if (!ts) return;
+        if (!byTime[ts]) byTime[ts] = { timestamp: ts };
+        const field = HISTORY_FIELD_BY_PARAM[r.parameterName];
+        if (field) byTime[ts][field] = Number(r.value);
+      });
+      return Object.values(byTime);
+    };
+    let cancelled = false;
+    Promise.all(
+      stationValue.map(async (name) => {
+        const sid = stationIdByName[name];
+        if (!sid) return { name, rows: [] };
+        const [aqRows, wxRows] = await Promise.all([
+          getAqmsAirQualityHistory({ stationId: sid, startTime, endTime, limit: 1000 }),
+          getAqmsWeatherHistory({ stationId: sid, startTime, endTime, limit: 1000 }),
+        ]);
+        const merged = [...pivot(aqRows), ...pivot(wxRows)]
+          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        return { name, rows: merged };
+      })
+    ).then((results) => {
+      if (cancelled) return;
+      const map = {};
+      results.forEach(({ name, rows }) => { map[name] = rows; });
+      setHistoryByStation(map);
+    }).catch(() => { if (!cancelled) setHistoryByStation({}); });
+    return () => { cancelled = true; };
+  }, [selectedView, stationValue, paramValue, startDate, endDate, stationIdByName]);
+
+  // Real chart series values for a station+parameter (numeric, null-safe).
+  const getSeriesData = (station, param) => {
+    const field = HISTORY_FIELD_BY_PARAM[param];
+    const rows = historyByStation[station] || [];
+    return rows.map((r) => (field && r[field] != null ? Number(r[field]) : null));
   };
+
+  // X-axis categories from real timestamps of the first selected station.
+  const getCategories = () => {
+    const first = stationValue[0];
+    const rows = (first && historyByStation[first]) || [];
+    return rows.map((r) => new Date(r.timestamp).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+  };
+
+  // Generate a report on the backend for the selected report type + current filters.
+  const handleGenerateReport = async (reportLabel) => {
+    const reportType = REPORT_TYPE_BY_LABEL[reportLabel];
+    setSelectedReportName(reportLabel);
+    setGenerateDropdownOpen(false);
+    setActiveReportCategory(null);
+    setGenError('');
+    setCurrentReport(null);
+    setCurrentPage(1);
+
+    if (!reportType) { setGenError(`Unknown report type: ${reportLabel}`); return; }
+    const stationIds = stationValue.map((n) => stationIdByName[n]).filter(Boolean);
+    const parameterIds = paramValue.map((n) => paramIdByName[n]).filter(Boolean);
+    if (stationIds.length === 0) { setGenError('Select at least one station.'); setShowReport(true); return; }
+    if (parameterIds.length === 0) { setGenError('Select at least one parameter.'); setShowReport(true); return; }
+    if (!startDate || !endDate) { setGenError('Select a start and end date.'); setShowReport(true); return; }
+
+    const payload = {
+      module: 'AQMS',
+      reportType,
+      stationIds,
+      parameterIds,
+      startDate: new Date(startDate + 'T00:00:00Z').toISOString(),
+      endDate: new Date(endDate + 'T23:59:59Z').toISOString(),
+      formats: ['XLSX', 'PDF', 'DOCX'],
+    };
+
+    setGenerating(true);
+    setShowReport(true);
+    try {
+      const report = await generateReport(payload);
+      setCurrentReport(report);
+    } catch (err) {
+      const code = err?.response?.data?.error?.code;
+      // Large basic exports exceed the PDF/DOCX 10k-row limit — retry XLSX only.
+      if (code === 'ROW_LIMIT_EXCEEDED') {
+        try {
+          const report = await generateReport({ ...payload, formats: ['XLSX'] });
+          setCurrentReport(report);
+          setGenError('Result set was large — only Excel (XLSX) was generated for this report.');
+        } catch (err2) {
+          setGenError(err2?.response?.data?.error?.message || 'Failed to generate report.');
+        }
+      } else {
+        setGenError(err?.response?.data?.error?.message || 'Failed to generate report.');
+      }
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // Download the generated report in the chosen format via authenticated blob fetch.
+  const handleDownload = async (formatLabel) => {
+    setDownloadOpen(false);
+    const format = FORMAT_BY_LABEL[formatLabel] || formatLabel;
+    if (!currentReport?.id) { setGenError('Generate a report before downloading.'); return; }
+    if (!currentReport.formats?.includes(format)) {
+      setGenError(`${formatLabel} is not available for this report.`);
+      return;
+    }
+    setDownloadingFormat(format);
+    setGenError('');
+    try {
+      const blob = await downloadReportFile(currentReport.id, format);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${REPORT_TYPE_BY_LABEL[selectedReportName] || 'report'}-${currentReport.id}.${EXT_BY_FORMAT[format]}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setGenError(err?.response?.data?.error?.message || 'Download failed.');
+    } finally {
+      setDownloadingFormat(null);
+    }
+  };
+
+  // Preview table data derived from the generated report (server returns a row slice).
+  const previewCols = currentReport?.preview?.columns || [];
+  const previewRows = currentReport?.preview?.rows || [];
+  const PAGE_SIZE = 25;
+  const totalPages = Math.max(1, Math.ceil(previewRows.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageRows = previewRows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const pageWindow = Array.from({ length: totalPages }, (_, i) => i + 1)
+    .filter((n) => Math.abs(n - safePage) <= 2)
+    .slice(0, 5);
 
   return (
     <div className="aqms-reports-container">
@@ -150,7 +367,7 @@ const DataCapture = () => {
       <div className="dashboard-header">
         <div className="page-title">
           <h1>{t('nav.reports', 'Reports')}</h1>
-          <p className="header-date">24 Feb 2026 11:30:42</p>
+          <p className="header-date">{currentDateTime}</p>
         </div>
 
         <div className="header-controls-group">
@@ -380,7 +597,7 @@ const DataCapture = () => {
              <span className="reports-form-value-text">
                {stationValue.length === 0
                  ? t('filter.select_station', 'Select Station')
-                 : stationValue.length === 4
+                 : (stationNameOptions.length > 0 && stationValue.length === stationNameOptions.length)
                    ? t('filter.all_stations', 'All Stations')
                    : stationValue.map(s => t(`live.${s.toLowerCase().replace(/ /g, '_')}`, s)).join(', ')}
              </span>
@@ -390,7 +607,7 @@ const DataCapture = () => {
 
              {stationOpen && (
                <div className="reports-sub-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                 {["City Centre", "Mobile Station", "Qidfa", "Lafarge CEMS"].map(option => {
+                 {stationNameOptions.map(option => {
                    const isChecked = stationValue.includes(option);
                    return (
                      <div
@@ -430,7 +647,7 @@ const DataCapture = () => {
              <span className="reports-form-value-text">
                {paramValue.length === 0
                  ? t('filter.select_parameter', 'Select Parameter')
-                 : paramValue.length === 7
+                 : (paramNameOptions.length > 0 && paramValue.length === paramNameOptions.length)
                    ? t('filter.all_parameters', 'All Parameters')
                    : paramValue.join(', ')}
              </span>
@@ -440,7 +657,7 @@ const DataCapture = () => {
 
              {paramOpen && (
                <div className="reports-sub-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                 {["SO2", "H2S", "NO2", "CO", "O3", "PM2.5", "PM10"].map(option => {
+                 {paramNameOptions.map(option => {
                    const isChecked = paramValue.includes(option);
                    return (
                      <div
@@ -585,10 +802,7 @@ const DataCapture = () => {
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedReportName(item);
-                                setShowReport(true);
-                                setGenerateDropdownOpen(false);
-                                setActiveReportCategory(null);
+                                handleGenerateReport(item);
                               }}
                             >
                               {t(`reports.${item.toLowerCase().replace(/ /g, '_')}`, item)}
@@ -619,10 +833,7 @@ const DataCapture = () => {
                               style={{ padding: '10px 16px', fontSize: '0.82rem', cursor: 'pointer', fontWeight: '500', textAlign: 'start' }}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedReportName(item);
-                                setShowReport(true);
-                                setGenerateDropdownOpen(false);
-                                setActiveReportCategory(null);
+                                handleGenerateReport(item);
                               }}
                             >
                               {t(`reports.${item.toLowerCase().replace(/ /g, '_')}`, item)}
@@ -663,10 +874,7 @@ const DataCapture = () => {
             <div style={{ position: 'relative' }} className="reports-download-wrapper">
               <button
                 className="chart-download-dropdown-btn"
-                onClick={() => {
-                  setDownloadOpen(!downloadOpen);
-                  setActiveDownloadCategory(null);
-                }}
+                onClick={() => setDownloadOpen(!downloadOpen)}
                 style={{
                   background: '#009fac',
                   color: 'white',
@@ -718,10 +926,7 @@ const DataCapture = () => {
                         fontWeight: '500',
                         textAlign: 'start'
                       }}
-                      onClick={() => {
-                        handleDownload("Report", format);
-                        setDownloadOpen(false);
-                      }}
+                      onClick={() => handleDownload(format)}
                     >
                       {format}
                     </div>
@@ -730,6 +935,30 @@ const DataCapture = () => {
               )}
             </div>
           </div>
+
+          {/* ── Backend report status banner ──────────────────────────── */}
+          {(generating || genError || currentReport) && (
+            <div
+              className="reports-status-banner"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
+                margin: '0 0 10px 0', padding: '10px 14px', borderRadius: '10px',
+                fontSize: '0.82rem', fontWeight: 600,
+                background: genError ? '#fef2f2' : generating ? '#f0f9ff' : '#ecfdf5',
+                color: genError ? '#b91c1c' : generating ? '#0369a1' : '#047857',
+                border: `1px solid ${genError ? '#fecaca' : generating ? '#bae6fd' : '#a7f3d0'}`,
+              }}
+            >
+              {generating && <span>Generating “{selectedReportName}” from the server…</span>}
+              {!generating && genError && <span>⚠ {genError}</span>}
+              {!generating && !genError && currentReport && (
+                <span>
+                  ✓ Report #{currentReport.id} ready ({currentReport.formats?.join(', ')}).
+                  {downloadingFormat ? ` Downloading ${downloadingFormat}…` : ' Use the Download button to save it.'}
+                </span>
+              )}
+            </div>
+          )}
 
           {selectedView === 'Graphical View' ? (
             /* Graphical View dynamic spline charts grid */
@@ -741,7 +970,7 @@ const DataCapture = () => {
                           station === 'City Centre' ? t('live.city_centre', 'City Centre') :
                           station === 'Mobile Station' ? t('live.mobile_station', 'Mobile Station') :
                           station === 'Qidfa' ? t('live.qidfa', 'Qidfa') : station,
-                    data: generateChartData(station, param),
+                    data: getSeriesData(station, param),
                     color: STATION_COLORS[station] || '#00b8c8'
                   }));
 
@@ -755,11 +984,7 @@ const DataCapture = () => {
                     },
                     title: { text: null },
                     xAxis: {
-                      categories: [
-                        '9:30PM', '', '10:00PM', '', '10:30PM', '', '11:00PM', '',
-                        '11:30PM', '', '12:00AM', '', '12:30AM', '', '1:00AM', '',
-                        '1:30AM', '', '2:00AM', '', '2:30AM', '', '3:00AM', '', '3:30AM'
-                      ],
+                      categories: getCategories(),
                       gridLineWidth: 1,
                       gridLineColor: 'rgba(0,0,0,0.03)',
                       lineColor: 'rgba(0,0,0,0.06)',
@@ -856,258 +1081,88 @@ const DataCapture = () => {
                   <thead>
                     <tr>
                       <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          {t('datacapture.sno', 'S.No')}
-                          <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
-                        </div>
+                        {t('datacapture.sno', 'S.No')}
                       </th>
-                      <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          {t('datacapture.station_name', 'Station Name')}
-                          <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
-                        </div>
-                      </th>
-                      <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          {t('datacapture.parameter', 'Parameter')}
-                          <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
-                        </div>
-                      </th>
-                      <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          {t('datacapture.expected_records', 'No.Of Expected Records')}
-                          <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
-                        </div>
-                      </th>
-                      <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          {t('datacapture.valid_records', 'No.Of Valid Records')}
-                          <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
-                        </div>
-                      </th>
-                      <th style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                          {t('datacapture.percent_avail', 'Percent Availability')}
-                          <span style={{ fontSize: '0.65rem', opacity: 0.65 }}>▲▼</span>
-                        </div>
-                      </th>
+                      {previewCols.map((c) => (
+                        <th key={c.key} style={{ position: 'sticky', top: 0, background: '#e0f2f4', zIndex: 10, boxShadow: 'inset 0 -1.5px 0 rgba(0,0,0,0.08)' }}>
+                          {c.header}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      { no: 1, station: "City Center", param: "SO2, H2S", expected: 24, valid: 24, percent: "100.00" },
-                      { no: 2, station: "City Center", param: "H2S", expected: 24, valid: 24, percent: "100.00" },
-                      { no: 3, station: "City Center", param: "NO2", expected: 24, valid: 24, percent: "100.00" },
-                      { no: 4, station: "City Center", param: "CO", expected: 24, valid: 24, percent: "100.00" },
-                      { no: 5, station: "City Center", param: "O3", expected: 24, valid: 24, percent: "100.00" },
-                      { no: 6, station: "City Center", param: "PM2.5", expected: 24, valid: 24, percent: "100.00" },
-                      { no: 7, station: "City Center", param: "PM10", expected: 24, valid: 24, percent: "100.00" },
-                      { no: 8, station: "City Center", param: "CH4", expected: 24, valid: 24, percent: "100.00" },
-                      { no: 9, station: "City Center", param: "NMHC", expected: 24, valid: 24, percent: "100.00" }
-                    ].map(row => (
-                      <tr key={row.no}>
-                        <td>{row.no}</td>
-                        <td>{row.station === 'City Center' || row.station === 'City Centre' ? t('live.city_centre', 'City Centre') : row.station}</td>
-                        <td>{row.param}</td>
-                        <td>{row.expected}</td>
-                        <td>{row.valid}</td>
-                        <td>{row.percent}</td>
+                    {pageRows.length === 0 ? (
+                      <tr><td colSpan={previewCols.length + 1} style={{ textAlign: 'center', color: '#9ca3af', padding: '24px' }}>
+                        {currentReport ? 'No data for the selected filters and date range.' : 'Choose a report from “Generate Report” to see a preview.'}
+                      </td></tr>
+                    ) : pageRows.map((row, idx) => (
+                      <tr key={idx}>
+                        <td>{(safePage - 1) * PAGE_SIZE + idx + 1}</td>
+                        {previewCols.map((c) => (<td key={c.key}>{row[c.key]}</td>))}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
 
-              {/* Mobile Accordion Cards View */}
+              {/* Mobile card list (generic, one card per preview row) */}
               <div className="reports-mobile-accordion-list" style={{ flex: 1, marginTop: '8px' }}>
-                {[
-                  { no: 1, station: "City Center", param: "SO2, H2S", expected: 24, valid: 24, percent: "100.00" },
-                  { no: 2, station: "City Center", param: "H2S", expected: 24, valid: 24, percent: "100.00" },
-                  { no: 3, station: "City Center", param: "NO2", expected: 24, valid: 24, percent: "100.00" },
-                  { no: 4, station: "City Center", param: "CO", expected: 24, valid: 24, percent: "100.00" },
-                  { no: 5, station: "City Center", param: "O3", expected: 24, valid: 24, percent: "100.00" },
-                  { no: 6, station: "City Center", param: "PM2.5", expected: 24, valid: 24, percent: "100.00" },
-                  { no: 7, station: "City Center", param: "PM10", expected: 24, valid: 24, percent: "100.00" },
-                  { no: 8, station: "City Center", param: "CH4", expected: 24, valid: 24, percent: "100.00" },
-                  { no: 9, station: "City Center", param: "NMHC", expected: 24, valid: 24, percent: "100.00" }
-                ].map(row => {
-                  const isExpanded = !!expandedCards[row.no];
-                  return (
-                    <div 
-                      key={row.no} 
-                      className={`reports-mobile-card ${isExpanded ? 'expanded' : ''}`}
-                      style={{
-                        background: '#ffffff',
-                        borderRadius: '12px',
-                        border: '1px solid rgba(0,0,0,0.06)',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                        marginBottom: '12px',
-                        overflow: 'hidden',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                      }}
-                    >
-                      {/* CARD HEADER */}
-                      <div 
-                        className="reports-mobile-card-header"
-                        onClick={() => toggleCard(row.no)}
-                        style={{
-                          padding: '14px 16px',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          cursor: 'pointer',
-                          background: isExpanded ? '#e0f2f4' : '#ffffff',
-                          transition: 'background 0.3s ease'
-                        }}
-                      >
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.9rem', color: '#111827', fontWeight: '800' }}>
-                              {row.station === 'City Center' || row.station === 'City Centre' ? t('live.city_centre', 'City Centre') : row.station}
-                            </span>
-                            <span style={{
-                              fontSize: '0.7rem',
-                              color: '#009fac',
-                              background: 'rgba(0, 159, 172, 0.08)',
-                              padding: '2px 8px',
-                              borderRadius: '20px',
-                              fontWeight: '700'
-                            }}>
-                              {row.param}
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>
-                            24 Feb 2026 11:30:42
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{
-                            fontSize: '0.7rem',
-                            fontWeight: '700',
-                            color: '#0d9488',
-                            background: '#ccfbf1',
-                            padding: '2px 8px',
-                            borderRadius: '9999px'
-                          }}>
-                            {row.percent}%
-                          </span>
-                          <svg 
-                            width="16" 
-                            height="16" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="#6b7280" 
-                            strokeWidth="2.5"
-                            style={{
-                              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                              transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                            }}
-                          >
-                            <polyline points="6 9 12 15 18 9" />
-                          </svg>
-                        </div>
-                      </div>
-
-                      {/* EXPANDED CONTENT */}
-                      {isExpanded && (
-                        <div 
-                          className="reports-mobile-card-body"
-                          style={{
-                            padding: '16px',
-                            borderTop: '1px solid rgba(0,0,0,0.06)',
-                            background: '#ffffff',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '12px'
-                          }}
-                        >
-                          {/* Pollutants details */}
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>{t('datacapture.parameter', 'Parameter')}</span>
-                              <span style={{ fontSize: '0.85rem', color: '#1f2937', fontWeight: '700' }}>{row.param}</span>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>{isRtl ? 'نطاق التاريخ' : 'Date Range'}</span>
-                              <span style={{ fontSize: '0.85rem', color: '#1f2937', fontWeight: '700' }}>{startDate} {isRtl ? 'إلى' : 'to'} {endDate}</span>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>{t('datacapture.expected_records', 'Expected Records')}</span>
-                              <span style={{ fontSize: '0.85rem', color: '#1f2937', fontWeight: '700' }}>{row.expected}</span>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>{t('datacapture.valid_records', 'Valid Records')}</span>
-                              <span style={{ fontSize: '0.85rem', color: '#1f2937', fontWeight: '700' }}>{row.valid}</span>
-                            </div>
-                          </div>
-
-                          <div style={{ borderTop: '1px dashed rgba(0,0,0,0.08)', margin: '4px 0' }}></div>
-
-                          {/* Pollutant stack with units - Responsive 3-column grid layout */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                              {isRtl ? 'قيم الملوثات' : 'Pollutant Values'}
-                            </div>
-                            <div className="reports-pollutants-grid">
-                              {[
-                                { name: 'SO2', val: '12.4', unit: 'ppb' },
-                                { name: 'NO2', val: '24.1', unit: 'ppb' },
-                                { name: 'CO', val: '0.45', unit: 'ppm' },
-                                { name: 'PM10', val: '32.0', unit: 'µg/m³' },
-                                { name: 'PM2.5', val: '15.2', unit: 'µg/m³' }
-                              ].map(poll => (
-                                <div 
-                                  key={poll.name} 
-                                  className="reports-pollutant-grid-item"
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '8px 6px',
-                                    background: '#f9fafb',
-                                    borderRadius: '8px',
-                                    border: '1.5px solid rgba(0, 159, 172, 0.08)',
-                                    textAlign: 'center'
-                                  }}
-                                >
-                                  <span style={{ fontSize: '0.72rem', color: '#4b5563', fontWeight: '700', marginBottom: '4px' }}>{poll.name}</span>
-                                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', justifyContent: 'center' }}>
-                                    <span style={{ fontSize: '0.85rem', color: '#111827', fontWeight: '800' }}>{poll.val}</span>
-                                    <span style={{ fontSize: '0.62rem', color: '#6b7280', fontWeight: '500', marginLeft: '1px' }}>{poll.unit}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                {pageRows.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: '#9ca3af', padding: '24px' }}>
+                    {currentReport ? 'No data for the selected filters and date range.' : 'Choose a report from “Generate Report” to see a preview.'}
+                  </div>
+                ) : pageRows.map((row, idx) => (
+                  <div
+                    key={idx}
+                    className="reports-mobile-card"
+                    style={{
+                      background: '#ffffff', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.06)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: '12px', padding: '14px 16px'
+                    }}
+                  >
+                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: '700', marginBottom: '8px' }}>
+                      #{(safePage - 1) * PAGE_SIZE + idx + 1}
                     </div>
-                  );
-                })}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
+                      {previewCols.map((c) => (
+                        <div key={c.key} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }}>{c.header}</span>
+                          <span style={{ fontSize: '0.85rem', color: '#1f2937', fontWeight: '700' }}>{row[c.key]}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {/* Bottom Pagination placed exactly at bottom-right */}
-              <div className="reports-pagination-container" style={{ marginTop: '10px' }}>
-                <div className="spacer-element"></div>
-                <div className="reports-pagination">
-                  <button className="reports-page-btn arrow" onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>
-                    &lt;
-                  </button>
-                  {[1, 2, 3, 4, 5].map(n => (
-                    <button
-                      key={n}
-                      className={`reports-page-btn ${currentPage === n ? 'active' : ''}`}
-                      onClick={() => setCurrentPage(n)}
-                    >
-                      {n}
+              {/* Bottom Pagination (client-side over the preview rows) */}
+              {previewRows.length > 0 && (
+                <div className="reports-pagination-container" style={{ marginTop: '10px' }}>
+                  <div className="spacer-element"></div>
+                  <div className="reports-pagination" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#6b7280', marginInlineEnd: '8px' }}>
+                      {currentReport?.preview?.truncated
+                        ? `first ${previewRows.length} of ${currentReport.preview.totalRows} rows`
+                        : `${previewRows.length} rows`} · page {safePage}/{totalPages}
+                    </span>
+                    <button className="reports-page-btn arrow" onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>
+                      &lt;
                     </button>
-                  ))}
-                  <button className="reports-page-btn arrow" onClick={() => setCurrentPage(p => Math.min(5, p + 1))}>
-                    &gt;
-                  </button>
+                    {pageWindow.map(n => (
+                      <button
+                        key={n}
+                        className={`reports-page-btn ${safePage === n ? 'active' : ''}`}
+                        onClick={() => setCurrentPage(n)}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                    <button className="reports-page-btn arrow" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>
+                      &gt;
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </div>

@@ -1,0 +1,33 @@
+{
+  "_fixture_source": "DataCaptureRateTable.jsx captureRateData (lines 5-70): station, conductivity, temp, salinity, chlorophyll, oxygenSat, dissolvedOxygen, turbidity, ph, depth, algae, expected, received, rate",
+  "_endpoint": "GET /api/v1/mwq/data-capture-rate",
+  "_fe_fields_used": ["buoyId", "buoyName", "captureRatePct", "validRecords", "totalExpected", "periodStart", "periodEnd"],
+  "_divergences": [
+    "DataCaptureRateTable uses 'station' for buoy name (line 7) — plan normalizes to 'buoyName'",
+    "DataCaptureRateTable uses 'received' for valid/received records (line 19) — plan normalizes to 'validRecords'",
+    "DataCaptureRateTable uses 'expected' for total expected (line 18) — plan normalizes to 'totalExpected'",
+    "DataCaptureRateTable uses 'rate' as string percentage (line 20) — plan normalizes to 'captureRatePct' (float)",
+    "DataCaptureRateTable also shows per-parameter columns (conductivity, temp, etc.) which are sensor averages; these are NOT in the plan's per-buoy data-capture-rate shape — Phase 4 cleanup needed"
+  ],
+  "happy": [
+    {
+      "buoyId": "TODO_cuid",
+      "buoyName": "Al Aqah New",
+      "captureRatePct": 98.0,
+      "validRecords": 47,
+      "totalExpected": 48,
+      "periodStart": "2026-05-27T00:00:00.000Z",
+      "periodEnd": "2026-05-27T23:59:59.000Z"
+    },
+    {
+      "buoyId": "TODO_cuid",
+      "buoyName": "North Dibbah",
+      "captureRatePct": 100.0,
+      "validRecords": 48,
+      "totalExpected": 48,
+      "periodStart": "2026-05-27T00:00:00.000Z",
+      "periodEnd": "2026-05-27T23:59:59.000Z"
+    }
+  ],
+  "_required_keys": ["buoyId", "buoyName", "captureRatePct", "validRecords", "totalExpected", "periodStart", "periodEnd"]
+}

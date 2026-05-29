@@ -1,0 +1,26 @@
+{
+  "_fixture_source": "SensorDataTable.jsx sensorData shape (same as sensor-data list) — latest returns one record per buoy",
+  "_endpoint": "GET /api/v1/mwq/sensor-data/latest",
+  "_fe_fields_used": ["buoyId", "recordedAt", "conductivity", "temperature", "salinity", "chlorophyll", "oxygenSaturation", "dissolvedO2", "turbidity", "ph", "depth", "algae"],
+  "_divergences": [
+    "Same divergences as mwq-sensor-data.json — key name mismatches between FE mock data and API schema"
+  ],
+  "happy": [
+    {
+      "id": "TODO_bigint_as_string",
+      "buoyId": "TODO_cuid",
+      "recordedAt": "2026-02-17T11:00:00.000Z",
+      "conductivity": 578559.4,
+      "temperature": 25.13,
+      "salinity": 38.65,
+      "chlorophyll": 15.73,
+      "oxygenSaturation": 109.25,
+      "dissolvedO2": 7.2,
+      "turbidity": 9.56,
+      "ph": 7.92,
+      "depth": 0.47,
+      "algae": 0.73
+    }
+  ],
+  "_required_keys": ["id", "buoyId", "recordedAt", "conductivity", "temperature", "salinity", "chlorophyll", "oxygenSaturation", "dissolvedO2", "turbidity", "ph", "depth", "algae"]
+}

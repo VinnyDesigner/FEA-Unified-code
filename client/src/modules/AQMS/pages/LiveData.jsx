@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -7,6 +7,8 @@ import Dropdown from '../components/Dropdown';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getAqmsStationsLive, getAqmsAirQualityHistory, getAqmsWeatherHistory, getAqmsAirQualityIndexHistory, getAqmsStations, generateReport, downloadReportFile } from '../../../lib/queries';
+import { usePolling } from '../../../lib/polling';
 
 // Robust unwrapper for legacy CommonJS highcharts-react-official wrapper in React 19/Vite ESM
 const HighchartsReactComponent = (() => {
@@ -82,378 +84,32 @@ const pollutants = [
   { icon: <img src="/assets/AQMS/pollutants/H2o.png" alt="H2S" className="p-icon" />, name: 'H\u2082S', val: '0.02', unit: 'ppm', statusColor: '#fcd34d' },
 ];
 
-const stationsData = {
-  'City Centre': {
-    name: 'City Centre',
-    lat: 25.1150,
-    lng: 56.3150,
-    aqi: 120,
-    category: 'Unhealthy for Sensitive Groups',
-    aqiColor: '#f97316',
-    pm25: '14',
-    pm10: '28',
-    co: '0.45',
-    o3: '52',
-    no2: '18',
-    so2: '05',
-    co2: '04',
-    ch4: '0.1',
-    h2s: '0.02',
-    nmhc: '1.2',
-    windSpeed: '16',
-    windDirection: '267',
-    windUnit: 'Km/h',
-    windDirText: 'W',
-    windPill: 'Light breeze',
-    temp: '24.59',
-    pressure: '1008',
-    solar: '1632',
-    humidity: '72.2',
-    idealTempText: 'Ideal Temperature',
-    balancedPressureText: 'Balanced Air Pressure',
-    highSolarText: 'High Solar Intensity',
-    humidityNormalText: 'Humidity is normal',
-    chartAqiData: [110, 115, 120, 125, 130, 122, 120, 114, 116, 118, 122, 124, 120],
-    chartConcentrationData: {
-      so2: [25, 28, 30, 32, 35, 30, 28, 25, 24, 26, 28, 30, 27],
-      no2: [35, 38, 40, 42, 45, 40, 38, 35, 34, 36, 38, 40, 37],
-      co: [15, 18, 20, 22, 25, 20, 18, 15, 14, 16, 18, 20, 17],
-      pm10: [45, 48, 50, 52, 55, 50, 48, 45, 44, 46, 48, 50, 47],
-      pm25: [55, 58, 60, 62, 65, 60, 58, 55, 54, 56, 58, 60, 57],
-    },
-    tabular: [
-      { time: '24 Feb 2026 11:00', station: 'City Centre', co: '0.25', co2: '03', o3: '35', no2: '10', so2: '02', pm25: '08', pm10: '16', ch4: '0.08', h2s: '01', nmhc: '1.0', temp: '24.10°C', hum: '73.5%', windSpd: '14 Km/h', windDir: '265° W' },
-      { time: '24 Feb 2026 11:05', station: 'City Centre', co: '0.28', co2: '03', o3: '36', no2: '11', so2: '02', pm25: '08', pm10: '17', ch4: '0.09', h2s: '02', nmhc: '1.1', temp: '24.25°C', hum: '73.0%', windSpd: '15 Km/h', windDir: '266° W' },
-      { time: '24 Feb 2026 11:10', station: 'City Centre', co: '0.30', co2: '04', o3: '38', no2: '12', so2: '03', pm25: '09', pm10: '18', ch4: '0.10', h2s: '02', nmhc: '1.2', temp: '24.59°C', hum: '72.2%', windSpd: '16 Km/h', windDir: '267° W' },
-      { time: '24 Feb 2026 11:15', station: 'City Centre', co: '0.33', co2: '04', o3: '39', no2: '13', so2: '03', pm25: '09', pm10: '19', ch4: '0.12', h2s: '02', nmhc: '1.3', temp: '24.65°C', hum: '72.0%', windSpd: '17 Km/h', windDir: '268° W' },
-      { time: '24 Feb 2026 11:20', station: 'City Centre', co: '0.36', co2: '05', o3: '40', no2: '14', so2: '04', pm25: '10', pm10: '20', ch4: '0.20', h2s: '03', nmhc: '1.5', temp: '24.72°C', hum: '71.8%', windSpd: '18 Km/h', windDir: '270° W' },
-      { time: '24 Feb 2026 11:25', station: 'City Centre', co: '0.40', co2: '05', o3: '41', no2: '14', so2: '04', pm25: '10', pm10: '21', ch4: '0.20', h2s: '03', nmhc: '1.6', temp: '24.80°C', hum: '71.0%', windSpd: '18 Km/h', windDir: '269° W' },
-      { time: '24 Feb 2026 11:30', station: 'City Centre', co: '0.45', co2: '06', o3: '42', no2: '15', so2: '05', pm25: '11', pm10: '22', ch4: '0.20', h2s: '04', nmhc: '1.8', temp: '24.90°C', hum: '70.5%', windSpd: '19 Km/h', windDir: '265° W' },
-      { time: '24 Feb 2026 11:35', station: 'City Centre', co: '0.40', co2: '05', o3: '39', no2: '13', so2: '03', pm25: '10', pm10: '21', ch4: '0.10', h2s: '03', nmhc: '1.4', temp: '24.80°C', hum: '73.1%', windSpd: '17 Km/h', windDir: '268° W' },
-      { time: '24 Feb 2026 11:40', station: 'City Centre', co: '0.35', co2: '04', o3: '38', no2: '12', so2: '02', pm25: '09', pm10: '19', ch4: '0.10', h2s: '02', nmhc: '1.3', temp: '24.60°C', hum: '73.5%', windSpd: '16 Km/h', windDir: '267° W' },
-      { time: '24 Feb 2026 11:45', station: 'City Centre', co: '0.30', co2: '04', o3: '37', no2: '11', so2: '02', pm25: '08', pm10: '17', ch4: '0.10', h2s: '02', nmhc: '1.1', temp: '24.40°C', hum: '74.0%', windSpd: '15 Km/h', windDir: '266° W' },
-      { time: '24 Feb 2026 11:50', station: 'City Centre', co: '0.28', co2: '04', o3: '36', no2: '10', so2: '02', pm25: '08', pm10: '16', ch4: '0.09', h2s: '01', nmhc: '1.0', temp: '24.25°C', hum: '74.5%', windSpd: '14 Km/h', windDir: '265° W' },
-      { time: '24 Feb 2026 11:55', station: 'City Centre', co: '0.25', co2: '03', o3: '35', no2: '09', so2: '01', pm25: '07', pm10: '15', ch4: '0.08', h2s: '01', nmhc: '0.9', temp: '24.10°C', hum: '75.0%', windSpd: '13 Km/h', windDir: '264° W' }
-    ]
-  },
-  'Mobile Station': {
-    name: 'Mobile Station',
-    lat: 25.1450,
-    lng: 56.3400,
-    aqi: 45,
-    category: 'Good',
-    aqiColor: '#84cc16',
-    pm25: '5',
-    pm10: '10',
-    co: '0.1',
-    o3: '22',
-    no2: '6',
-    so2: '01',
-    co2: '02',
-    ch4: '0.05',
-    h2s: '0.01',
-    nmhc: '0.6',
-    windSpeed: '12',
-    windDirection: '180',
-    windUnit: 'Km/h',
-    windDirText: 'S',
-    windPill: 'Gentle breeze',
-    temp: '22.10',
-    pressure: '1012',
-    solar: '1200',
-    humidity: '65.4',
-    idealTempText: 'Very Comfortable',
-    balancedPressureText: 'Optimal Pressure',
-    highSolarText: 'Moderate Solar Intensity',
-    humidityNormalText: 'Humidity is optimal',
-    chartAqiData: [40, 42, 45, 48, 50, 47, 45, 42, 43, 45, 46, 44, 45],
-    chartConcentrationData: {
-      so2: [12, 14, 15, 17, 18, 16, 15, 13, 14, 15, 16, 15, 14],
-      no2: [22, 24, 25, 27, 28, 26, 25, 23, 24, 25, 26, 25, 24],
-      co: [8, 9, 10, 11, 12, 10, 9, 8, 9, 10, 11, 10, 9],
-      pm10: [25, 27, 28, 30, 31, 29, 28, 26, 27, 28, 29, 28, 27],
-      pm25: [35, 37, 38, 40, 41, 39, 38, 36, 37, 38, 39, 38, 37],
-    },
-    tabular: [
-      { time: '24 Feb 2026 11:00', station: 'Mobile Station', co: '0.08', co2: '01', o3: '18', no2: '04', so2: '01', pm25: '03', pm10: '07', ch4: '0.03', h2s: '01', nmhc: '0.4', temp: '21.80°C', hum: '66.8%', windSpd: '10 Km/h', windDir: '178° S' },
-      { time: '24 Feb 2026 11:05', station: 'Mobile Station', co: '0.09', co2: '01', o3: '20', no2: '05', so2: '01', pm25: '04', pm10: '08', ch4: '0.04', h2s: '01', nmhc: '0.5', temp: '21.90°C', hum: '66.0%', windSpd: '11 Km/h', windDir: '179° S' },
-      { time: '24 Feb 2026 11:10', station: 'Mobile Station', co: '0.10', co2: '02', o3: '22', no2: '06', so2: '01', pm25: '05', pm10: '10', ch4: '0.05', h2s: '01', nmhc: '0.6', temp: '22.10°C', hum: '65.4%', windSpd: '12 Km/h', windDir: '180° S' },
-      { time: '24 Feb 2026 11:15', station: 'Mobile Station', co: '0.15', co2: '02', o3: '23', no2: '07', so2: '02', pm25: '05', pm10: '11', ch4: '0.05', h2s: '01', nmhc: '0.7', temp: '22.20°C', hum: '65.0%', windSpd: '13 Km/h', windDir: '182° S' },
-      { time: '24 Feb 2026 11:20', station: 'Mobile Station', co: '0.20', co2: '03', o3: '24', no2: '08', so2: '02', pm25: '06', pm10: '12', ch4: '0.06', h2s: '02', nmhc: '0.8', temp: '22.30°C', hum: '64.8%', windSpd: '14 Km/h', windDir: '185° S' },
-      { time: '24 Feb 2026 11:25', station: 'Mobile Station', co: '0.25', co2: '03', o3: '25', no2: '08', so2: '02', pm25: '06', pm10: '13', ch4: '0.06', h2s: '02', nmhc: '0.8', temp: '22.40°C', hum: '64.2%', windSpd: '15 Km/h', windDir: '183° S' },
-      { time: '24 Feb 2026 11:30', station: 'Mobile Station', co: '0.30', co2: '04', o3: '26', no2: '09', so2: '03', pm25: '07', pm10: '14', ch4: '0.07', h2s: '03', nmhc: '0.9', temp: '22.50°C', hum: '63.5%', windSpd: '15 Km/h', windDir: '178° S' },
-      { time: '24 Feb 2026 11:35', station: 'Mobile Station', co: '0.25', co2: '03', o3: '24', no2: '07', so2: '02', pm25: '06', pm10: '12', ch4: '0.06', h2s: '02', nmhc: '0.8', temp: '22.30°C', hum: '64.5%', windSpd: '13 Km/h', windDir: '181° S' },
-      { time: '24 Feb 2026 11:40', station: 'Mobile Station', co: '0.18', co2: '02', o3: '23', no2: '06', so2: '01', pm25: '05', pm10: '11', ch4: '0.05', h2s: '01', nmhc: '0.7', temp: '22.20°C', hum: '65.0%', windSpd: '12 Km/h', windDir: '180° S' },
-      { time: '24 Feb 2026 11:45', station: 'Mobile Station', co: '0.12', co2: '02', o3: '21', no2: '05', so2: '01', pm25: '04', pm10: '09', ch4: '0.04', h2s: '01', nmhc: '0.5', temp: '22.00°C', hum: '65.8%', windSpd: '11 Km/h', windDir: '179° S' },
-      { time: '24 Feb 2026 11:50', station: 'Mobile Station', co: '0.10', co2: '02', o3: '20', no2: '04', so2: '01', pm25: '03', pm10: '08', ch4: '0.03', h2s: '01', nmhc: '0.4', temp: '21.90°C', hum: '66.2%', windSpd: '10 Km/h', windDir: '180° S' },
-      { time: '24 Feb 2026 11:55', station: 'Mobile Station', co: '0.08', co2: '01', o3: '18', no2: '03', so2: '01', pm25: '03', pm10: '07', ch4: '0.03', h2s: '01', nmhc: '0.3', temp: '21.80°C', hum: '66.5%', windSpd: '09 Km/h', windDir: '181° S' }
-    ]
-  },
-  'Qidfa': {
-    name: 'Qidfa',
-    lat: 25.1100,
-    lng: 56.3300,
-    aqi: 120,
-    category: 'Unhealthy for Sensitive Groups',
-    aqiColor: '#f97316',
-    pm25: '15',
-    pm10: '28',
-    co: '0.5',
-    o3: '52',
-    no2: '20',
-    so2: '06',
-    co2: '06',
-    ch4: '0.2',
-    h2s: '0.04',
-    nmhc: '2.0',
-    windSpeed: '22',
-    windDirection: '315',
-    windUnit: 'Km/h',
-    windDirText: 'NW',
-    windPill: 'Strong breeze',
-    temp: '26.80',
-    pressure: '1004',
-    solar: '1850',
-    humidity: '78.5',
-    idealTempText: 'Warm Atmosphere',
-    balancedPressureText: 'Low Pressure Alert',
-    highSolarText: 'Intense Solar Radiation',
-    humidityNormalText: 'Humidity is high',
-    chartAqiData: [110, 115, 120, 125, 130, 122, 120, 114, 116, 118, 122, 124, 120],
-    chartConcentrationData: {
-      so2: [45, 48, 50, 52, 55, 50, 48, 45, 44, 46, 48, 50, 47],
-      no2: [65, 68, 70, 72, 75, 70, 68, 65, 64, 66, 68, 70, 67],
-      co: [30, 33, 35, 37, 40, 35, 33, 30, 29, 31, 33, 35, 32],
-      pm10: [75, 78, 80, 82, 85, 80, 78, 75, 74, 76, 78, 80, 77],
-      pm25: [85, 88, 90, 92, 95, 90, 88, 85, 84, 86, 88, 90, 87],
-    },
-    tabular: [
-      { time: '24 Feb 2026 11:00', station: 'Qidfa', co: '0.40', co2: '05', o3: '45', no2: '16', so2: '04', pm25: '12', pm10: '22', ch4: '0.15', h2s: '02', nmhc: '1.6', temp: '26.10°C', hum: '79.5%', windSpd: '18 Km/h', windDir: '310° NW' },
-      { time: '24 Feb 2026 11:05', station: 'Qidfa', co: '0.45', co2: '05', o3: '48', no2: '18', so2: '05', pm25: '13', pm10: '25', ch4: '0.18', h2s: '03', nmhc: '1.8', temp: '26.40°C', hum: '79.0%', windSpd: '20 Km/h', windDir: '312° NW' },
-      { time: '24 Feb 2026 11:10', station: 'Qidfa', co: '0.50', co2: '06', o3: '52', no2: '20', so2: '06', pm25: '15', pm10: '28', ch4: '0.20', h2s: '04', nmhc: '2.0', temp: '26.80°C', hum: '78.5%', windSpd: '22 Km/h', windDir: '315° NW' },
-      { time: '24 Feb 2026 11:15', station: 'Qidfa', co: '0.55', co2: '06', o3: '53', no2: '21', so2: '06', pm25: '15', pm10: '29', ch4: '0.21', h2s: '04', nmhc: '2.1', temp: '26.90°C', hum: '78.2%', windSpd: '23 Km/h', windDir: '318° NW' },
-      { time: '24 Feb 2026 11:20', station: 'Qidfa', co: '0.60', co2: '07', o3: '54', no2: '22', so2: '07', pm25: '16', pm10: '30', ch4: '0.22', h2s: '05', nmhc: '2.2', temp: '27.00°C', hum: '77.8%', windSpd: '24 Km/h', windDir: '320° NW' },
-      { time: '24 Feb 2026 11:25', station: 'Qidfa', co: '0.65', co2: '07', o3: '55', no2: '23', so2: '07', pm25: '16', pm10: '31', ch4: '0.23', h2s: '05', nmhc: '2.3', temp: '27.10°C', hum: '77.2%', windSpd: '24 Km/h', windDir: '318° NW' },
-      { time: '24 Feb 2026 11:30', station: 'Qidfa', co: '0.70', co2: '08', o3: '56', no2: '24', so2: '08', pm25: '17', pm10: '32', ch4: '0.25', h2s: '06', nmhc: '2.5', temp: '27.20°C', hum: '76.5%', windSpd: '25 Km/h', windDir: '312° NW' },
-      { time: '24 Feb 2026 11:35', station: 'Qidfa', co: '0.65', co2: '07', o3: '53', no2: '21', so2: '06', pm25: '15', pm10: '29', ch4: '0.22', h2s: '04', nmhc: '2.1', temp: '27.00°C', hum: '77.8%', windSpd: '22 Km/h', windDir: '315° NW' },
-      { time: '24 Feb 2026 11:40', station: 'Qidfa', co: '0.55', co2: '06', o3: '50', no2: '18', so2: '05', pm25: '14', pm10: '26', ch4: '0.18', h2s: '03', nmhc: '1.8', temp: '26.70°C', hum: '78.5%', windSpd: '20 Km/h', windDir: '314° NW' },
-      { time: '24 Feb 2026 11:45', station: 'Qidfa', co: '0.45', co2: '05', o3: '47', no2: '15', so2: '04', pm25: '12', pm10: '23', ch4: '0.16', h2s: '02', nmhc: '1.7', temp: '26.30°C', hum: '79.0%', windSpd: '19 Km/h', windDir: '311° NW' },
-      { time: '24 Feb 2026 11:50', station: 'Qidfa', co: '0.40', co2: '05', o3: '45', no2: '14', so2: '04', pm25: '11', pm10: '21', ch4: '0.14', h2s: '02', nmhc: '1.5', temp: '26.10°C', hum: '79.5%', windSpd: '18 Km/h', windDir: '310° NW' },
-      { time: '24 Feb 2026 11:55', station: 'Qidfa', co: '0.35', co2: '04', o3: '42', no2: '12', so2: '03', pm25: '10', pm10: '19', ch4: '0.12', h2s: '01', nmhc: '1.3', temp: '25.90°C', hum: '80.0%', windSpd: '17 Km/h', windDir: '308° NW' }
-    ]
-  },
-  'Lafarge Cems': {
-    name: 'Lafarge Cems',
-    lat: 25.1350,
-    lng: 56.3050,
-    aqi: 45,
-    category: 'Good',
-    aqiColor: '#84cc16',
-    pm25: '4',
-    pm10: '8',
-    co: '0.1',
-    o3: '20',
-    no2: '5',
-    so2: '01',
-    co2: '02',
-    ch4: '0.04',
-    h2s: '0.01',
-    nmhc: '0.5',
-    windSpeed: '10',
-    windDirection: '90',
-    windUnit: 'Km/h',
-    windDirText: 'E',
-    windPill: 'Light air',
-    temp: '23.15',
-    pressure: '1010',
-    solar: '1500',
-    humidity: '68.2',
-    idealTempText: 'Comfortable Temp',
-    balancedPressureText: 'Standard Air Pressure',
-    highSolarText: 'Optimal Solar Intensity',
-    humidityNormalText: 'Humidity is normal',
-    chartAqiData: [42, 44, 45, 47, 48, 46, 45, 43, 44, 45, 46, 45, 44],
-    chartConcentrationData: {
-      so2: [10, 12, 13, 14, 15, 14, 13, 11, 12, 13, 14, 13, 12],
-      no2: [20, 22, 23, 24, 25, 24, 23, 21, 22, 23, 24, 23, 22],
-      co: [7, 8, 9, 10, 11, 10, 9, 7, 8, 9, 10, 9, 8],
-      pm10: [20, 22, 23, 24, 25, 24, 23, 21, 22, 23, 24, 23, 22],
-      pm25: [30, 32, 33, 34, 35, 34, 33, 31, 32, 33, 34, 33, 32],
-    },
-    tabular: [
-      { time: '24 Feb 2026 11:00', station: 'Lafarge Cems', co: '0.08', co2: '01', o3: '16', no2: '03', so2: '01', pm25: '03', pm10: '06', ch4: '0.02', h2s: '01', nmhc: '0.3', temp: '22.80°C', hum: '69.0%', windSpd: '08 Km/h', windDir: '86° E' },
-      { time: '24 Feb 2026 11:05', station: 'Lafarge Cems', co: '0.09', co2: '01', o3: '18', no2: '04', so2: '01', pm25: '03', pm10: '07', ch4: '0.03', h2s: '01', nmhc: '0.4', temp: '22.95°C', hum: '68.5%', windSpd: '09 Km/h', windDir: '88° E' },
-      { time: '24 Feb 2026 11:10', station: 'Lafarge Cems', co: '0.10', co2: '02', o3: '20', no2: '05', so2: '01', pm25: '04', pm10: '08', ch4: '0.04', h2s: '01', nmhc: '0.5', temp: '23.15°C', hum: '68.2%', windSpd: '10 Km/h', windDir: '90° E' },
-      { time: '24 Feb 2026 11:15', station: 'Lafarge Cems', co: '0.15', co2: '02', o3: '20', no2: '05', so2: '01', pm25: '04', pm10: '09', ch4: '0.04', h2s: '01', nmhc: '0.5', temp: '23.20°C', hum: '68.0%', windSpd: '10 Km/h', windDir: '92° E' },
-      { time: '24 Feb 2026 11:20', station: 'Lafarge Cems', co: '0.20', co2: '03', o3: '21', no2: '06', so2: '02', pm25: '05', pm10: '10', ch4: '0.05', h2s: '02', nmhc: '0.6', temp: '23.30°C', hum: '67.8%', windSpd: '11 Km/h', windDir: '95° E' },
-      { time: '24 Feb 2026 11:25', station: 'Lafarge Cems', co: '0.25', co2: '03', o3: '22', no2: '06', so2: '02', pm25: '05', pm10: '11', ch4: '0.05', h2s: '02', nmhc: '0.6', temp: '23.40°C', hum: '67.0%', windSpd: '11 Km/h', windDir: '92° E' },
-      { time: '24 Feb 2026 11:30', station: 'Lafarge Cems', co: '0.30', co2: '04', o3: '23', no2: '07', so2: '03', pm25: '06', pm10: '12', ch4: '0.06', h2s: '03', nmhc: '0.7', temp: '23.45°C', hum: '66.5%', windSpd: '12 Km/h', windDir: '88° E' },
-      { time: '24 Feb 2026 11:35', station: 'Lafarge Cems', co: '0.22', co2: '03', o3: '21', no2: '06', so2: '02', pm25: '05', pm10: '11', ch4: '0.05', h2s: '02', nmhc: '0.6', temp: '23.30°C', hum: '67.5%', windSpd: '11 Km/h', windDir: '90° E' },
-      { time: '24 Feb 2026 11:40', station: 'Lafarge Cems', co: '0.15', co2: '02', o3: '20', no2: '05', so2: '01', pm25: '04', pm10: '09', ch4: '0.04', h2s: '01', nmhc: '0.5', temp: '23.20°C', hum: '68.0%', windSpd: '10 Km/h', windDir: '89° E' },
-      { time: '24 Feb 2026 11:45', station: 'Lafarge Cems', co: '0.10', co2: '02', o3: '19', no2: '04', so2: '01', pm25: '04', pm10: '08', ch4: '0.03', h2s: '01', nmhc: '0.4', temp: '23.00°C', hum: '68.8%', windSpd: '09 Km/h', windDir: '87° E' },
-      { time: '24 Feb 2026 11:50', station: 'Lafarge Cems', co: '0.09', co2: '01', o3: '18', no2: '03', so2: '01', pm25: '03', pm10: '07', ch4: '0.02', h2s: '01', nmhc: '0.3', temp: '22.90°C', hum: '69.2%', windSpd: '08 Km/h', windDir: '88° E' },
-      { time: '24 Feb 2026 11:55', station: 'Lafarge Cems', co: '0.08', co2: '01', o3: '17', no2: '03', so2: '01', pm25: '03', pm10: '06', ch4: '0.02', h2s: '01', nmhc: '0.3', temp: '22.80°C', hum: '69.5%', windSpd: '08 Km/h', windDir: '89° E' }
-    ]
-  },
-  'Fujairah Port': {
-    name: 'Fujairah Port',
-    lat: 25.1200,
-    lng: 56.3550,
-    aqi: 150,
-    category: 'Unhealthy',
-    aqiColor: '#ef4444',
-    pm25: '25',
-    pm10: '45',
-    co: '0.8',
-    o3: '68',
-    no2: '28',
-    so2: '09',
-    co2: '08',
-    ch4: '0.3',
-    h2s: '0.06',
-    nmhc: '2.8',
-    windSpeed: '28',
-    windDirection: '45',
-    windUnit: 'Km/h',
-    windDirText: 'NE',
-    windPill: 'High breeze',
-    temp: '27.50',
-    pressure: '1002',
-    solar: '1900',
-    humidity: '82.0',
-    idealTempText: 'Warm & Humid',
-    balancedPressureText: 'Low Pressure Alert',
-    highSolarText: 'Extremely High Solar',
-    humidityNormalText: 'Humidity is very high',
-    chartAqiData: [130, 135, 140, 145, 150, 142, 140, 136, 138, 142, 145, 148, 150],
-    chartConcentrationData: {
-      so2: [55, 58, 60, 62, 65, 60, 58, 55, 54, 56, 58, 60, 57],
-      no2: [75, 78, 80, 82, 85, 80, 78, 75, 74, 76, 78, 80, 77],
-      co: [40, 43, 45, 47, 50, 45, 43, 40, 39, 41, 43, 45, 42],
-      pm10: [85, 88, 90, 92, 95, 90, 88, 85, 84, 86, 88, 90, 87],
-      pm25: [95, 98, 100, 102, 105, 100, 98, 95, 94, 96, 98, 100, 97],
-    },
-    tabular: [
-      { time: '24 Feb 2026 11:00', station: 'Fujairah Port', co: '0.70', co2: '07', o3: '60', no2: '24', so2: '07', pm25: '22', pm10: '38', ch4: '0.25', h2s: '04', nmhc: '2.4', temp: '26.90°C', hum: '83.5%', windSpd: '24 Km/h', windDir: '42° NE' },
-      { time: '24 Feb 2026 11:05', station: 'Fujairah Port', co: '0.75', co2: '08', o3: '64', no2: '26', so2: '08', pm25: '23', pm10: '42', ch4: '0.28', h2s: '05', nmhc: '2.6', temp: '27.20°C', hum: '82.8%', windSpd: '26 Km/h', windDir: '44° NE' },
-      { time: '24 Feb 2026 11:10', station: 'Fujairah Port', co: '0.80', co2: '08', o3: '68', no2: '28', so2: '09', pm25: '25', pm10: '45', ch4: '0.30', h2s: '06', nmhc: '2.8', temp: '27.50°C', hum: '82.0%', windSpd: '28 Km/h', windDir: '45° NE' },
-      { time: '24 Feb 2026 11:15', station: 'Fujairah Port', co: '0.85', co2: '09', o3: '69', no2: '29', so2: '09', pm25: '25', pm10: '46', ch4: '0.31', h2s: '06', nmhc: '2.9', temp: '27.60°C', hum: '81.8%', windSpd: '29 Km/h', windDir: '48° NE' },
-      { time: '24 Feb 2026 11:20', station: 'Fujairah Port', co: '0.90', co2: '09', o3: '70', no2: '30', so2: '10', pm25: '26', pm10: '48', ch4: '0.32', h2s: '07', nmhc: '3.0', temp: '27.70°C', hum: '81.5%', windSpd: '30 Km/h', windDir: '50° NE' },
-      { time: '24 Feb 2026 11:25', station: 'Fujairah Port', co: '0.95', co2: '10', o3: '71', no2: '31', so2: '10', pm25: '26', pm10: '49', ch4: '0.33', h2s: '07', nmhc: '3.1', temp: '27.80°C', hum: '81.0%', windSpd: '31 Km/h', windDir: '48° NE' },
-      { time: '24 Feb 2026 11:30', station: 'Fujairah Port', co: '1.00', co2: '10', o3: '72', no2: '32', so2: '11', pm25: '27', pm10: '50', ch4: '0.35', h2s: '08', nmhc: '3.2', temp: '27.90°C', hum: '80.2%', windSpd: '32 Km/h', windDir: '40° NE' },
-      { time: '24 Feb 2026 11:35', station: 'Fujairah Port', co: '0.92', co2: '09', o3: '69', no2: '29', so2: '09', pm25: '25', pm10: '46', ch4: '0.31', h2s: '06', nmhc: '2.9', temp: '27.70°C', hum: '81.2%', windSpd: '29 Km/h', windDir: '44° NE' },
-      { time: '24 Feb 2026 11:40', station: 'Fujairah Port', co: '0.80', co2: '08', o3: '67', no2: '27', so2: '08', pm25: '24', pm10: '43', ch4: '0.28', h2s: '05', nmhc: '2.7', temp: '27.40°C', hum: '82.0%', windSpd: '26 Km/h', windDir: '46° NE' },
-      { time: '24 Feb 2026 11:45', station: 'Fujairah Port', co: '0.72', co2: '07', o3: '63', no2: '25', so2: '07', pm25: '22', pm10: '40', ch4: '0.26', h2s: '04', nmhc: '2.5', temp: '27.00°C', hum: '83.0%', windSpd: '25 Km/h', windDir: '43° NE' },
-      { time: '24 Feb 2026 11:50', station: 'Fujairah Port', co: '0.68', co2: '06', o3: '60', no2: '23', so2: '06', pm25: '20', pm10: '38', ch4: '0.24', h2s: '03', nmhc: '2.3', temp: '26.80°C', hum: '83.5%', windSpd: '24 Km/h', windDir: '42° NE' },
-      { time: '24 Feb 2026 11:55', station: 'Fujairah Port', co: '0.62', co2: '05', o3: '56', no2: '20', so2: '05', pm25: '18', pm10: '35', ch4: '0.22', h2s: '03', nmhc: '2.1', temp: '26.50°C', hum: '84.0%', windSpd: '22 Km/h', windDir: '40° NE' }
-    ]
-  },
-  'Fujairah Stadium': {
-    name: 'Fujairah Stadium',
-    lat: 25.1288,
-    lng: 56.3265,
-    aqi: 77,
-    category: 'Moderate',
-    aqiColor: '#fcd34d',
-    pm25: '8',
-    pm10: '17',
-    co: '0.28',
-    o3: '36',
-    no2: '11',
-    so2: '02',
-    co2: '03',
-    ch4: '0.08',
-    h2s: '0.02',
-    nmhc: '1.1',
-    windSpeed: '14',
-    windDirection: '260',
-    windUnit: 'Km/h',
-    windDirText: 'W',
-    windPill: 'Light breeze',
-    temp: '24.20',
-    pressure: '1007',
-    solar: '1600',
-    humidity: '71.5',
-    idealTempText: 'Ideal Temperature',
-    balancedPressureText: 'Balanced Air Pressure',
-    highSolarText: 'High Solar Intensity',
-    humidityNormalText: 'Humidity is normal',
-    chartAqiData: [68, 72, 77, 80, 82, 78, 76, 72, 74, 76, 77, 79, 77],
-    chartConcentrationData: {
-      so2: [22, 25, 27, 29, 31, 28, 26, 23, 24, 25, 26, 28, 27],
-      no2: [32, 35, 37, 39, 41, 38, 36, 33, 34, 35, 36, 38, 37],
-      co: [12, 15, 17, 19, 21, 18, 16, 13, 14, 15, 16, 18, 17],
-      pm10: [42, 45, 47, 49, 51, 48, 46, 43, 44, 45, 46, 48, 47],
-      pm25: [52, 55, 57, 59, 61, 58, 56, 53, 54, 55, 56, 58, 57],
-    },
-    tabular: [
-      { time: '24 Feb 2026 11:00', station: 'Fujairah Stadium', co: '0.22', co2: '02', o3: '32', no2: '08', so2: '01', pm25: '06', pm10: '14', ch4: '0.06', h2s: '01', nmhc: '0.9', temp: '23.80°C', hum: '72.8%', windSpd: '12 Km/h', windDir: '255° W' },
-      { time: '24 Feb 2026 11:05', station: 'Fujairah Stadium', co: '0.25', co2: '02', o3: '34', no2: '09', so2: '01', pm25: '07', pm10: '15', ch4: '0.07', h2s: '01', nmhc: '1.0', temp: '24.00°C', hum: '72.0%', windSpd: '13 Km/h', windDir: '258° W' },
-      { time: '24 Feb 2026 11:10', station: 'Fujairah Stadium', co: '0.28', co2: '03', o3: '36', no2: '11', so2: '02', pm25: '08', pm10: '17', ch4: '0.08', h2s: '02', nmhc: '1.1', temp: '24.20°C', hum: '71.5%', windSpd: '14 Km/h', windDir: '260° W' },
-      { time: '24 Feb 2026 11:15', station: 'Fujairah Stadium', co: '0.29', co2: '03', o3: '37', no2: '12', so2: '02', pm25: '08', pm10: '18', ch4: '0.09', h2s: '02', nmhc: '1.2', temp: '24.30°C', hum: '71.2%', windSpd: '15 Km/h', windDir: '263° W' },
-      { time: '24 Feb 2026 11:20', station: 'Fujairah Stadium', co: '0.30', co2: '04', o3: '38', no2: '13', so2: '03', pm25: '09', pm10: '19', ch4: '0.10', h2s: '03', nmhc: '1.3', temp: '24.40°C', hum: '70.8%', windSpd: '16 Km/h', windDir: '265° W' },
-      { time: '24 Feb 2026 11:25', station: 'Fujairah Stadium', co: '0.35', co2: '04', o3: '39', no2: '13', so2: '03', pm25: '09', pm10: '20', ch4: '0.11', h2s: '03', nmhc: '1.4', temp: '24.50°C', hum: '70.2%', windSpd: '16 Km/h', windDir: '262° W' },
-      { time: '24 Feb 2026 11:30', station: 'Fujairah Stadium', co: '0.40', co2: '05', o3: '40', no2: '14', so2: '04', pm25: '10', pm10: '21', ch4: '0.12', h2s: '04', nmhc: '1.5', temp: '24.60°C', hum: '69.5%', windSpd: '17 Km/h', windDir: '258° W' },
-      { time: '24 Feb 2026 11:35', station: 'Fujairah Stadium', co: '0.32', co2: '04', o3: '37', no2: '12', so2: '03', pm25: '09', pm10: '19', ch4: '0.10', h2s: '03', nmhc: '1.3', temp: '24.40°C', hum: '70.5%', windSpd: '15 Km/h', windDir: '261° W' },
-      { time: '24 Feb 2026 11:40', station: 'Fujairah Stadium', co: '0.26', co2: '03', o3: '35', no2: '10', so2: '02', pm25: '07', pm10: '16', ch4: '0.08', h2s: '02', nmhc: '1.1', temp: '24.10°C', hum: '71.5%', windSpd: '13 Km/h', windDir: '259° W' },
-      { time: '24 Feb 2026 11:45', station: 'Fujairah Stadium', co: '0.20', co2: '02', o3: '33', no2: '08', so2: '01', pm25: '06', pm10: '13', ch4: '0.07', h2s: '01', nmhc: '0.9', temp: '23.90°C', hum: '72.5%', windSpd: '11 Km/h', windDir: '256° W' },
-      { time: '24 Feb 2026 11:50', station: 'Fujairah Stadium', co: '0.18', co2: '02', o3: '32', no2: '07', so2: '01', pm25: '05', pm10: '12', ch4: '0.06', h2s: '01', nmhc: '0.8', temp: '23.80°C', hum: '72.8%', windSpd: '10 Km/h', windDir: '255° W' },
-      { time: '24 Feb 2026 11:55', station: 'Fujairah Stadium', co: '0.15', co2: '01', o3: '30', no2: '06', so2: '01', pm25: '05', pm10: '11', ch4: '0.05', h2s: '01', nmhc: '0.7', temp: '23.60°C', hum: '73.2%', windSpd: '09 Km/h', windDir: '254° W' }
-    ]
-  },
-  'Sakamkam': {
-    name: 'Sakamkam',
-    lat: 25.1050,
-    lng: 56.3450,
-    aqi: 180,
-    category: 'Unhealthy',
-    aqiColor: '#ef4444',
-    pm25: '35',
-    pm10: '58',
-    co: '1.2',
-    o3: '82',
-    no2: '38',
-    so2: '12',
-    co2: '10',
-    ch4: '0.4',
-    h2s: '08',
-    nmhc: '3.5',
-    windSpeed: '32',
-    windDirection: '330',
-    windUnit: 'Km/h',
-    windDirText: 'NW',
-    windPill: 'High wind warning',
-    temp: '28.10',
-    pressure: '998',
-    solar: '1950',
-    humidity: '85.2',
-    idealTempText: 'Extremely Hot',
-    balancedPressureText: 'Severe Low Pressure',
-    highSolarText: 'Extreme UV Danger',
-    humidityNormalText: 'Humidity is extremely high',
-    chartAqiData: [160, 165, 170, 175, 180, 172, 170, 164, 166, 168, 172, 176, 180],
-    chartConcentrationData: {
-      so2: [65, 68, 70, 72, 75, 70, 68, 65, 64, 66, 68, 70, 67],
-      no2: [85, 88, 90, 92, 95, 90, 88, 85, 84, 86, 88, 90, 87],
-      co: [50, 53, 55, 57, 60, 55, 53, 50, 49, 51, 53, 55, 52],
-      pm10: [95, 98, 100, 102, 105, 100, 98, 95, 94, 96, 98, 100, 97],
-      pm25: [105, 108, 110, 112, 115, 110, 108, 105, 104, 106, 108, 110, 107],
-    },
-    tabular: [
-      { time: '24 Feb 2026 11:00', station: 'Sakamkam', co: '1.00', co2: '08', o3: '75', no2: '32', so2: '09', pm25: '30', pm10: '50', ch4: '0.32', h2s: '06', nmhc: '3.0', temp: '27.40°C', hum: '86.5%', windSpd: '26 Km/h', windDir: '326° NW' },
-      { time: '24 Feb 2026 11:05', station: 'Sakamkam', co: '1.10', co2: '09', o3: '78', no2: '35', so2: '10', pm25: '32', pm10: '54', ch4: '0.35', h2s: '07', nmhc: '3.2', temp: '27.70°C', hum: '85.8%', windSpd: '29 Km/h', windDir: '328° NW' },
-      { time: '24 Feb 2026 11:10', station: 'Sakamkam', co: '1.20', co2: '10', o3: '82', no2: '38', so2: '12', pm25: '35', pm10: '58', ch4: '0.40', h2s: '08', nmhc: '3.5', temp: '28.10°C', hum: '85.2%', windSpd: '32 Km/h', windDir: '330° NW' },
-      { time: '24 Feb 2026 11:15', station: 'Sakamkam', co: '1.25', co2: '10', o3: '83', no2: '39', so2: '12', pm25: '35', pm10: '59', ch4: '0.41', h2s: '08', nmhc: '3.6', temp: '28.20°C', hum: '85.0%', windSpd: '33 Km/h', windDir: '332° NW' },
-      { time: '24 Feb 2026 11:20', station: 'Sakamkam', co: '1.30', co2: '11', o3: '85', no2: '40', so2: '13', pm25: '36', pm10: '60', ch4: '0.42', h2s: '09', nmhc: '3.8', temp: '28.30°C', hum: '84.8%', windSpd: '34 Km/h', windDir: '335° NW' },
-      { time: '24 Feb 2026 11:25', station: 'Sakamkam', co: '1.35', co2: '11', o3: '86', no2: '41', so2: '13', pm25: '36', pm10: '61', ch4: '0.43', h2s: '09', nmhc: '3.9', temp: '28.40°C', hum: '84.2%', windSpd: '35 Km/h', windDir: '332° NW' },
-      { time: '24 Feb 2026 11:30', station: 'Sakamkam', co: '1.40', co2: '12', o3: '88', no2: '42', so2: '14', pm25: '37', pm10: '62', ch4: '0.45', h2s: '10', nmhc: '4.0', temp: '28.50°C', hum: '83.5%', windSpd: '36 Km/h', windDir: '328° NW' },
-      { time: '24 Feb 2026 11:35', station: 'Sakamkam', co: '1.30', co2: '11', o3: '85', no2: '39', so2: '12', pm25: '35', pm10: '59', ch4: '0.41', h2s: '08', nmhc: '3.7', temp: '28.30°C', hum: '84.5%', windSpd: '33 Km/h', windDir: '331° NW' },
-      { time: '24 Feb 2026 11:40', station: 'Sakamkam', co: '1.20', co2: '10', o3: '81', no2: '36', so2: '11', pm25: '33', pm10: '55', ch4: '0.38', h2s: '07', nmhc: '3.4', temp: '28.00°C', hum: '85.2%', windSpd: '30 Km/h', windDir: '329° NW' },
-      { time: '24 Feb 2026 11:45', station: 'Sakamkam', co: '1.05', co2: '09', o3: '77', no2: '33', so2: '09', pm25: '31', pm10: '51', ch4: '0.34', h2s: '06', nmhc: '3.1', temp: '27.60°C', hum: '86.0%', windSpd: '27 Km/h', windDir: '327° NW' },
-      { time: '24 Feb 2026 11:50', station: 'Sakamkam', co: '1.00', co2: '08', o3: '75', no2: '32', so2: '09', pm25: '30', pm10: '50', ch4: '0.32', h2s: '06', nmhc: '3.0', temp: '27.40°C', hum: '86.5%', windSpd: '26 Km/h', windDir: '326° NW' },
-      { time: '24 Feb 2026 11:55', station: 'Sakamkam', co: '0.90', co2: '07', o3: '70', no2: '29', so2: '08', pm25: '27', pm10: '46', ch4: '0.28', h2s: '05', nmhc: '2.7', temp: '27.00°C', hum: '87.0%', windSpd: '24 Km/h', windDir: '324° NW' }
-    ]
-  }
+
+// AQMS history endpoints return long-format rows (one per parameter). These maps
+// pivot parameterName -> the per-row field names the table and charts consume.
+const AQ_HISTORY_FIELD = {
+  'PM2.5': 'pm25', 'PM10': 'pm10', 'CO': 'co', 'O3': 'o3', 'NO2': 'no2',
+  'SO2': 'so2', 'CO2': 'co2', 'CH4': 'ch4', 'H2S': 'h2s', 'NMHC': 'nmhc',
+};
+const WX_HISTORY_FIELD = {
+  'Temperature': 'temperature', 'Pressure': 'pressure', 'Solar Radiation': 'solar',
+  'Humidity': 'humidity', 'Wind Speed': 'windSpeed', 'Wind Direction': 'windDirection',
+};
+
+// Report wiring (mirrors DataCapture.jsx). Parameter name -> AQMS ParameterID and
+// chart-download menu label -> backend ReportFormat + file extension.
+const PARAM_ID_BY_NAME = { 'PM2.5': 1, 'PM10': 2, 'CO': 3, 'O3': 4, 'NO2': 5, 'SO2': 6, 'H2S': 9 };
+const FORMAT_BY_LABEL = { Export: 'XLSX', PDF: 'PDF', Word: 'DOCX' };
+const EXT_BY_FORMAT = { XLSX: 'xlsx', PDF: 'pdf', DOCX: 'docx' };
+
+// Map a station name/code to its "About Station" illustration, falling back to a
+// default asset when no station-specific image is bundled.
+const stationImageSrc = (stationCode, stationName) => {
+  const slug = String(stationCode || stationName || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return slug ? `/assets/AQMS/station-${slug}.jpg` : '/assets/AQMS/station-city-centre.jpg';
 };
 
 const MapController = ({ setMapInstance }) => {
@@ -505,6 +161,21 @@ const LiveData = () => {
       .replace(' SW', ' جنوب غرب')
       .replace(' SE', ' جنوب شرق');
   };
+
+  const [stationsData, setStationsData] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchLive = async () => {
+    try {
+      const data = await getAqmsStationsLive();
+      setStationsData(data);
+    } catch (_) {
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  usePolling(fetchLive, 60000);
 
   // Full Screen Chart Modal States & Zoom Reference
   const [modalChartType, setModalChartType] = useState('Line');
@@ -708,63 +379,163 @@ const LiveData = () => {
   const [selectedStations, setSelectedStations] = useState('City Centre');
   const [selectedDate, setSelectedDate] = useState('Live Data');
   const [selectedView, setSelectedView] = useState('Graph View');
-  
+
   // Custom date range states for LiveData page
   const [startDate, setStartDate] = useState('2026-02-01');
   const [endDate, setEndDate] = useState('2026-02-24');
-  const [currentPage, setCurrentPage] = useState(3);
+  const [currentPage, setCurrentPage] = useState(1);
+  const TABULAR_PAGE_SIZE = 25;
   const [activeAccordionIdx, setActiveAccordionIdx] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
+  const [tabularRows, setTabularRows] = useState([]);
 
-  const currentStation = stationsData[selectedStations] || stationsData['City Centre'];
+  // Full station metadata (stationCode + assignedParameters) keyed by station name,
+  // used for the About-Station panel and report generation.
+  const [stationMetaByName, setStationMetaByName] = useState({});
+  useEffect(() => {
+    let active = true;
+    getAqmsStations()
+      .then((list) => {
+        if (!active) return;
+        const map = {};
+        (list || []).forEach((s) => { if (s.name) map[s.name] = s; });
+        setStationMetaByName(map);
+      })
+      .catch(() => { /* About-Station panel falls back to static text */ });
+    return () => { active = false; };
+  }, []);
 
-  const pollutants = [
-    { icon: <img src="/assets/AQMS/pollutants/PM2.5.png" alt="PM2.5" className="p-icon" />, name: 'PM2.5', val: currentStation.pm25, unit: '\u00B5g/m\u00B3', statusColor: currentStation.aqiColor },
-    { icon: <img src="/assets/AQMS/pollutants/PM10.png" alt="PM10" className="p-icon" />, name: 'PM10', val: currentStation.pm10, unit: '\u00B5g/m\u00B3', statusColor: currentStation.aqiColor },
-    { icon: <img src="/assets/AQMS/pollutants/CO.png" alt="CO" className="p-icon" />, name: 'CO', val: currentStation.co, unit: 'ppb', statusColor: '#84cc16' },
-    { icon: <img src="/assets/AQMS/pollutants/o3.png" alt="O3" className="p-icon" />, name: 'O\u2083', val: currentStation.o3, unit: 'ppb', statusColor: currentStation.aqiColor },
-    { icon: <img src="/assets/AQMS/pollutants/No2.png" alt="NO2" className="p-icon" />, name: 'NO\u2082', val: currentStation.no2, unit: 'ppb', statusColor: currentStation.aqiColor },
-    { icon: <img src="/assets/AQMS/pollutants/So2.png" alt="SO2" className="p-icon" />, name: 'SO\u2082', val: currentStation.so2, unit: 'ppb', statusColor: currentStation.aqiColor },
-    { icon: <img src="/assets/AQMS/pollutants/Co2.png" alt="CO2" className="p-icon" />, name: 'CO\u2082', val: currentStation.co2, unit: 'ppm', statusColor: currentStation.aqiColor },
-    { icon: <img src="/assets/AQMS/pollutants/Ch4.png" alt="CH4" className="p-icon" />, name: 'CH\u2084', val: currentStation.ch4, unit: 'ppb', statusColor: currentStation.aqiColor },
-    { icon: <img src="/assets/AQMS/pollutants/H2o.png" alt="H2S" className="p-icon" />, name: 'H\u2082S', val: currentStation.h2s, unit: 'ppm', statusColor: currentStation.aqiColor },
-  ];
+  // Real AQI history for the "Last 24hrs Air Quality Index" chart (ascending order).
+  const [aqiHistory, setAqiHistory] = useState([]); // [{observationTime, aqi}]
 
-  const tabularData = {
-    1: currentStation.tabular,
-    2: currentStation.tabular.map((r, i) => ({
-      ...r,
-      time: r.time.replace('11:', '10:'),
-      co: (parseFloat(r.co) * 0.95).toFixed(2),
-      o3: Math.round(parseFloat(r.o3) * 0.95),
-      pm25: String(Math.round(parseInt(r.pm25) * 0.95)).padStart(2, '0')
-    })),
-    3: currentStation.tabular.map((r, i) => ({
-      ...r,
-      time: r.time.replace('11:', '09:'),
-      co: (parseFloat(r.co) * 0.9).toFixed(2),
-      o3: Math.round(parseFloat(r.o3) * 0.9),
-      pm25: String(Math.round(parseInt(r.pm25) * 0.9)).padStart(2, '0')
-    })),
-    4: currentStation.tabular.map((r, i) => ({
-      ...r,
-      time: r.time.replace('11:', '08:'),
-      co: (parseFloat(r.co) * 1.05).toFixed(2),
-      o3: Math.round(parseFloat(r.o3) * 1.05),
-      pm25: String(Math.round(parseInt(r.pm25) * 1.05)).padStart(2, '0')
-    })),
-    5: currentStation.tabular.map((r, i) => ({
-      ...r,
-      time: r.time.replace('11:', '07:'),
-      co: (parseFloat(r.co) * 1.1).toFixed(2),
-      o3: Math.round(parseFloat(r.o3) * 1.1),
-      pm25: String(Math.round(parseInt(r.pm25) * 1.1)).padStart(2, '0')
-    }))
-  };
+  // Live-updating header date/time (replaces previously hard-coded value)
+  const [currentDateTime, setCurrentDateTime] = useState('');
+  useEffect(() => {
+    const formatNow = () => {
+      const now = new Date();
+      const datePart = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const timePart = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      return `${datePart} ${timePart}`;
+    };
+    setCurrentDateTime(formatNow());
+    const interval = setInterval(() => setCurrentDateTime(formatNow()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const stationNames = Object.keys(stationsData);
+  const currentStation = stationsData[selectedStations] || stationsData[stationNames[0]] || null;
+
+  useEffect(() => {
+    if (!currentStation) return;
+    const getRange = () => {
+      const now = new Date();
+      if (selectedDate === 'Live Data') {
+        return { startTime: new Date(now - 3600000).toISOString(), endTime: now.toISOString() };
+      }
+      if (selectedDate === 'Last 24 Hours') {
+        return { startTime: new Date(now - 86400000).toISOString(), endTime: now.toISOString() };
+      }
+      return {
+        startTime: new Date(startDate + 'T00:00:00Z').toISOString(),
+        endTime: new Date(endDate + 'T23:59:59Z').toISOString(),
+      };
+    };
+    const { startTime, endTime } = getRange();
+    const sid = currentStation.id;
+    Promise.all([
+      getAqmsAirQualityHistory({ stationId: sid, startTime, endTime, limit: 1000 }),
+      getAqmsWeatherHistory({ stationId: sid, startTime, endTime, limit: 1000 }),
+    ]).then(([aqRows, wxRows]) => {
+      // Both responses are long-format (one row per parameter). Pivot into a
+      // single wide record per timestamp, keyed by observationTime.
+      const byTime = {};
+      const ensure = (ts) => (byTime[ts] ||= { observationTime: ts });
+      (aqRows || []).forEach((r) => {
+        const f = AQ_HISTORY_FIELD[r.parameterName];
+        if (f) ensure(r.observationTime)[f] = r.value;
+      });
+      (wxRows || []).forEach((r) => {
+        const f = WX_HISTORY_FIELD[r.parameterName];
+        if (f) ensure(r.observationTime)[f] = r.value;
+      });
+
+      const conc = (v) => (v != null && v !== '' ? String(Math.round(Number(v) * 100) / 100) : '-');
+      const met1 = (v) => (v != null && v !== '' ? Math.round(Number(v) * 10) / 10 : null);
+
+      const rows = Object.values(byTime)
+        .sort((a, b) => new Date(b.observationTime) - new Date(a.observationTime))
+        .map((rec) => {
+          const ts = new Date(rec.observationTime);
+          const timeStr = ts.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const temp = met1(rec.temperature);
+          const hum = met1(rec.humidity);
+          const windSpd = met1(rec.windSpeed);
+          const windDir = rec.windDirection != null ? Math.round(Number(rec.windDirection)) : null;
+          return {
+            time: timeStr,
+            station: currentStation.name || selectedStations,
+            co: conc(rec.co),
+            co2: conc(rec.co2),
+            o3: conc(rec.o3),
+            no2: conc(rec.no2),
+            so2: conc(rec.so2),
+            pm25: conc(rec.pm25),
+            pm10: conc(rec.pm10),
+            ch4: conc(rec.ch4),
+            h2s: conc(rec.h2s),
+            nmhc: conc(rec.nmhc),
+            temp: temp != null ? `${temp}\u00B0C` : '-',
+            hum: hum != null ? `${hum}%` : '-',
+            windSpd: windSpd != null ? `${windSpd} Km/h` : '-',
+            windDir: windDir != null ? `${windDir}\u00B0` : '-',
+          };
+        });
+      setTabularRows(rows);
+    }).catch(() => setTabularRows([]));
+  }, [selectedStations, selectedDate, startDate, endDate, currentStation]);
+
+  // Fetch real AQI time-series for the AQI chart (separate endpoint from the
+  // pollutant/weather history above). Sorted ascending for left-to-right plotting.
+  useEffect(() => {
+    if (!currentStation) return;
+    const now = new Date();
+    let startTime;
+    if (selectedDate === 'Live Data') startTime = new Date(now - 3600000);
+    else if (selectedDate === 'Last 24 Hours') startTime = new Date(now - 86400000);
+    else startTime = new Date(startDate + 'T00:00:00Z');
+    const endTime = selectedDate === 'Live Data' || selectedDate === 'Last 24 Hours'
+      ? now
+      : new Date(endDate + 'T23:59:59Z');
+
+    getAqmsAirQualityIndexHistory({
+      stationId: currentStation.id,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      limit: 1000,
+    })
+      .then((rows) => {
+        const sorted = (rows || [])
+          .filter((r) => r.aqi != null && r.observationTime)
+          .sort((a, b) => new Date(a.observationTime) - new Date(b.observationTime));
+        setAqiHistory(sorted);
+      })
+      .catch(() => setAqiHistory([]));
+  }, [selectedStations, selectedDate, startDate, endDate, currentStation]);
+
+  const pollutants = currentStation ? [
+    { icon: <img src="/assets/AQMS/pollutants/PM2.5.png" alt="PM2.5" className="p-icon" />, name: 'PM2.5', val: currentStation.pm25 != null ? String(currentStation.pm25) : '-', unit: '\u00B5g/m\u00B3', statusColor: currentStation.aqiColor || '#84cc16' },
+    { icon: <img src="/assets/AQMS/pollutants/PM10.png" alt="PM10" className="p-icon" />, name: 'PM10', val: currentStation.pm10 != null ? String(currentStation.pm10) : '-', unit: '\u00B5g/m\u00B3', statusColor: currentStation.aqiColor || '#84cc16' },
+    { icon: <img src="/assets/AQMS/pollutants/CO.png" alt="CO" className="p-icon" />, name: 'CO', val: currentStation.co != null ? String(currentStation.co) : '-', unit: 'ppb', statusColor: '#84cc16' },
+    { icon: <img src="/assets/AQMS/pollutants/o3.png" alt="O3" className="p-icon" />, name: 'O\u2083', val: currentStation.o3 != null ? String(currentStation.o3) : '-', unit: 'ppb', statusColor: currentStation.aqiColor || '#84cc16' },
+    { icon: <img src="/assets/AQMS/pollutants/No2.png" alt="NO2" className="p-icon" />, name: 'NO\u2082', val: currentStation.no2 != null ? String(currentStation.no2) : '-', unit: 'ppb', statusColor: currentStation.aqiColor || '#84cc16' },
+    { icon: <img src="/assets/AQMS/pollutants/So2.png" alt="SO2" className="p-icon" />, name: 'SO\u2082', val: currentStation.so2 != null ? String(currentStation.so2) : '-', unit: 'ppb', statusColor: currentStation.aqiColor || '#84cc16' },
+    { icon: <img src="/assets/AQMS/pollutants/Co2.png" alt="CO2" className="p-icon" />, name: 'CO\u2082', val: currentStation.co2 != null ? String(currentStation.co2) : '-', unit: 'ppm', statusColor: currentStation.aqiColor || '#84cc16' },
+    { icon: <img src="/assets/AQMS/pollutants/Ch4.png" alt="CH4" className="p-icon" />, name: 'CH\u2084', val: currentStation.ch4 != null ? String(currentStation.ch4) : '-', unit: 'ppb', statusColor: currentStation.aqiColor || '#84cc16' },
+    { icon: <img src="/assets/AQMS/pollutants/H2o.png" alt="H2S" className="p-icon" />, name: 'H\u2082S', val: currentStation.h2s != null ? String(currentStation.h2s) : '-', unit: 'ppm', statusColor: currentStation.aqiColor || '#84cc16' },
+  ] : [];
 
   const getSortedTabularData = () => {
-    const rawData = tabularData[currentPage] || [];
-    const sorted = [...rawData];
+    const sorted = [...tabularRows];
     sorted.sort((a, b) => {
       const dateA = new Date(a.time);
       const dateB = new Date(b.time);
@@ -772,6 +543,18 @@ const LiveData = () => {
     });
     return sorted;
   };
+
+  // Client-side pagination over the (sorted) tabular rows.
+  const sortedTabularData = getSortedTabularData();
+  const tabularTotalPages = Math.max(1, Math.ceil(sortedTabularData.length / TABULAR_PAGE_SIZE));
+  const tabularSafePage = Math.min(currentPage, tabularTotalPages);
+  const tabularPageRows = sortedTabularData.slice(
+    (tabularSafePage - 1) * TABULAR_PAGE_SIZE,
+    tabularSafePage * TABULAR_PAGE_SIZE
+  );
+  const tabularPageWindow = Array.from({ length: tabularTotalPages }, (_, i) => i + 1)
+    .filter((n) => Math.abs(n - tabularSafePage) <= 2)
+    .slice(0, 5);
 
   const toggleDateSort = () => {
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -796,16 +579,59 @@ const LiveData = () => {
   const [expandedChart, setExpandedChart] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
-  const handleDownload = (chartName, format) => {
+  // Generate a Basic Data Export report on the backend for the current station +
+  // selected parameters/date range, then download the chosen format as a blob.
+  const handleDownload = async (chartName, formatLabel) => {
     setAqiDownloadOpen(false);
     setConcDownloadOpen(false);
-    setToastMessage(`Exporting ${chartName} as ${format}...`);
-    setTimeout(() => {
-      setToastMessage(`${chartName} successfully saved as ${format}!`);
-      setTimeout(() => {
-        setToastMessage(null);
-      }, 2000);
-    }, 1200);
+    const fmt = FORMAT_BY_LABEL[formatLabel] || formatLabel;
+
+    if (!currentStation?.id) {
+      setToastMessage('No station selected.');
+      setTimeout(() => setToastMessage(null), 2500);
+      return;
+    }
+
+    const stationIds = [currentStation.id];
+    const parameterIds = selectedParams.map((n) => PARAM_ID_BY_NAME[n]).filter(Boolean);
+    if (parameterIds.length === 0) {
+      setToastMessage('Select at least one parameter.');
+      setTimeout(() => setToastMessage(null), 2500);
+      return;
+    }
+
+    const now = new Date();
+    const start = selectedDate === 'Live Data'
+      ? new Date(now - 86400000)
+      : new Date(startDate + 'T00:00:00Z');
+    const end = selectedDate === 'Live Data' ? now : new Date(endDate + 'T23:59:59Z');
+
+    setToastMessage(`Exporting ${chartName} as ${formatLabel}...`);
+    try {
+      const report = await generateReport({
+        module: 'AQMS',
+        reportType: 'basic_data_export',
+        stationIds,
+        parameterIds,
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+        formats: [fmt],
+      });
+      const blob = await downloadReportFile(report.id, fmt);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${chartName.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${report.id}.${EXT_BY_FORMAT[fmt] || 'dat'}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      setToastMessage(`${chartName} successfully saved as ${formatLabel}!`);
+    } catch (err) {
+      setToastMessage(err?.response?.data?.error?.message || `Failed to export ${chartName}.`);
+    } finally {
+      setTimeout(() => setToastMessage(null), 2500);
+    }
   };
 
   /* ── Highcharts Settings: Last 24hrs Air Quality Index ── */
@@ -819,7 +645,9 @@ const LiveData = () => {
     },
     title: { text: null },
     xAxis: {
-      categories: ['1:00PM', '2:00PM', '3:00PM', '4:00PM', '5:00PM', '6:00PM', '7:00PM', '8:00PM', '9:00PM', '10:00PM', '11:00PM', '12:00PM', '1:00AM'],
+      categories: aqiHistory.map((r) =>
+        new Date(r.observationTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true })
+      ),
       gridLineWidth: 0,
       lineColor: 'rgba(0,0,0,0.06)',
       labels: {
@@ -854,11 +682,9 @@ const LiveData = () => {
         return `
           <div style="font-family:'Roboto',sans-serif; text-align:center; padding:2px;">
             <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
-              <span style="width:10px; height:10px; background:${currentStation.aqiColor}; border-radius:50%; display:inline-block;"></span>
+              <span style="width:10px; height:10px; background:${currentStation ? currentStation.aqiColor : '#84cc16'}; border-radius:50%; display:inline-block;"></span>
               <strong style="color:#111; font-size:0.875rem;">${this.y} AQI</strong>
-              <span style="color:#6b7280; font-size:0.75rem; margin-left:4px;">20 Feb, 2:00PM</span>
             </div>
-            <div style="color:#6b7280; font-size:0.72rem; font-weight:500;">PM10 - 50 ug/m³</div>
           </div>
         `;
       }
@@ -866,11 +692,11 @@ const LiveData = () => {
     plotOptions: {
       spline: {
         lineWidth: 3,
-        color: currentStation.aqiColor,
+        color: currentStation ? currentStation.aqiColor : '#84cc16',
         marker: {
           enabled: true,
           radius: 4,
-          fillColor: currentStation.aqiColor,
+          fillColor: currentStation ? currentStation.aqiColor : '#84cc16',
           lineWidth: 2,
           lineColor: '#ffffff'
         },
@@ -879,7 +705,10 @@ const LiveData = () => {
     },
     series: [{
       name: 'AQI Index',
-      data: currentStation.chartAqiData
+      data: aqiHistory.map((r) => {
+        const v = parseFloat(r.aqi);
+        return isNaN(v) ? null : v;
+      })
     }]
   };
 
@@ -894,7 +723,7 @@ const LiveData = () => {
     },
     title: { text: null },
     xAxis: {
-      categories: ['1:00PM', '2:00PM', '3:00PM', '4:00PM', '5:00PM', '6:00PM', '7:00PM', '8:00PM', '9:00PM', '10:00PM', '11:00PM', '12:00PM'],
+      categories: tabularRows.map((r) => r.time),
       gridLineWidth: 0,
       lineColor: 'rgba(0,0,0,0.06)',
       labels: {
@@ -904,8 +733,6 @@ const LiveData = () => {
     },
     yAxis: {
       min: 0,
-      max: 250,
-      tickInterval: 50,
       title: {
         text: 'CO(mg/m³)   ug/m³',
         style: { color: '#6b7280', fontSize: '0.72rem', fontWeight: '600' }
@@ -931,11 +758,11 @@ const LiveData = () => {
       }
     },
     series: [
-      { name: 'SO2',   data: currentStation.chartConcentrationData.so2, color: '#3b82f6' },
-      { name: 'NO2',   data: currentStation.chartConcentrationData.no2, color: '#0ea5e9' },
-      { name: 'CO',    data: currentStation.chartConcentrationData.co, color: '#0f766e' },
-      { name: 'PM10',  data: currentStation.chartConcentrationData.pm10, color: '#0d9488' },
-      { name: 'PM2.5', data: currentStation.chartConcentrationData.pm25, color: '#06b6d4' }
+      { name: 'SO2',   data: tabularRows.map((r) => { const v = parseFloat(r.so2); return isNaN(v) ? null : v; }), color: '#3b82f6' },
+      { name: 'NO2',   data: tabularRows.map((r) => { const v = parseFloat(r.no2); return isNaN(v) ? null : v; }), color: '#0ea5e9' },
+      { name: 'CO',    data: tabularRows.map((r) => { const v = parseFloat(r.co); return isNaN(v) ? null : v; }), color: '#0f766e' },
+      { name: 'PM10',  data: tabularRows.map((r) => { const v = parseFloat(r.pm10); return isNaN(v) ? null : v; }), color: '#0d9488' },
+      { name: 'PM2.5', data: tabularRows.map((r) => { const v = parseFloat(r.pm25); return isNaN(v) ? null : v; }), color: '#06b6d4' }
     ].filter(s => selectedParams.includes(s.name))
   };
 
@@ -975,6 +802,22 @@ const LiveData = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: '#009fac', fontSize: '1rem', fontWeight: '600' }}>
+        Loading stations...
+      </div>
+    );
+  }
+
+  if (stationNames.length === 0) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: '#6b7280', fontSize: '1rem' }}>
+        No station data available.
+      </div>
+    );
+  }
+
   return (
     <div className="aqms-live-data-container">
       {/* ── PAGE HEADER ─────────────────────────────────── */}
@@ -983,12 +826,12 @@ const LiveData = () => {
           {selectedView === 'Tabular View' ? (
             <>
               <h1 className="tabular-title">Tabular Form</h1>
-              <p className="tabular-date">24 Feb 2026 11:30:42</p>
+              <p className="tabular-date">{translateDateTime(currentDateTime)}</p>
             </>
           ) : (
             <>
               <h1>{t('live.title')}</h1>
-              <p className="header-date">24 Feb 2026 11:30:42</p>
+              <p className="header-date">{translateDateTime(currentDateTime)}</p>
             </>
           )}
         </div>
@@ -1072,7 +915,7 @@ const LiveData = () => {
                   
                   {activeSubMenu === 'location' && (
                     <div className="popover-sub-menu" onClick={(e) => e.stopPropagation()}>
-                      {["City Centre", "Mobile Station", "Qidfa", "Lafarge Cems", "Fujairah Port", "Fujairah Stadium", "Sakamkam"].map(option => {
+                      {stationNames.map(option => {
                         let label = t(`live.${option.toLowerCase().replace(' ', '_')}`, option);
                         return (
                           <div 
@@ -1232,7 +1075,7 @@ const LiveData = () => {
           <div className="tabular-card">
             {/* Mobile View: Responsive Accordion Cards */}
             <div className="tabular-mobile-accordion-list">
-              {getSortedTabularData().map((row, idx) => {
+              {tabularPageRows.map((row, idx) => {
                 const isExpanded = activeAccordionIdx === idx;
                 return (
                   <div 
@@ -1324,7 +1167,7 @@ const LiveData = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {getSortedTabularData().map((row, idx) => (
+                  {tabularPageRows.map((row, idx) => (
                     <tr key={idx}>
                       <td>{translateDateTime(row.time)}</td>
                       <td>{t(`live.${row.station.toLowerCase().replace(' ', '_')}`, row.station)}</td>
@@ -1349,26 +1192,26 @@ const LiveData = () => {
             </div>
             
             <div className="tabular-pagination-container">
-              <button 
+              <button
                 className="tab-page-btn"
-                disabled={currentPage === 1}
+                disabled={tabularSafePage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               >
                 &lt;
               </button>
-              {[1, 2, 3, 4, 5].map(pageNum => (
-                <button 
+              {tabularPageWindow.map(pageNum => (
+                <button
                   key={pageNum}
-                  className={`tab-page-btn ${currentPage === pageNum ? 'active' : ''}`}
+                  className={`tab-page-btn ${tabularSafePage === pageNum ? 'active' : ''}`}
                   onClick={() => setCurrentPage(pageNum)}
                 >
                   {pageNum}
                 </button>
               ))}
-              <button 
+              <button
                 className="tab-page-btn"
-                disabled={currentPage === 5}
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, 5))}
+                disabled={tabularSafePage === tabularTotalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, tabularTotalPages))}
               >
                 &gt;
               </button>
@@ -1408,10 +1251,15 @@ const LiveData = () => {
                 {/* Station image */}
                 <div className="about-station-img-wrap">
                   <img
-                    src="/assets/AQMS/station-city-centre.jpg"
+                    src={stationImageSrc(stationMetaByName[selectedStations]?.stationCode, selectedStations)}
                     alt="Station Illustration"
                     className="about-station-img"
-                    onError={e => { e.target.style.background='#c8e6ea'; e.target.removeAttribute('src'); }}
+                    onError={e => {
+                      // Fall back to the default station illustration, then to a flat tint.
+                      if (e.target.dataset.fallback) { e.target.style.background = '#c8e6ea'; e.target.removeAttribute('src'); return; }
+                      e.target.dataset.fallback = '1';
+                      e.target.src = '/assets/AQMS/station-city-centre.jpg';
+                    }}
                   />
                   <div className="about-station-img-label">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '4px' }}>
@@ -1427,7 +1275,9 @@ const LiveData = () => {
                   <div className="about-param-block">
                     <div className="about-param-title">AQ Parameters:</div>
                     <div className="about-param-text">
-                      PM10, PM2.5, NO₂, SO₂, H₂S, Total Hydrocarbons (THC), CO, Benzene, Toluene, Ethylbenzene, and Xylene.
+                      {stationMetaByName[selectedStations]?.assignedParameters?.length
+                        ? stationMetaByName[selectedStations].assignedParameters.map((p) => p.name).join(', ')
+                        : 'PM10, PM2.5, NO₂, SO₂, H₂S, Total Hydrocarbons (THC), CO, Benzene, Toluene, Ethylbenzene, and Xylene.'}
                     </div>
                   </div>
                   <div className="about-param-block">
@@ -1513,18 +1363,18 @@ const LiveData = () => {
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, zIndex: 1, position: 'relative' }}>
             <div className="wind-section">
               <div className="wind-label">{t('live.wind_speed')}</div>
-              <div className="wind-val">{currentStation.windSpeed} <span className="wind-unit">{currentStation.windUnit}</span></div>
+              <div className="wind-val">{currentStation.windSpeed ?? '-'} <span className="wind-unit">Km/h</span></div>
             </div>
 
             <div className="wind-divider" />
 
             <div className="wind-section">
               <div className="wind-label">{t('live.wind_direction')}</div>
-              <div className="wind-val">{currentStation.windDirection}{'\u00BA'} <span className="wind-unit">{currentStation.windDirText}</span></div>
+              <div className="wind-val">{currentStation.windDirection != null ? `${currentStation.windDirection}\u00B0` : '-'} <span className="wind-unit">{currentStation.windDirText || ''}</span></div>
             </div>
           </div>
 
-          <div className="wind-pill" style={{ zIndex: 1, position: 'relative' }}>{t(`live.${currentStation.windPill.toLowerCase().replace(/ /g, '_')}`, currentStation.windPill)}</div>
+          <div className="wind-pill" style={{ zIndex: 1, position: 'relative' }}>{currentStation.windDirText || '-'}</div>
         </div>
 
         {/* Environmental Grid (2x2) */}
@@ -1534,8 +1384,8 @@ const LiveData = () => {
             <div className="env-card-title">{t('live.temperature')}</div>
             <div className="env-card-content">
               <div className="env-card-info">
-                <div className="env-card-value">{currentStation.temp}<span className="env-card-unit">{'\u00BAC'}</span></div>
-                <div className="env-card-desc">{t(`live.${currentStation.idealTempText.toLowerCase().replace(/ /g, '_')}`, currentStation.idealTempText)}</div>
+                <div className="env-card-value">{currentStation.temp ?? '-'}<span className="env-card-unit">{'\u00B0C'}</span></div>
+                <div className="env-card-desc">{t('live.ideal_temperature', 'Ideal Temperature')}</div>
               </div>
               <img className="env-card-3d-icon" src="/assets/AQMS/icons/Temperature.png" alt="Temperature" />
             </div>
@@ -1546,8 +1396,8 @@ const LiveData = () => {
             <div className="env-card-title">{t('live.atmospheric_pressure')}</div>
             <div className="env-card-content">
               <div className="env-card-info">
-                <div className="env-card-value">{currentStation.pressure}<span className="env-card-unit">mbar</span></div>
-                <div className="env-card-desc">{t(`live.${currentStation.balancedPressureText.toLowerCase().replace(/ /g, '_')}`, currentStation.balancedPressureText)}</div>
+                <div className="env-card-value">{currentStation.pressure ?? '-'}<span className="env-card-unit">mbar</span></div>
+                <div className="env-card-desc">{t('live.balanced_air_pressure', 'Balanced Air Pressure')}</div>
               </div>
               <img className="env-card-3d-icon" src="/assets/AQMS/icons/Atmospheric.png" alt="Atmospheric Pressure" />
             </div>
@@ -1558,8 +1408,8 @@ const LiveData = () => {
             <div className="env-card-title">{t('live.solar_radiation')}</div>
             <div className="env-card-content">
               <div className="env-card-info">
-                <div className="env-card-value">{currentStation.solar}<span className="env-card-unit">w/m{'\u00B2'}</span></div>
-                <div className="env-card-desc">{t(`live.${currentStation.highSolarText.toLowerCase().replace(/ /g, '_')}`, currentStation.highSolarText)}</div>
+                <div className="env-card-value">{currentStation.solar ?? '-'}<span className="env-card-unit">w/m{'\u00B2'}</span></div>
+                <div className="env-card-desc">{t('live.high_solar_radiation', 'High Solar Radiation')}</div>
               </div>
               <img className="env-card-3d-icon" src="/assets/AQMS/icons/Solar.png" alt="Solar Radiation" />
             </div>
@@ -1570,8 +1420,8 @@ const LiveData = () => {
             <div className="env-card-title">{t('live.relative_humidity')}</div>
             <div className="env-card-content">
               <div className="env-card-info">
-                <div className="env-card-value">{currentStation.humidity}<span className="env-card-unit">%</span></div>
-                <div className="env-card-desc">{t(`live.${currentStation.humidityNormalText.toLowerCase().replace(/ /g, '_')}`, currentStation.humidityNormalText)}</div>
+                <div className="env-card-value">{currentStation.humidity ?? '-'}<span className="env-card-unit">%</span></div>
+                <div className="env-card-desc">{t('live.humidity_normal', 'Humidity Normal')}</div>
               </div>
               <img className="env-card-3d-icon" src="/assets/AQMS/icons/Humidity.png" alt="Relative Humidity" />
             </div>

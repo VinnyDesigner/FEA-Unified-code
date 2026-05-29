@@ -1,0 +1,24 @@
+{
+  "_fixture_source": "LiveData.jsx stationsData weather fields (lines 103-115): windSpeed, windDirection, windUnit, windDirText, temp, pressure, solar, humidity",
+  "_endpoint": "GET /api/v1/aqms/weather/latest",
+  "_fe_fields_used": ["stationId", "recordedAt", "temperature", "pressure", "solar", "humidity", "windSpeed", "windDirection", "windDirText"],
+  "_divergences": [
+    "FE uses 'temp' key (line 107) but plan normalizes to 'temperature' (schema field AqmsWeatherSample.temperature)",
+    "FE renders 'windPill' (line 107) which is a display string derived from windSpeed — not returned by API, FE computes it"
+  ],
+  "happy": [
+    {
+      "id": "TODO_bigint_as_string",
+      "stationId": "TODO_cuid",
+      "recordedAt": "2026-05-27T10:00:00.000Z",
+      "temperature": 24.59,
+      "pressure": 1008.0,
+      "solar": 1632.0,
+      "humidity": 72.2,
+      "windSpeed": 16.0,
+      "windDirection": 267.0,
+      "windDirText": "W"
+    }
+  ],
+  "_required_keys": ["id", "stationId", "recordedAt", "temperature", "pressure", "solar", "humidity", "windSpeed", "windDirection", "windDirText"]
+}

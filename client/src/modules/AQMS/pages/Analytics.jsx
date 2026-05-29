@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, ZoomIn, ZoomOut, Search, Hand, Home, Printer, ArrowLeft, ArrowRight } from 'lucide-react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getAqmsStations, getAqmsAirQualityHistory, getAqmsWeatherHistory } from '../../../lib/queries';
 
 // Robust unwrapper for legacy CommonJS highcharts-react-official wrapper in React 19/Vite ESM
 const HighchartsReactComponent = (() => {
@@ -25,7 +26,14 @@ const STATION_COLORS = {
   'City Centre': '#00b8c8',
   'Mobile Station': '#f59e0b',
   'Qidfa': '#10b981',
-  'Lafarge Cems': '#ec4899'
+  'Lafarge Cems': '#ec4899',
+  'Lafarge CEMS': '#ec4899',
+};
+
+const PARAM_FIELD_MAP = {
+  'SO2': 'so2', 'NO2': 'no2', 'CO': 'co', 'PM10': 'pm10', 'PM2.5': 'pm25',
+  'O3': 'o3', 'CO2': 'co2', 'CH4': 'ch4', 'H2S': 'h2s', 'NMHC': 'nmhc',
+  'Temperature': 'temperature', 'Humidity': 'humidity', 'Wind Speed': 'windSpeed',
 };
 
 const getParamUnit = (param) => {
@@ -37,23 +45,6 @@ const getParamUnit = (param) => {
   return units[param] || 'ppb';
 };
 
-const generateChartData = (station, parameter) => {
-  const seed = (station.charCodeAt(0) || 1) + (parameter.charCodeAt(0) || 1);
-  const baseMap = {
-    'SO2': 15, 'NO2': 25, 'CO': 0.4, 'PM10': 45, 'PM2.5': 20,
-    'CO2': 400, 'O3': 35, 'CH4': 1.8, 'H2S': 2, 'NMHC': 1.2,
-    'Temperature': 26, 'Humidity': 65, 'Wind Speed': 12
-  };
-  const base = baseMap[parameter] || 15;
-  const fluctuation = base * 0.4;
-  
-  const data = [];
-  for (let i = 0; i < 25; i++) {
-    const val = base + Math.sin((i + seed) * 0.5) * fluctuation + Math.cos((i * 2 + seed) * 0.3) * (fluctuation * 0.3);
-    data.push(parseFloat(val.toFixed(parameter === 'CO' || parameter === 'CH4' || parameter === 'NMHC' ? 2 : 1)));
-  }
-  return data;
-};
 
 const Analytics = () => {
   const { lang, t } = useLanguage();
@@ -80,15 +71,20 @@ const Analytics = () => {
   const [activeSubMenu, setActiveSubMenu] = useState(null);
 
   // Set highly comparative initial states as requested
-  const [selectedStations, setSelectedStations] = useState(['City Centre', 'Mobile Station', 'Qidfa']);
+  const [selectedStations, setSelectedStations] = useState([]);
+  // Tracks whether we've already applied the default selection after stations load.
+  const [stationsInitialized, setStationsInitialized] = useState(false);
   const [selectedDate, setSelectedDate] = useState('Today');
   const [selectedView, setSelectedView] = useState('Graphical View');
   const [selectedParams, setSelectedParams] = useState(['SO2', 'NO2', 'CO', 'PM10', 'PM2.5']);
   
-  // Custom date range states
-  const [startDate, setStartDate] = useState('2026-02-01');
+  // Custom date range states (default to the last 7 days)
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date(Date.now() - 7 * 86400 * 1000);
+    return d.toISOString().slice(0, 10);
+  });
   const [customDateOpen, setCustomDateOpen] = useState(false);
-  const [endDate, setEndDate] = useState('2026-02-24');
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [activeAccordionIdx, setActiveAccordionIdx] = useState(null);
 
   // Full Screen Chart Modal States
@@ -102,8 +98,95 @@ const Analytics = () => {
   const [modalShowAnimation, setModalShowAnimation] = useState(true);
   const [activeTool, setActiveTool] = useState('zoom'); // 'zoom', 'pan', 'select'
   const [sortOrder, setSortOrder] = useState('asc');
+  const [tabularPage, setTabularPage] = useState(1);
   
   const chartRef = useRef(null);
+
+  const [stationsList, setStationsList] = useState([]);
+  const [historyByStation, setHistoryByStation] = useState({});
+
+  // Live-updating header date/time (replaces previously hard-coded value)
+  const [currentDateTime, setCurrentDateTime] = useState('');
+  useEffect(() => {
+    const formatNow = () => {
+      const now = new Date();
+      const datePart = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const timePart = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      return `${datePart} ${timePart}`;
+    };
+    setCurrentDateTime(formatNow());
+    const interval = setInterval(() => setCurrentDateTime(formatNow()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    getAqmsStations().then(setStationsList).catch(() => {});
+  }, []);
+
+  // Default the selected stations to the first N real stations once loaded.
+  useEffect(() => {
+    if (stationsInitialized || stationsList.length === 0) return;
+    const names = stationsList.map((s) => s.name).filter(Boolean);
+    setSelectedStations(names.slice(0, 3));
+    setStationsInitialized(true);
+  }, [stationsList, stationsInitialized]);
+
+  // Station names available in the filter dropdown (driven by real stations).
+  const stationNameOptions = stationsList.map((s) => s.name).filter(Boolean);
+
+  useEffect(() => {
+    if (stationsList.length === 0) return;
+    const getRange = () => {
+      const now = new Date();
+      if (selectedDate === 'Today') return { startTime: new Date(now.setHours(0, 0, 0, 0)).toISOString(), endTime: new Date().toISOString() };
+      if (selectedDate === 'Daily') return { startTime: new Date(now - 86400000).toISOString(), endTime: new Date().toISOString() };
+      if (selectedDate === 'Monthly') return { startTime: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(), endTime: new Date().toISOString() };
+      if (selectedDate === 'Yearly') return { startTime: new Date(now.getFullYear(), 0, 1).toISOString(), endTime: new Date().toISOString() };
+      return { startTime: new Date(startDate + 'T00:00:00Z').toISOString(), endTime: new Date(endDate + 'T23:59:59Z').toISOString() };
+    };
+    const { startTime, endTime } = getRange();
+    const matchedStations = stationsList.filter(s => selectedStations.includes(s.name));
+    const pivot = (rows) => {
+      const byTime = {};
+      (rows || []).forEach((r) => {
+        const t = r.observationTime;
+        if (!t) return;
+        if (!byTime[t]) byTime[t] = { timestamp: t };
+        const field = PARAM_FIELD_MAP[r.parameterName];
+        if (field) byTime[t][field] = Number(r.value);
+      });
+      return Object.values(byTime);
+    };
+    Promise.all(
+      matchedStations.map(async (s) => {
+        const [aqRows, wxRows] = await Promise.all([
+          getAqmsAirQualityHistory({ stationId: s.id, startTime, endTime }),
+          getAqmsWeatherHistory({ stationId: s.id, startTime, endTime }),
+        ]);
+        const merged = [...pivot(aqRows), ...pivot(wxRows)]
+          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        return { name: s.name, rows: merged };
+      })
+    ).then((results) => {
+      const map = {};
+      results.forEach(({ name, rows }) => { map[name] = rows; });
+      setHistoryByStation(map);
+    }).catch(() => {});
+  }, [selectedStations, selectedDate, startDate, endDate, stationsList]);
+
+  const getSeriesData = (station, param) => {
+    const field = PARAM_FIELD_MAP[param];
+    const rows = historyByStation[station] || [];
+    return rows.map((r) => (r[field] != null ? Number(r[field]) : null));
+  };
+
+  const getCategories = (station) => {
+    const rows = historyByStation[station] || [];
+    return rows.map((r) => {
+      const ts = new Date(r.timestamp);
+      return ts.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    });
+  };
 
   const handleZoomIn = () => {
     const chart = chartRef.current?.chart;
@@ -184,7 +267,7 @@ const Analytics = () => {
                 station === 'City Centre' ? t('live.city_centre', 'City Centre') :
                 station === 'Mobile Station' ? t('live.mobile_station', 'Mobile Station') :
                 station === 'Qidfa' ? t('live.qidfa', 'Qidfa') : station,
-          data: generateChartData(station, param),
+          data: getSeriesData(station, param),
           color: STATION_COLORS[station] || '#00b8c8'
         }]
       : selectedStations.map(st => ({
@@ -192,7 +275,7 @@ const Analytics = () => {
                 st === 'City Centre' ? t('live.city_centre', 'City Centre') :
                 st === 'Mobile Station' ? t('live.mobile_station', 'Mobile Station') :
                 st === 'Qidfa' ? t('live.qidfa', 'Qidfa') : st,
-          data: generateChartData(st, param),
+          data: getSeriesData(st, param),
           color: STATION_COLORS[st] || '#00b8c8'
         }));
 
@@ -305,41 +388,27 @@ const Analytics = () => {
     </div>
   );
 
-  const generateTabularData = () => {
-    const times = [
-      '24 Feb 2026 11:30',
-      '24 Feb 2026 11:35',
-      '24 Feb 2026 11:40',
-      '24 Feb 2026 11:45',
-      '24 Feb 2026 11:50',
-      '24 Feb 2026 11:55',
-      '24 Feb 2026 12:00',
-      '24 Feb 2026 12:05',
-      '24 Feb 2026 12:10'
-    ];
-    
+  const getTabularData = () => {
     const data = [];
-    times.forEach(time => {
-      selectedStations.forEach(station => {
+    selectedStations.forEach(station => {
+      const rows = historyByStation[station] || [];
+      rows.forEach(r => {
+        const ts = new Date(r.timestamp);
+        const timeStr = ts.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         const values = {};
         selectedParams.forEach(param => {
-          const seed = (station.charCodeAt(0) || 1) + (param.charCodeAt(0) || 1) + time.charCodeAt(time.length - 1);
-          const baseMap = {
-            'SO2': 15, 'NO2': 25, 'CO': 0.4, 'PM10': 45, 'PM2.5': 20,
-            'CO2': 400, 'O3': 35, 'CH4': 1.8, 'H2S': 2, 'NMHC': 1.2,
-            'Temperature': 26, 'Humidity': 65, 'Wind Speed': 12
-          };
-          const base = baseMap[param] || 15;
-          const val = base + Math.sin(seed * 0.5) * (base * 0.2);
-          values[param] = parseFloat(val.toFixed(param === 'CO' || param === 'CH4' || param === 'NMHC' ? 2 : 1)) + ' ' + getParamUnit(param);
+          const field = PARAM_FIELD_MAP[param];
+          const v = r[field];
+          values[param] = v != null ? `${v} ${getParamUnit(param)}` : '-';
         });
         data.push({
-          time,
+          time: timeStr,
+          _ts: r.timestamp,
           station: station === 'Lafarge Cems' ? t('live.lafarge_cems', 'Lafarge Cems') :
                    station === 'City Centre' ? t('live.city_centre', 'City Centre') :
                    station === 'Mobile Station' ? t('live.mobile_station', 'Mobile Station') :
                    station === 'Qidfa' ? t('live.qidfa', 'Qidfa') : station,
-          values
+          values,
         });
       });
     });
@@ -347,13 +416,8 @@ const Analytics = () => {
   };
 
   const getSortedTabularData = () => {
-    const rawData = generateTabularData();
-    const sorted = [...rawData];
-    sorted.sort((a, b) => {
-      const dateA = new Date(a.time);
-      const dateB = new Date(b.time);
-      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-    });
+    const sorted = getTabularData();
+    sorted.sort((a, b) => sortOrder === 'asc' ? new Date(a._ts) - new Date(b._ts) : new Date(b._ts) - new Date(a._ts));
     return sorted;
   };
 
@@ -361,21 +425,30 @@ const Analytics = () => {
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
+  // Client-side pagination over the sorted tabular rows.
+  const TABULAR_PAGE_SIZE = 25;
+  const sortedTabularData = getSortedTabularData();
+  const tabularTotalPages = Math.max(1, Math.ceil(sortedTabularData.length / TABULAR_PAGE_SIZE));
+  const tabularSafePage = Math.min(tabularPage, tabularTotalPages);
+  const tabularPageRows = sortedTabularData.slice(
+    (tabularSafePage - 1) * TABULAR_PAGE_SIZE,
+    tabularSafePage * TABULAR_PAGE_SIZE
+  );
+  const tabularPageWindow = Array.from({ length: tabularTotalPages }, (_, i) => i + 1)
+    .filter((n) => Math.abs(n - tabularSafePage) <= 2)
+    .slice(0, 5);
+
   const chartOptionsBase = {
     chart: {
       type: 'spline',
       backgroundColor: 'transparent',
-      height: 200, /* Reduced from 300 to make the graph sleek and compact */
+      height: 200,
       style: { fontFamily: "'Roboto', sans-serif" },
       spacing: [10, 5, 10, 5],
     },
     title: { text: null },
     xAxis: {
-      categories: [
-        '9:30PM', '', '10:00PM', '', '10:30PM', '', '11:00PM', '',
-        '11:30PM', '', '12:00AM', '', '12:30AM', '', '1:00AM', '',
-        '1:30AM', '', '2:00AM', '', '2:30AM', '', '3:00AM', '', '3:30AM'
-      ],
+      categories: getCategories(selectedStations[0] || ''),
       gridLineWidth: 1,
       gridLineColor: 'rgba(0,0,0,0.03)',
       lineColor: 'rgba(0,0,0,0.06)',
@@ -423,12 +496,12 @@ const Analytics = () => {
           {selectedView === 'Tabular View' ? (
             <>
               <h1 className="tabular-title">Tabular Form</h1>
-              <p className="tabular-date">24 Feb 2026 11:30:42</p>
+              <p className="tabular-date">{translateDateTime(currentDateTime)}</p>
             </>
           ) : (
             <>
               <h1>{t('nav.analytics', 'Analytics')}</h1>
-              <p className="header-date">24 Feb 2026 11:30:42</p>
+              <p className="header-date">{translateDateTime(currentDateTime)}</p>
             </>
           )}
         </div>
@@ -522,7 +595,7 @@ const Analytics = () => {
                   
                   {activeSubMenu === 'location' && (
                     <div className="popover-sub-menu" onClick={(e) => e.stopPropagation()}>
-                      {["City Centre", "Mobile Station", "Qidfa", "Lafarge Cems"].map(option => {
+                      {stationNameOptions.map(option => {
                         const isChecked = selectedStations.includes(option);
                         let label = option;
                         if (option === 'City Centre') label = t('live.city_centre', 'City Centre');
@@ -726,7 +799,7 @@ const Analytics = () => {
           <div className="tabular-card">
             {/* Mobile View: Responsive Accordion Cards */}
             <div className="tabular-mobile-accordion-list">
-              {getSortedTabularData().map((row, idx) => {
+              {tabularPageRows.map((row, idx) => {
                 const isExpanded = activeAccordionIdx === idx;
                 return (
                   <div 
@@ -801,7 +874,7 @@ const Analytics = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {getSortedTabularData().map((row, idx) => (
+                  {tabularPageRows.map((row, idx) => (
                     <tr key={idx}>
                       <td>{translateDateTime(row.time)}</td>
                       <td>{t(`live.${row.station.toLowerCase().replace(' ', '_')}`, row.station)}</td>
@@ -815,13 +888,29 @@ const Analytics = () => {
             </div>
             
             <div className="tabular-pagination-container">
-              <button className="tab-page-btn">&lt;</button>
-              <button className="tab-page-btn">1</button>
-              <button className="tab-page-btn">2</button>
-              <button className="tab-page-btn active">3</button>
-              <button className="tab-page-btn">4</button>
-              <button className="tab-page-btn">5</button>
-              <button className="tab-page-btn">&gt;</button>
+              <button
+                className="tab-page-btn"
+                disabled={tabularSafePage === 1}
+                onClick={() => setTabularPage(p => Math.max(1, p - 1))}
+              >
+                &lt;
+              </button>
+              {tabularPageWindow.map(n => (
+                <button
+                  key={n}
+                  className={`tab-page-btn ${tabularSafePage === n ? 'active' : ''}`}
+                  onClick={() => setTabularPage(n)}
+                >
+                  {n}
+                </button>
+              ))}
+              <button
+                className="tab-page-btn"
+                disabled={tabularSafePage === tabularTotalPages}
+                onClick={() => setTabularPage(p => Math.min(tabularTotalPages, p + 1))}
+              >
+                &gt;
+              </button>
             </div>
           </div>
         </div>
@@ -843,7 +932,7 @@ const Analytics = () => {
                   {selectedParams.map(param => {
                     const series = [{
                       name: stationLabel,
-                      data: generateChartData(station, param),
+                      data: getSeriesData(station, param),
                       color: STATION_COLORS[station] || '#00b8c8'
                     }];
 
@@ -908,7 +997,7 @@ const Analytics = () => {
                     station === 'City Centre' ? t('live.city_centre', 'City Centre') :
                     station === 'Mobile Station' ? t('live.mobile_station', 'Mobile Station') :
                     station === 'Qidfa' ? t('live.qidfa', 'Qidfa') : station,
-              data: generateChartData(station, param),
+              data: getSeriesData(station, param),
               color: STATION_COLORS[station] || '#00b8c8'
             }));
 

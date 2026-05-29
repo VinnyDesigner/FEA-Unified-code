@@ -1,0 +1,33 @@
+{
+  "_fixture_source": "LiveData.jsx tabular fields hum/windSpd/windDir (lines 124-136); weather history is a list endpoint with pagination",
+  "_endpoint": "GET /api/v1/aqms/weather/history",
+  "_fe_fields_used": ["stationId", "recordedAt", "temperature", "humidity", "windSpeed", "windDirection", "windDirText"],
+  "_divergences": [
+    "FE tabular shows 'temp' formatted as '24.59°C' string; API returns numeric float 'temperature'",
+    "FE tabular shows 'hum' formatted as '72.2%' string; API returns numeric float 'humidity'",
+    "FE tabular shows 'windSpd' as '16 Km/h' string; API returns numeric float 'windSpeed'"
+  ],
+  "happy": {
+    "data": [
+      {
+        "id": "TODO_bigint_as_string",
+        "stationId": "TODO_cuid",
+        "recordedAt": "2026-05-27T09:00:00.000Z",
+        "temperature": 24.10,
+        "pressure": 1008.0,
+        "solar": 1600.0,
+        "humidity": 73.5,
+        "windSpeed": 14.0,
+        "windDirection": 265.0,
+        "windDirText": "W"
+      }
+    ],
+    "pagination": {
+      "offset": 0,
+      "limit": 100,
+      "total": 1
+    }
+  },
+  "_required_keys_data_item": ["id", "stationId", "recordedAt", "temperature", "pressure", "solar", "humidity", "windSpeed", "windDirection", "windDirText"],
+  "_required_keys_pagination": ["offset", "limit", "total"]
+}

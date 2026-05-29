@@ -1,0 +1,33 @@
+{
+  "_fixture_source": "BatteryHealthView.jsx nearshoreData shape (lines 6-17): time (recordedAt), volt (voltage); CircularBarometer label/value for latest reading",
+  "_endpoint": "GET /api/v1/mwq/battery-health",
+  "_fe_fields_used": ["buoyId", "recordedAt", "voltage"],
+  "_divergences": [
+    "BatteryHealthView uses hardcoded 'nearshore', 'offshore', 'alAqah', 'northDibbah' keys — not related to buoyId; FE will need to map buoy name to display label",
+    "BatteryHealthView data key 'volt' maps to schema field 'voltage'",
+    "BatteryHealthView data key 'time' (string like '09:00') maps to schema field 'recordedAt' (ISO datetime)"
+  ],
+  "happy": {
+    "data": [
+      {
+        "id": "TODO_bigint_as_string",
+        "buoyId": "TODO_cuid",
+        "recordedAt": "2026-05-27T09:00:00.000Z",
+        "voltage": 13.2
+      },
+      {
+        "id": "TODO_bigint_as_string",
+        "buoyId": "TODO_cuid",
+        "recordedAt": "2026-05-27T11:00:00.000Z",
+        "voltage": 13.4
+      }
+    ],
+    "pagination": {
+      "offset": 0,
+      "limit": 100,
+      "total": 2
+    }
+  },
+  "_required_keys_data_item": ["id", "buoyId", "recordedAt", "voltage"],
+  "_required_keys_pagination": ["offset", "limit", "total"]
+}
