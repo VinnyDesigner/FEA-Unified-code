@@ -13,5 +13,9 @@ build/
 *.log
 tmp/
 .DS_Store
-.omc/state/
-.omc/logs/
+
+# Local dev/tooling only — not needed for the production application
+.omc/
+.claude/
+.verify/
+verify-tooling/
