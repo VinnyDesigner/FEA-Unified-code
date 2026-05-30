@@ -1,0 +1,75 @@
+// rbac.prisma (higher-level DB) — application-access / RBAC.
+// Column names match server/sql/01_higher_level.sql (snake_case).
+// The model is named RbacRole to avoid clashing with the `Role` enum in main.prisma.
+
+model Application {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(40) // e.g. 'MWQ', 'AQMS'
+  name        String   @db.VarChar(120)
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  access UserApplicationAccess[]
+
+  @@map("applications")
+}
+
+model RbacRole {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(40) // e.g. 'ADMIN', 'MWQ_MEMBER', 'AQMS_MEMBER'
+  name        String   @db.VarChar(120)
+  description String?
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  permissions RolePermission[]
+  access      UserApplicationAccess[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(80) // e.g. 'reports:generate'
+  name        String   @db.VarChar(120)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  role       RbacRole   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// One row per (user, application): the role the user holds FOR THAT application
+// plus a per-application account status.
+model UserApplicationAccess {
+  id            Int           @id @default(autoincrement())
+  userId        Int           @map("user_id")
+  applicationId Int           @map("application_id")
+  roleId        Int           @map("role_id")
+  status        AccountStatus @default(PENDING)
+  grantedAt     DateTime      @default(now()) @map("granted_at") @db.Timestamptz(6)
+  revokedAt     DateTime?     @map("revoked_at") @db.Timestamptz(6)
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  role        RbacRole    @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, applicationId])
+  @@index([applicationId])
+  @@map("user_application_access")
+}

@@ -59,6 +59,9 @@ const getParamUnit = (param) => {
   return units[param] || 'ppb';
 };
 
+// Thin x-axis category labels to ~10 max so dense series don't blur the axis.
+const axisLabelStep = (n) => Math.max(1, Math.ceil((n || 0) / 10));
+
 // AQMS history endpoints return long-format rows (one per parameter). These maps
 // pivot parameterName -> the per-row field names the charts consume.
 const AQ_HISTORY_FIELD = {
@@ -965,6 +968,7 @@ const DataCapture = () => {
             <div className="reports-graphs-wrapper" style={{ flex: 1, overflowY: 'auto', marginTop: '8px', paddingRight: '4px' }}>
               <div className="analytics-graphs-grid" style={{ padding: '4px 0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
                 {paramValue.map(param => {
+                  const graphCategories = getCategories();
                   const series = stationValue.map(station => ({
                     name: station === 'Lafarge Cems' || station === 'Lafarge CEMS' ? t('live.lafarge_cems', 'Lafarge Cems') :
                           station === 'City Centre' ? t('live.city_centre', 'City Centre') :
@@ -984,11 +988,14 @@ const DataCapture = () => {
                     },
                     title: { text: null },
                     xAxis: {
-                      categories: getCategories(),
+                      categories: graphCategories,
                       gridLineWidth: 1,
                       gridLineColor: 'rgba(0,0,0,0.03)',
                       lineColor: 'rgba(0,0,0,0.06)',
+                      tickInterval: axisLabelStep(graphCategories.length),
                       labels: {
+                        step: axisLabelStep(graphCategories.length),
+                        rotation: graphCategories.length > 12 ? -30 : 0,
                         style: { fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }
                       },
                       tickColor: 'rgba(0,0,0,0.06)',

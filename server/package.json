@@ -9,12 +9,14 @@
     "test": "node --test tests/unit/*.test.js",
     "test:unit": "node --test tests/unit/*.test.js",
     "test:contract": "node --test tests/contract/fe-shapes.test.js",
-    "prisma:generate": "prisma generate --schema=prisma/mwq/schema && prisma generate --schema=prisma/aqms/schema",
-    "prisma:migrate:dev": "prisma migrate dev --schema=prisma/mwq/schema && prisma migrate dev --schema=prisma/aqms/schema",
-    "prisma:migrate:deploy": "prisma migrate deploy --schema=prisma/mwq/schema && prisma migrate deploy --schema=prisma/aqms/schema",
+    "prisma:generate": "prisma generate --schema=prisma/mwq/schema && prisma generate --schema=prisma/aqms/schema && prisma generate --schema=prisma/higher-level/schema",
+    "prisma:migrate:dev": "prisma migrate dev --schema=prisma/mwq/schema && prisma migrate dev --schema=prisma/aqms/schema && prisma migrate dev --schema=prisma/higher-level/schema",
+    "prisma:migrate:deploy": "prisma migrate deploy --schema=prisma/mwq/schema && prisma migrate deploy --schema=prisma/aqms/schema && prisma migrate deploy --schema=prisma/higher-level/schema",
     "prisma:studio:mwq": "prisma studio --schema=prisma/mwq/schema",
     "prisma:studio:aqms": "prisma studio --schema=prisma/aqms/schema",
-    "seed": "node prisma/seed.js"
+    "prisma:studio:hl": "prisma studio --schema=prisma/higher-level/schema",
+    "seed": "node prisma/seed.js",
+    "seed:hl": "node prisma/seed-higher-level.js"
   },
   "keywords": [],
   "author": "",

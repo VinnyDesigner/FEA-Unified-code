@@ -1,0 +1,28 @@
+// higher-level schema (fea_higher_level) — identity, auth sessions, and RBAC.
+// This DB is the single source of truth for WHO can log in and WHAT they may access.
+// Prisma owns this schema from an empty database (see server/sql/01_higher_level.sql
+// for the equivalent hand-authored DDL — kept as reference only; do NOT load it into this DB).
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../../../node_modules/.prisma/client-higher-level"
+  previewFeatures = ["prismaSchemaFolder"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_HIGHER_LEVEL")
+}
+
+enum Role {
+  ADMIN
+  MWQ_MEMBER
+  AQMS_MEMBER
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}

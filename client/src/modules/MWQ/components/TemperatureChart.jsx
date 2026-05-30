@@ -543,7 +543,7 @@ const TemperatureChart = ({ activeTab, selectedBuoy, selectedMetric, setSelected
                       axisLine={false}
                       tickLine={false}
                       tick={<CustomXAxisTick />}
-                      interval={0}
+                      interval={Math.max(0, Math.ceil(currentData.length / 8) - 1)}
                       height={32}
                     />
                     <YAxis

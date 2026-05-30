@@ -9,23 +9,21 @@ if (process.env.NODE_ENV !== 'development') {
 } else {
   const { devOtpStore } = require('./otp.service');
 
-  // GET /_internal/last-otp/:email?module=MWQ|AQMS
+  // GET /_internal/last-otp/:email — keyed by bare email (module-agnostic)
   router.get('/_internal/last-otp/:email', (req, res) => {
     const { email } = req.params;
-    const mod = req.query.module;
 
-    if (!mod || !email) {
-      return res.status(400).json({ error: { code: 'MISSING_PARAMS', message: 'email and module query param required' } });
+    if (!email) {
+      return res.status(400).json({ error: { code: 'MISSING_PARAMS', message: 'email param required' } });
     }
 
-    const key = `${mod}:${email}`;
-    const code = devOtpStore.get(key);
+    const code = devOtpStore.get(email);
 
     if (!code) {
-      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'No OTP found for this email/module' } });
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'No OTP found for this email' } });
     }
 
-    return res.json({ email, module: mod, code });
+    return res.json({ email, code });
   });
 
   module.exports = router;

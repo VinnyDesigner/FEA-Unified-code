@@ -4,3 +4,9 @@ prisma/migrations/dev.db*
 dist/
 *.log
 tmp/
+
+# dev-only scratch: token/OTP dumps and ad-hoc helper scripts (never commit)
+*-tokens*.json
+*-otp.txt
+*-reset-token.txt
+*.log.err

@@ -45,6 +45,8 @@ const getParamUnit = (param) => {
   return units[param] || 'ppb';
 };
 
+// Thin x-axis category labels to ~10 max so dense series don't blur the axis.
+const axisLabelStep = (n) => Math.max(1, Math.ceil((n || 0) / 10));
 
 const Analytics = () => {
   const { lang, t } = useLanguage();
@@ -438,6 +440,7 @@ const Analytics = () => {
     .filter((n) => Math.abs(n - tabularSafePage) <= 2)
     .slice(0, 5);
 
+  const baseCategories = getCategories(selectedStations[0] || '');
   const chartOptionsBase = {
     chart: {
       type: 'spline',
@@ -448,11 +451,14 @@ const Analytics = () => {
     },
     title: { text: null },
     xAxis: {
-      categories: getCategories(selectedStations[0] || ''),
+      categories: baseCategories,
       gridLineWidth: 1,
       gridLineColor: 'rgba(0,0,0,0.03)',
       lineColor: 'rgba(0,0,0,0.06)',
+      tickInterval: axisLabelStep(baseCategories.length),
       labels: {
+        step: axisLabelStep(baseCategories.length),
+        rotation: baseCategories.length > 12 ? -30 : 0,
         style: { fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }
       },
       tickColor: 'rgba(0,0,0,0.06)',

@@ -2,38 +2,41 @@ import api from './api';
 
 // ── Auth helpers ────────────────────────────────────────────────────────────
 
+// Auth is served by the single collapsed `/auth` mount. `module` is no longer
+// part of the path — for signup it only names the application to request access
+// to; the server returns access[]/perms[] which the client uses for authz.
 export async function signup({ module, body }) {
-  const r = await api.post(`/${module.toLowerCase()}/auth/signup`, body);
+  const r = await api.post('/auth/signup', { ...body, application: module });
   return r.data;
 }
 
-export async function login({ module, body }) {
-  const r = await api.post(`/${module.toLowerCase()}/auth/login`, body);
+export async function login({ body }) {
+  const r = await api.post('/auth/login', body);
   return r.data;
 }
 
-export async function logout(module, refreshToken) {
-  const r = await api.post(`/${module.toLowerCase()}/auth/logout`, { refreshToken });
+export async function logout(refreshToken) {
+  const r = await api.post('/auth/logout', { refreshToken });
   return r.data;
 }
 
-export async function refresh(module, refreshToken) {
-  const r = await api.post(`/${module.toLowerCase()}/auth/refresh`, { refreshToken });
+export async function refresh(refreshToken) {
+  const r = await api.post('/auth/refresh', { refreshToken });
   return r.data;
 }
 
-export async function forgotPassword({ module, body }) {
-  const r = await api.post(`/${module.toLowerCase()}/auth/forgot-password`, body);
+export async function forgotPassword({ body }) {
+  const r = await api.post('/auth/forgot-password', body);
   return r.data;
 }
 
-export async function verifyOtp({ module, body }) {
-  const r = await api.post(`/${module.toLowerCase()}/auth/verify-otp`, body);
+export async function verifyOtp({ body }) {
+  const r = await api.post('/auth/verify-otp', body);
   return r.data;
 }
 
-export async function resetPassword({ module, body }) {
-  const r = await api.post(`/${module.toLowerCase()}/auth/reset-password`, body);
+export async function resetPassword({ body }) {
+  const r = await api.post('/auth/reset-password', body);
   return r.data;
 }
 

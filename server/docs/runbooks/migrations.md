@@ -19,11 +19,41 @@ npx prisma db seed
 
 ## 2. Production migrations
 
-- Use `npx prisma migrate deploy` (NOT `migrate dev`).
-- `DATABASE_URL` must be the **direct** connection string (not pgbouncer — Prisma migrate requires advisory locks).
+- Use `npm run prisma:migrate:deploy` (NOT `migrate dev`). It applies migrations to **all
+  three** databases in order: `fea_higher_level`, `fea_mwq`, `fea_aqms`.
+- Each of `DATABASE_URL_HIGHER_LEVEL`, `DATABASE_URL_MWQ`, `DATABASE_URL_AQMS` must be the
+  **direct** connection string (not pgbouncer — Prisma migrate requires advisory locks).
 - Run migrations **before** deploying new server code. The server reads the new schema on boot.
-- On Render: add `npx prisma migrate deploy` as a pre-start command in the deploy hook.
+- On Render: add `npm run prisma:migrate:deploy` as a pre-start command in the deploy hook.
 - Capture and store migration logs for audit.
+
+## 2a. Production cutover to the three-database (higher-level identity) topology
+
+The dev migration to `fea_higher_level` (centralized identity/auth/RBAC) is driven by
+`server/prisma/migrate-to-higher-level.js`. To replay it in production, in this order:
+
+1. **Provision** an empty `fea_higher_level` DB and set `DATABASE_URL_HIGHER_LEVEL`.
+2. **Migrate + seed RBAC baseline** (applications/roles/permissions):
+   ```bash
+   npm run prisma:migrate:deploy        # creates the HL schema (+ applies the module FK-less / rename migrations)
+   npm run seed:hl
+   ```
+   The module migration `drop_module_identity_to_hl` makes `otps`/`reports`/`audit_logs`
+   FK-less and **renames** (not drops) the old module `users`/`refresh_tokens` to
+   `*_migrated_backup` so the ETL can read them and a missed reader fails loudly.
+3. **ETL dry-run, then real run:**
+   ```bash
+   node prisma/migrate-to-higher-level.js --dry-run   # inspect counts + dedupe/orphan plan
+   node prisma/migrate-to-higher-level.js             # backfill HL users+grants; remap module UserIDs
+   ```
+   The ETL is idempotent (gated by an `audit_logs` marker row) and **aborts** if any module
+   `userId` is unmapped (`aqms_notification_logs` orphans are fatal). Refresh tokens are NOT
+   migrated — all sessions are invalidated once; users re-login.
+4. **Verify** (counts/orphans/grants — see the AC2 assertions in the ETL summary) and that
+   `/healthz` reports all three DBs healthy and a real login succeeds.
+5. **Cleanup (later, after a soak period):** apply `cleanup_migrated_backup` to drop the
+   `*_migrated_backup` tables and the unused `Role`/`AccountStatus` enum types from the
+   module DBs. Keep the backups until you are confident the cutover is stable.
 
 ## 3. CRITICAL: Never run `prisma db pull` against this database
 

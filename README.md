@@ -30,6 +30,8 @@ FEA-Unified-code/
 ├── README.md                ← you are here
 ├── package.json             ← root orchestration scripts (concurrently)
 ├── docs/
+│   ├── onboarding.md        ← New-dev handover guide (read this first)
+│   ├── architecture.md      ← Whole-system technical & architectural design
 │   ├── frontend.md          ← Frontend documentation, by module
 │   ├── backend.md           ← Backend documentation + full API reference
 │   └── alerts-and-alarms.md ← Deep-dive on the shared alarms/violations model
@@ -60,7 +62,7 @@ FEA-Unified-code/
 
 ### Prerequisites
 - Node.js 18+ and npm
-- PostgreSQL 14+ (two databases: one for MWQ, one for AQMS)
+- PostgreSQL 14+ (three databases: `fea_higher_level` for identity/access, plus one each for MWQ and AQMS)
 
 ### 1. Install dependencies
 From the repository root:
@@ -78,8 +80,9 @@ Key variables (see [docs/backend.md](docs/backend.md#environment-variables) for 
 
 | Variable | Purpose |
 |----------|---------|
-| `DATABASE_URL_MWQ` | Postgres connection string for the MWQ database |
-| `DATABASE_URL_AQMS` | Postgres connection string for the AQMS database |
+| `DATABASE_URL_HIGHER_LEVEL` | Postgres connection string for the identity/access database (`fea_higher_level`) |
+| `DATABASE_URL_MWQ` | Postgres connection string for the MWQ domain database |
+| `DATABASE_URL_AQMS` | Postgres connection string for the AQMS domain database |
 | `JWT_SECRET` | Access-token signing secret (≥ 32 chars) |
 | `JWT_REFRESH_SECRET` | Refresh-token signing secret (≥ 32 chars, **must differ** from `JWT_SECRET`) |
 | `CORS_ORIGINS` | Comma-separated allowed origins (default `http://localhost:5173`) |
@@ -91,9 +94,11 @@ For the frontend, set `VITE_API_URL` if the API is not served from the same orig
 ### 3. Set up the databases
 From `server/`:
 ```bash
-npm run prisma:generate        # generate both Prisma clients
-npm run prisma:migrate:deploy  # apply migrations to both DBs
-npm run seed                   # populate dev data (stations, buoys, observations, alarms)
+npm run prisma:generate        # generate all three Prisma clients (higher-level, mwq, aqms)
+npm run prisma:migrate:deploy  # apply migrations to all three DBs
+npm run seed:hl                # seed RBAC baseline (applications, roles, permissions)
+npm run seed                   # populate dev domain data (stations, buoys, observations, alarms)
+node prisma/migrate-to-higher-level.js  # ETL: backfill identity DB users + grants from module DBs
 node prisma/backfill-7day.js   # optional: backfill recent rows so /latest endpoints have data
 ```
 
@@ -114,6 +119,8 @@ The app opens on the MWQ module by default (`/MWQ`). The AQMS module lives under
 
 | Document | What's inside |
 |----------|---------------|
+| **[docs/onboarding.md](docs/onboarding.md)** | New-developer handover guide: Day-1 setup, repo tour, request flow, common tasks, and the gotchas/tribal knowledge. Start here. |
+| **[docs/architecture.md](docs/architecture.md)** | Whole-system technical & architectural design: modular-monolith structure, the three-database model (centralized identity + per-product domain DBs), RBAC security architecture, data flow, design rationale, deployment topology, and known gaps. |
 | **[docs/frontend.md](docs/frontend.md)** | Frontend architecture, the two module structures (AQMS & MWQ), routing, the shared API/auth layer, pages, and components. |
 | **[docs/backend.md](docs/backend.md)** | Backend architecture, the module pattern, authentication flow, and a **complete `/api/v1` endpoint reference** (auth, users, AQMS, MWQ, shared alarms & reports). |
 | **[docs/alerts-and-alarms.md](docs/alerts-and-alarms.md)** | Deep dive into how MWQ alarms and AQMS violations are modeled and merged through the shared `/alarms` endpoint. |
@@ -145,7 +152,8 @@ The app opens on the MWQ module by default (`/MWQ`). The AQMS module lives under
 | `npm run dev` | Start API with nodemon |
 | `npm test` | Run unit tests |
 | `npm run test:contract` | Run FE-shape contract tests |
-| `npm run prisma:generate` | Generate both Prisma clients |
-| `npm run prisma:migrate:deploy` | Apply migrations to both DBs |
-| `npm run prisma:studio:mwq` / `:aqms` | Open Prisma Studio for a DB |
-| `npm run seed` | Seed dev data |
+| `npm run prisma:generate` | Generate all three Prisma clients |
+| `npm run prisma:migrate:deploy` | Apply migrations to all three DBs |
+| `npm run prisma:studio:mwq` / `:aqms` / `:hl` | Open Prisma Studio for a DB |
+| `npm run seed:hl` | Seed RBAC baseline (applications, roles, permissions) |
+| `npm run seed` | Seed dev domain data |

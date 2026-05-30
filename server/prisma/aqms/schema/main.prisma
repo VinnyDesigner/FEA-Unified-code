@@ -37,19 +37,6 @@ enum AlarmCode {
   OFFLINE
 }
 
-enum Role {
-  ADMIN
-  MWQ_MEMBER
-  AQMS_MEMBER
-}
-
-enum AccountStatus {
-  PENDING
-  ACTIVE
-  SUSPENDED
-  REJECTED
-}
-
 enum ReportStatus {
   PENDING
   PROCESSING

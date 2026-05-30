@@ -53,8 +53,12 @@ const Dashboard = () => {
     }
   };
 
+  // `usePolling` runs an immediate initial fetch, so calling fetchBuoys() here
+  // too would load the buoy list twice on mount. The second setBuoys() gives a
+  // new `stations` array reference, which re-runs MapView's per-buoy "latest"
+  // effect and aborts the first batch of in-flight requests (net::ERR_ABORTED
+  // noise). Alarms have no poller, so they are fetched once here.
   useEffect(() => {
-    fetchBuoys();
     fetchAlarms();
   }, []);
 

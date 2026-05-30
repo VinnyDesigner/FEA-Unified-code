@@ -53,7 +53,7 @@ src/
 these functions rather than Axios directly. It also normalizes the backend's response
 quirks (see below).
 
-**`stores/useAuthStore.js`** — Zustand store persisted as `fea-auth` (localStorage, version 3).
+**`stores/useAuthStore.js`** — Zustand store persisted as `fea-auth` (localStorage, version 4). Holds `user`, tokens, `module` (UI/data-routing context), and `access[]`/`perms[]` (RBAC grants from login/refresh, consumed by `RequireRole`).
 Holds `user`, `accessToken`, `refreshToken`, `module`, `hydrated`. Exposes `login`, `logout`,
 `refresh`, `updateProfile`. The persisted `module` decides which login page to bounce to on
 auth failure.
@@ -190,8 +190,8 @@ selectable via `LanguageSelector`.
 
 | Function | Endpoint | Used by |
 |----------|----------|---------|
-| `login / signup / refresh / logout` | `/{module}/auth/*` | auth pages, auth store |
-| `forgotPassword / verifyOtp / resetPassword` | `/{module}/auth/*` | password reset flow |
+| `login / signup / refresh / logout` | `/auth/*` (single mount; signup sends `application`) | auth pages, auth store |
+| `forgotPassword / verifyOtp / resetPassword` | `/auth/*` | password reset flow |
 | `getMe / updateMe` | `/{module}/auth/me` | ProfilePage |
 | `listUsers / createUser / updateUser` | `/{module}/users` | UserManagementPage (admin) |
 | `getAqmsPublicOverview` | `/aqms/public/overview` | AQMS LandingPage (public) |

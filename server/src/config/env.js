@@ -8,6 +8,7 @@ const envSchema = z.object({
   INTERNAL_PORT: z.coerce.number().int().positive().default(5001),
   DATABASE_URL_MWQ: z.string().min(1),
   DATABASE_URL_AQMS: z.string().min(1),
+  DATABASE_URL_HIGHER_LEVEL: z.string().min(1),
   JWT_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
   JWT_ACCESS_EXPIRES_IN: z.string().default('1h'),

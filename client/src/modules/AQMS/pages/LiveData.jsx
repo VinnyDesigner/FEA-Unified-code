@@ -26,6 +26,27 @@ const HighchartsReactComponent = (() => {
   return HighchartsReact;
 })();
 
+// Date-range presets for the dashboard filter. The history endpoints cap ranges at
+// 90 days, so "Last Year" is clamped to 90 days to avoid a 400 (empty graph).
+const DAY_MS = 86400000;
+const RANGE_DAYS = { 'Last Day': 1, 'Last Week': 7, 'Last Month': 30, 'Last Year': 90 };
+function resolveDateRange(selectedDate, startDate, endDate) {
+  const now = new Date();
+  if (selectedDate === 'Live Data') {
+    return { startTime: new Date(now.getTime() - 3600000).toISOString(), endTime: now.toISOString() };
+  }
+  if (RANGE_DAYS[selectedDate]) {
+    return { startTime: new Date(now.getTime() - RANGE_DAYS[selectedDate] * DAY_MS).toISOString(), endTime: now.toISOString() };
+  }
+  // Customize / fallback: use the explicit start/end date inputs.
+  return {
+    startTime: new Date(startDate + 'T00:00:00Z').toISOString(),
+    endTime: new Date(endDate + 'T23:59:59Z').toISOString(),
+  };
+}
+// Thin x-axis category labels to ~10 max so dense series don't blur the axis.
+const axisLabelStep = (n) => Math.max(1, Math.ceil((n || 0) / 10));
+
 const createCustomIcon = (value, color, isSelected = false) => {
   const isYellow = (color === '#fcd34d');
   const textColor = isYellow ? '#854d0e' : 'white';
@@ -380,9 +401,10 @@ const LiveData = () => {
   const [selectedDate, setSelectedDate] = useState('Live Data');
   const [selectedView, setSelectedView] = useState('Graph View');
 
-  // Custom date range states for LiveData page
-  const [startDate, setStartDate] = useState('2026-02-01');
-  const [endDate, setEndDate] = useState('2026-02-24');
+  // Custom date range states for LiveData page (default to the last 7 days so the
+  // "Customize" range lands on real data instead of a stale hard-coded window).
+  const [startDate, setStartDate] = useState(() => new Date(Date.now() - 7 * 86400 * 1000).toISOString().slice(0, 10));
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [currentPage, setCurrentPage] = useState(1);
   const TABULAR_PAGE_SIZE = 25;
   const [activeAccordionIdx, setActiveAccordionIdx] = useState(null);
@@ -427,20 +449,7 @@ const LiveData = () => {
 
   useEffect(() => {
     if (!currentStation) return;
-    const getRange = () => {
-      const now = new Date();
-      if (selectedDate === 'Live Data') {
-        return { startTime: new Date(now - 3600000).toISOString(), endTime: now.toISOString() };
-      }
-      if (selectedDate === 'Last 24 Hours') {
-        return { startTime: new Date(now - 86400000).toISOString(), endTime: now.toISOString() };
-      }
-      return {
-        startTime: new Date(startDate + 'T00:00:00Z').toISOString(),
-        endTime: new Date(endDate + 'T23:59:59Z').toISOString(),
-      };
-    };
-    const { startTime, endTime } = getRange();
+    const { startTime, endTime } = resolveDateRange(selectedDate, startDate, endDate);
     const sid = currentStation.id;
     Promise.all([
       getAqmsAirQualityHistory({ stationId: sid, startTime, endTime, limit: 1000 }),
@@ -498,19 +507,12 @@ const LiveData = () => {
   // pollutant/weather history above). Sorted ascending for left-to-right plotting.
   useEffect(() => {
     if (!currentStation) return;
-    const now = new Date();
-    let startTime;
-    if (selectedDate === 'Live Data') startTime = new Date(now - 3600000);
-    else if (selectedDate === 'Last 24 Hours') startTime = new Date(now - 86400000);
-    else startTime = new Date(startDate + 'T00:00:00Z');
-    const endTime = selectedDate === 'Live Data' || selectedDate === 'Last 24 Hours'
-      ? now
-      : new Date(endDate + 'T23:59:59Z');
+    const { startTime, endTime } = resolveDateRange(selectedDate, startDate, endDate);
 
     getAqmsAirQualityIndexHistory({
       stationId: currentStation.id,
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
+      startTime,
+      endTime,
       limit: 1000,
     })
       .then((rows) => {
@@ -650,7 +652,10 @@ const LiveData = () => {
       ),
       gridLineWidth: 0,
       lineColor: 'rgba(0,0,0,0.06)',
+      tickInterval: axisLabelStep(aqiHistory.length),
       labels: {
+        step: axisLabelStep(aqiHistory.length),
+        rotation: aqiHistory.length > 12 ? -30 : 0,
         style: { fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }
       },
       tickColor: 'rgba(0,0,0,0.06)',
@@ -713,6 +718,13 @@ const LiveData = () => {
   };
 
   /* ── Highcharts Settings: Last 24hrs Concentration ── */
+  // Pollutant readings (air-quality history) and weather history arrive on
+  // different timestamps; weather-only rows have no pollutant values and would
+  // otherwise pad the x-axis with empty slots. Restrict this chart to rows that
+  // actually carry a pollutant reading so the series fill the axis.
+  const concRows = tabularRows.filter((r) =>
+    r.so2 !== '-' || r.no2 !== '-' || r.co !== '-' || r.pm10 !== '-' || r.pm25 !== '-'
+  );
   const concChartOptions = {
     chart: {
       type: 'spline',
@@ -723,10 +735,13 @@ const LiveData = () => {
     },
     title: { text: null },
     xAxis: {
-      categories: tabularRows.map((r) => r.time),
+      categories: concRows.map((r) => r.time),
       gridLineWidth: 0,
       lineColor: 'rgba(0,0,0,0.06)',
+      tickInterval: axisLabelStep(concRows.length),
       labels: {
+        step: axisLabelStep(concRows.length),
+        rotation: -35,
         style: { fontSize: '0.72rem', color: '#6b7280', fontWeight: '500' }
       },
       tickColor: 'rgba(0,0,0,0.06)',
@@ -758,11 +773,11 @@ const LiveData = () => {
       }
     },
     series: [
-      { name: 'SO2',   data: tabularRows.map((r) => { const v = parseFloat(r.so2); return isNaN(v) ? null : v; }), color: '#3b82f6' },
-      { name: 'NO2',   data: tabularRows.map((r) => { const v = parseFloat(r.no2); return isNaN(v) ? null : v; }), color: '#0ea5e9' },
-      { name: 'CO',    data: tabularRows.map((r) => { const v = parseFloat(r.co); return isNaN(v) ? null : v; }), color: '#0f766e' },
-      { name: 'PM10',  data: tabularRows.map((r) => { const v = parseFloat(r.pm10); return isNaN(v) ? null : v; }), color: '#0d9488' },
-      { name: 'PM2.5', data: tabularRows.map((r) => { const v = parseFloat(r.pm25); return isNaN(v) ? null : v; }), color: '#06b6d4' }
+      { name: 'SO2',   data: concRows.map((r) => { const v = parseFloat(r.so2); return isNaN(v) ? null : v; }), color: '#3b82f6' },
+      { name: 'NO2',   data: concRows.map((r) => { const v = parseFloat(r.no2); return isNaN(v) ? null : v; }), color: '#0ea5e9' },
+      { name: 'CO',    data: concRows.map((r) => { const v = parseFloat(r.co); return isNaN(v) ? null : v; }), color: '#0f766e' },
+      { name: 'PM10',  data: concRows.map((r) => { const v = parseFloat(r.pm10); return isNaN(v) ? null : v; }), color: '#0d9488' },
+      { name: 'PM2.5', data: concRows.map((r) => { const v = parseFloat(r.pm25); return isNaN(v) ? null : v; }), color: '#06b6d4' }
     ].filter(s => selectedParams.includes(s.name))
   };
 

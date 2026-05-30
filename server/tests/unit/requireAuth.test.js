@@ -5,6 +5,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'a'.repeat(40);
 process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'b'.repeat(40);
 process.env.DATABASE_URL_MWQ = process.env.DATABASE_URL_MWQ || 'postgresql://x';
 process.env.DATABASE_URL_AQMS = process.env.DATABASE_URL_AQMS || 'postgresql://x';
+process.env.DATABASE_URL_HIGHER_LEVEL = process.env.DATABASE_URL_HIGHER_LEVEL || 'postgresql://x';
 
 const { test, describe, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');

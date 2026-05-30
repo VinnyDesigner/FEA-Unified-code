@@ -735,7 +735,6 @@ model AqmsNotificationLog {
   notificationStatus String @map("NotificationStatus") @db.VarChar(20)
 
   notificationType AqmsNotificationMaster @relation(fields: [notificationTypeId], references: [id])
-  user             User                   @relation(fields: [userId], references: [id])
 
   @@index([userId, notificationTypeId])
   @@map("aqms_notification_logs")

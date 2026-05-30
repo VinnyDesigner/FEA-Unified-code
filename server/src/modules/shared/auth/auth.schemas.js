@@ -10,6 +10,10 @@ const signupBody = z.object({
   middleName: z.string().optional(),
   phoneNumber: z.string().optional(),
   emiratesId: z.string().optional(),
+  // Which application to request access to. Required on the collapsed `/auth/signup`
+  // mount (no module in the path); optional on the `/{mwq,aqms}/auth/signup` aliases
+  // where the path segment supplies it.
+  application: z.enum(['MWQ', 'AQMS']).optional(),
 });
 
 const loginBody = z.object({

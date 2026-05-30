@@ -1,21 +1,22 @@
 'use strict';
 
+const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const env = require('../../../config/env');
 
-// Dev-only in-memory map: `${module}:${email}` -> raw OTP code
+// Dev-only in-memory map: bare `email` -> raw OTP code
 const devOtpStore = new Map();
 
 function generateOtp(length) {
   const len = length || env.OTP_LENGTH;
   let code = '';
   for (let i = 0; i < len; i++) {
-    code += Math.floor(Math.random() * 10).toString();
+    code += crypto.randomInt(0, 10).toString();
   }
   return code;
 }
 
-async function storeOtp(prisma, userId, code, channel, ipAddress, moduleEmail) {
+async function storeOtp(prisma, userId, code, channel, ipAddress, email) {
   const codeHash = await bcrypt.hash(code, env.BCRYPT_COST);
   const expiresAt = new Date(Date.now() + env.OTP_TTL_SECONDS * 1000);
 
@@ -23,9 +24,9 @@ async function storeOtp(prisma, userId, code, channel, ipAddress, moduleEmail) {
     data: { userId, codeHash, channel, ipAddress, expiresAt },
   });
 
-  // Dev-only: write raw code so dev-otp endpoint can return it
-  if (env.NODE_ENV === 'development' && moduleEmail) {
-    devOtpStore.set(moduleEmail, code);
+  // Dev-only: write raw code so dev-otp endpoint can return it (keyed by bare email)
+  if (env.NODE_ENV === 'development' && email) {
+    devOtpStore.set(email, code);
   }
 }
 

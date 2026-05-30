@@ -1,12 +1,13 @@
 'use strict';
 
 const { Router } = require('express');
-const { prismaMwq, prismaAqms } = require('../db/prisma');
+const { prismaMwq, prismaAqms, prismaHigherLevel } = require('../db/prisma');
 const { requireAuth } = require('../middleware/requireAuth');
 const { requireModule } = require('../middleware/requireModule');
 
-const mwqAuthRouter  = require('../modules/mwq/auth/auth.routes');
-const aqmsAuthRouter = require('../modules/aqms/auth/auth.routes');
+// Unified auth router (Phase 2): ONE handler for both /mwq/auth and /aqms/auth.
+// The controller infers the requested app from req.baseUrl.
+const authRouter = require('../modules/shared/auth/auth.routes');
 
 // Users module exports { meRouter, usersRouter }
 const mwqUsersModule  = require('../modules/mwq/users/users.routes');
@@ -22,22 +23,30 @@ const router = Router();
 
 router.get('/healthz', async (req, res) => {
   try {
-    await Promise.all([prismaMwq.$queryRaw`SELECT 1`, prismaAqms.$queryRaw`SELECT 1`]);
-    res.json({ ok: true, db: { mwq: 'ok', aqms: 'ok' }, uptime: process.uptime() });
+    await Promise.all([
+      prismaMwq.$queryRaw`SELECT 1`,
+      prismaAqms.$queryRaw`SELECT 1`,
+      prismaHigherLevel.$queryRaw`SELECT 1`,
+    ]);
+    res.json({ ok: true, db: { mwq: 'ok', aqms: 'ok', higherLevel: 'ok' }, uptime: process.uptime() });
   } catch (err) {
     res.status(503).json({ ok: false, db: 'error', error: err.message });
   }
 });
 
-// PUBLIC: auth endpoints (signup, login, refresh, forgot-password, verify-otp, reset-password)
-router.use('/mwq/auth',  mwqAuthRouter);
-router.use('/aqms/auth', aqmsAuthRouter);
+// PUBLIC: auth endpoints (signup, login, refresh, forgot-password, verify-otp, reset-password).
+// Canonical collapsed mount; the handler infers the app from the body (signup) or the
+// user's grants (login/refresh). The module-prefixed aliases are kept for back-compat
+// (the handler reads the path segment when present).
+router.use('/auth',      authRouter);
+router.use('/mwq/auth',  authRouter);
+router.use('/aqms/auth', authRouter);
 
 // PROTECTED: /auth/me — cross-DB handler picks DB from req.user.module (§2.4)
 router.use('/mwq/auth/me',  requireAuth, mwqUsersModule.meRouter);
 router.use('/aqms/auth/me', requireAuth, aqmsUsersModule.meRouter);
 
-// PROTECTED: users admin CRUD (requireRole layered inside each router)
+// PROTECTED: users admin CRUD (requirePermission('users:manage') layered inside the shared router)
 router.use('/mwq/users',  requireAuth, mwqUsersModule.usersRouter);
 router.use('/aqms/users', requireAuth, aqmsUsersModule.usersRouter);
 

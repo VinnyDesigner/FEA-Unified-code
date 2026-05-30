@@ -16,6 +16,16 @@ const DOWNLOAD_FORMAT_MAP = {
   'Download in Pdf':  'PDF',
 };
 
+// BuoysChart / SensorDataTable select parameters by their internal `filterName`
+// strings, but the filter form stores parameter IDs. A few MWQ ParameterMaster
+// names also differ from those filterName strings — reconcile them here so the
+// overview chart + table render the chosen parameters instead of nothing.
+const PARAM_NAME_TO_CHART_FILTER = {
+  'Temperature': 'Water Temperature',
+  'Conductivity': 'Specific Conductivity',
+  'Algae': 'Blue-Green Algae',
+};
+
 const Toast = ({ message, type, onClose }) => (
   <div
     style={{
@@ -136,6 +146,21 @@ const ReportsPage = () => {
         </div>
       );
     }
+    // The filter form stores parameter/station IDs; the overview chart + table
+    // identify parameters by name and buoys by object. Resolve both here.
+    const chartParamNames = (appliedFilters.parameter || [])
+      .map((id) => loadedParams.find((p) => p.id === id)?.name)
+      .filter(Boolean)
+      .map((name) => PARAM_NAME_TO_CHART_FILTER[name] || name);
+    const chartBuoys = (appliedFilters.station || [])
+      .map((id) => loadedBuoys.find((b) => b.id === id))
+      .filter(Boolean);
+    // The sensor-data API requires ISO datetimes; the form yields date-only
+    // strings. Convert (end-of-day for an inclusive range) so the chart + table
+    // fetch real data instead of 400-ing on a bad format.
+    const startIso = appliedFilters.startDate ? new Date(appliedFilters.startDate).toISOString() : undefined;
+    const endIso = appliedFilters.endDate ? new Date(`${appliedFilters.endDate}T23:59:59`).toISOString() : undefined;
+
     return (
       <div className="flex-1 rounded-[20px] flex flex-col relative z-[5] mt-2 mb-4"
         style={{
@@ -164,11 +189,11 @@ const ReportsPage = () => {
               <BuoysChart
                 isMobile={isMob}
                 showHeader={false}
-                selectedParams={appliedFilters.parameter}
-                selectedBuoy={appliedFilters.station}
+                selectedParams={chartParamNames}
+                selectedBuoy={chartBuoys}
                 chartType="Line"
-                startDate={appliedFilters.startDate}
-                endDate={appliedFilters.endDate}
+                startDate={startIso}
+                endDate={endIso}
                 {...(!isMob ? { height: '150px', isGraphAndTableView: true, isTablet: false } : {})}
               />
             </div>
@@ -176,10 +201,10 @@ const ReportsPage = () => {
             <div className="w-full">
               <SensorDataTable
                 isMobile={isMob}
-                selectedBuoy={appliedFilters.station}
-                selectedParams={appliedFilters.parameter}
-                startDate={appliedFilters.startDate}
-                endDate={appliedFilters.endDate}
+                selectedBuoy={chartBuoys}
+                selectedParams={chartParamNames}
+                startDate={startIso}
+                endDate={endIso}
                 {...(!isMob ? { isGraphAndTableView: true, isTablet: false } : {})}
               />
             </div>

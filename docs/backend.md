@@ -2,7 +2,9 @@
 
 The backend is an **Express 5** API that serves two products — **MWQ** (Marine Water
 Quality) and **AQMS** (Air Quality Monitoring System) — from a single process, backed by
-**two separate PostgreSQL databases** accessed through two Prisma clients.
+**three PostgreSQL databases** accessed through three Prisma clients: a centralized
+identity/access DB (`fea_higher_level`) plus one domain DB per product (`fea_mwq`,
+`fea_aqms`).
 
 - Base URL: `/api/v1`
 - Entry points: `server/src/server.js` (boot) → `server/src/app.js` (middleware + app) → `server/src/routes/index.js` (route mounting)
@@ -33,31 +35,44 @@ Each feature follows the same file convention:
 product's feature routers; `server/src/modules/shared/` holds cross-module features
 (auth helpers, alarms, reports).
 
-### Two databases, two Prisma clients
-`server/src/db/prisma.js` exports `prismaMwq` and `prismaAqms`. Routes are namespaced by
-product (`/mwq/...`, `/aqms/...`) so each handler talks to the correct database. The
-shared `/alarms` endpoint queries both clients and merges results (see
-[alerts-and-alarms.md](alerts-and-alarms.md)).
+### Three databases, three Prisma clients
+`server/src/db/prisma.js` exports `prismaHigherLevel`, `prismaMwq`, and `prismaAqms`.
+Identity & access (users, refresh_tokens, RBAC) live in `fea_higher_level`; product domain
+data (plus the FK-less `otps`/`reports`/`audit_logs`) lives in `fea_mwq` / `fea_aqms`. Routes
+are namespaced by product (`/mwq/...`, `/aqms/...`) so each handler talks to the correct
+domain database; the shared `/alarms` endpoint queries both module clients and merges results
+(see [alerts-and-alarms.md](alerts-and-alarms.md)).
 
 ---
 
 ## Authentication & Authorization
 
-Auth is **per-module**: a user belongs to either MWQ or AQMS (an `ADMIN` is fanned out
-across both databases). Tokens are JWTs.
+Auth is **unified** behind a single `/auth` mount (with `/mwq/auth/*` + `/aqms/auth/*`
+retained as back-compat aliases), backed by the single identity DB. A person is **one**
+`User` row in `fea_higher_level` with per-application **grants** (`user_application_access`);
+RBAC roles map to permissions. Login/refresh return `access[]`/`perms[]` in the body and the
+client uses those for authorization (rather than a URL-derived module). Tokens are JWTs.
 
 ### Token model
-- **Access token** — short-lived (default `1h`, `JWT_SECRET`). Carries claims: `sub`, `role`, `module`, `accountStatus`, `email`.
-- **Refresh token** — long-lived (default `7d`, `JWT_REFRESH_SECRET`). Stored hashed in the `RefreshToken` table with a `familyId` for refresh-reuse detection.
+- **Access token** — short-lived (default `1h`, `JWT_SECRET`, `aud: 'access'`). Claims:
+  `sub`, `email`, `accountStatus`, **`access[]`** (`{app, role, status}` per non-revoked
+  grant), **`perms[]`** (permission codes from ACTIVE grants); legacy `role`/`module` kept
+  additively for FE back-compat.
+- **Refresh token** — long-lived (default `7d`, `JWT_REFRESH_SECRET`). Stored hashed in the
+  `refresh_tokens` table **in `fea_higher_level`** with a `familyId` for refresh-reuse
+  detection. Grants re-load on every refresh.
 
 ### Middleware (`server/src/middleware/`)
 | Middleware | Effect |
 |-----------|--------|
-| `requireAuth` | Validates the `Authorization: Bearer <token>` header. On expiry returns `401 { error.code: "TOKEN_EXPIRED" }`; otherwise `UNAUTHORIZED`. Populates `req.user`. |
-| `requireModule('MWQ'\|'AQMS')` | Members may only access their own module; `ADMIN` bypasses. Mismatch → `403 MODULE_MISMATCH`. |
-| `requireRole('ADMIN', ...)` | Restricts a route to specific roles. Failure → `403 FORBIDDEN`. |
+| `requireAuth` | Validates the `Authorization: Bearer <token>` header. On expiry returns `401 { error.code: "TOKEN_EXPIRED" }`; otherwise `UNAUTHORIZED`. Populates `req.user` (incl. `access`/`perms`). |
+| `requireModule('MWQ'\|'AQMS')` | Requires an ACTIVE grant for the app; any ACTIVE `ADMIN` grant bypasses. Mismatch → `403 MODULE_MISMATCH`. (Falls back to legacy `role`/`module` for pre-v2 tokens.) |
+| `requirePermission('code')` | Requires the permission in `perms[]`, or an ACTIVE `ADMIN` grant. Failure → `403 FORBIDDEN`. (e.g. `users:manage`, `reports:generate`.) |
 | `validate({ query, body, params })` | Runs Zod schemas; failure → `400 VALIDATION_FAILED`. |
 | `authLimiter` / `otpVerifyLimiter` | Rate limits (5 req / 60s for auth; 5 / 5min keyed by email for OTP). Disabled under `NODE_ENV=test`. |
+
+> `requireRole` remains as a thin legacy shim but is no longer mounted on any route — admin
+> CRUD is gated by `requirePermission('users:manage')`.
 
 ### Token-refresh handshake (client side)
 The frontend (`client/src/lib/api.js`) auto-refreshes: on a `401 TOKEN_EXPIRED` it calls
@@ -110,23 +125,27 @@ Common codes: `VALIDATION_FAILED`, `UNAUTHORIZED`, `TOKEN_EXPIRED`, `MODULE_MISM
 ## API Reference
 
 All routes are prefixed with **`/api/v1`**. The **Auth** column indicates middleware:
-🌐 public · 🔒 `requireAuth` · 🧩 `+ requireModule` · 👑 `+ ADMIN role`.
+🌐 public · 🔒 `requireAuth` · 🧩 `+ requireModule` (ACTIVE grant) · 👑 `+ requirePermission('users:manage')`.
 
 ### Health
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/healthz` | 🌐 | Liveness + DB check for both MWQ and AQMS. Returns `{ ok, db, uptime }` (503 if a DB is down). |
+| GET | `/healthz` | 🌐 | Liveness + DB check for all three databases. Returns `{ ok, db, uptime }` (503 if any DB is down). |
 
-### Authentication — `/{module}/auth` (module = `mwq` or `aqms`)
+### Authentication — `/auth` (single collapsed mount)
+Auth lives at a single `/auth` mount; the `/mwq/auth/*` and `/aqms/auth/*` paths are retained
+as back-compat aliases (the handler reads the path segment when present). Login/refresh return
+`access[]`/`perms[]` in the body (alongside the JWT claims) for the client to consume.
+
 | Method | Path | Auth | Body / Notes |
 |--------|------|------|--------------|
-| POST | `/{module}/auth/signup` | 🌐 (rate-limited) | `{ email, password, firstName, lastName, middleName?, phoneNumber?, emiratesId? }`. Password ≥ 8 chars with a letter + number; Emirates ID = 15 digits. → `201 { user }` (PENDING). |
-| POST | `/{module}/auth/login` | 🌐 (rate-limited) | `{ email, password }` → `200 { user, accessToken, refreshToken }`. |
-| POST | `/{module}/auth/refresh` | 🌐 | `{ refreshToken }` → `200 { accessToken, refreshToken }`. |
-| POST | `/{module}/auth/forgot-password` | 🌐 (rate-limited) | `{ email }` → `204`; emails a 4-digit OTP. |
-| POST | `/{module}/auth/verify-otp` | 🌐 (rate-limited) | `{ email, code }` (code = 4 digits) → `200 { resetToken }`. |
-| POST | `/{module}/auth/reset-password` | 🌐 | `{ email, resetToken, newPassword }` → `204`. |
-| POST | `/{module}/auth/logout` | 🔒 | `{ refreshToken }` → `204`. |
+| POST | `/auth/signup` | 🌐 (rate-limited) | `{ email, password, firstName, lastName, application ('MWQ'\|'AQMS'), middleName?, phoneNumber?, emiratesId? }`. `application` names the app to request access to (required on `/auth`; inferred from the path on the aliases). → `201 { user }` (PENDING grant). |
+| POST | `/auth/login` | 🌐 (rate-limited) | `{ email, password }` → `200 { user, accessToken, refreshToken, access, perms }`. |
+| POST | `/auth/refresh` | 🌐 | `{ refreshToken }` → `200 { accessToken, refreshToken, access, perms }`. |
+| POST | `/auth/forgot-password` | 🌐 (rate-limited) | `{ email }` → `204`; emails a 4-digit OTP. |
+| POST | `/auth/verify-otp` | 🌐 (rate-limited) | `{ email, code }` (code = 4 digits) → `200 { resetToken }`. |
+| POST | `/auth/reset-password` | 🌐 | `{ email, resetToken, newPassword }` → `204`. |
+| POST | `/auth/logout` | 🔒 | `{ refreshToken }` → `204`. |
 
 ### Profile (self-service) — `/{module}/auth/me`
 | Method | Path | Auth | Notes |
@@ -221,10 +240,16 @@ Files are stored on local disk in dev or Cloudflare R2 when configured.
 
 ## Data Model Overview
 
-Each database has a **shared** schema (auth) and a **product** schema.
+Identity/access lives in `fea_higher_level`; each module DB has FK-less operational tables
+plus its **product** schema.
 
-### Shared (both DBs) — `prisma/{mwq,aqms}/schema/shared.prisma`
-`User`, `RefreshToken`, `Otp`, `Report`, `AuditLog`.
+### Identity & access — `prisma/higher-level/schema/{identity,rbac}.prisma`
+`User`, `RefreshToken`, `Application`, `RbacRole`, `Permission`, `RolePermission`,
+`UserApplicationAccess`.
+
+### Per-module operational (both module DBs) — `prisma/{mwq,aqms}/schema/shared.prisma`
+`Otp`, `Report`, `AuditLog` — each references a user by a plain `userId Int` (`UserID`) with
+**no** cross-DB `user` relation.
 
 ### AQMS — `prisma/aqms/schema/aqms.prisma`
 Core: `AqmsMonitoringSite`, `AqmsSensorDetails`, `AqmsParameterMaster`,

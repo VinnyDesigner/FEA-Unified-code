@@ -16,7 +16,12 @@ function requireAuth(req, res, next) {
       module: claims.module,
       accountStatus: claims.accountStatus,
       email: claims.email,
+      access: Array.isArray(claims.access) ? claims.access : [],
+      perms: Array.isArray(claims.perms) ? claims.perms : [],
     };
+    if (claims.accountStatus !== 'ACTIVE') {
+      return res.status(403).json({ error: { code: 'ACCOUNT_NOT_ACTIVE', message: 'Account is not active' } });
+    }
     return next();
   } catch (err) {
     if (err && err.name === 'TokenExpiredError') {

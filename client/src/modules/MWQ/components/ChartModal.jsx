@@ -216,7 +216,9 @@ const ChartModal = ({ isOpen, onClose, metric, translatedMetricTitle, selectedBu
         angle={isMobileResponsive ? 0 : -45}
         textAnchor={isMobileResponsive ? "middle" : "end"}
         height={isMobileResponsive ? 25 : 60}
-        interval={customData ? 0 : Math.floor(visibleData.length / 10)}
+        // Thin x-axis labels to ~10 max so dense series don't blur the axis. As the
+        // user zooms in, visibleData shrinks and more labels are revealed.
+        interval={Math.max(0, Math.ceil(visibleData.length / 10) - 1)}
         tickFormatter={(val) => {
           if (customData) {
             const lowerVal = val ? val.toLowerCase() : '';

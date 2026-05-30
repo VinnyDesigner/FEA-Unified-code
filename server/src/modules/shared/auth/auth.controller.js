@@ -1,16 +1,30 @@
 'use strict';
 
+// Unified auth controller. ONE set of handlers serving both /mwq/auth/* and
+// /aqms/auth/*. The requested app is inferred from the mount path segment
+// (req.baseUrl ends in '/mwq/auth' or '/aqms/auth') and passed to the service so
+// JWT `module` claims + signup grants reflect the requested application.
+
 const { ApiError } = require('../../../lib/api-error');
 const { logger } = require('../../../lib/logger');
 const schemas = require('./auth.schemas');
 const service = require('./auth.service');
-const { prismaMwq } = require('../../../db/prisma');
 
 function parseMeta(req) {
   return {
     ip: req.ip || req.socket?.remoteAddress || null,
     userAgent: req.headers['user-agent'] || null,
   };
+}
+
+// Derive 'mwq' | 'aqms' from the module-prefixed alias mount
+// (e.g. '/api/v1/aqms/auth'), or null for the collapsed '/api/v1/auth' mount —
+// in which case the app is taken from the request body / the user's grants.
+function segmentOf(req) {
+  const base = (req.baseUrl || '').toLowerCase();
+  if (base.includes('/aqms/')) return 'aqms';
+  if (base.includes('/mwq/')) return 'mwq';
+  return null;
 }
 
 function handleError(err, res) {
@@ -27,7 +41,7 @@ async function signup(req, res) {
     return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid request body', details: parsed.error.flatten() } });
   }
   try {
-    const user = await service.signup(prismaMwq, parsed.data);
+    const user = await service.signup(segmentOf(req), parsed.data);
     return res.status(201).json({ user });
   } catch (err) {
     return handleError(err, res);
@@ -40,7 +54,7 @@ async function login(req, res) {
     return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid request body', details: parsed.error.flatten() } });
   }
   try {
-    const result = await service.login(prismaMwq, parsed.data, parseMeta(req));
+    const result = await service.login(segmentOf(req), parsed.data, parseMeta(req));
     return res.status(200).json(result);
   } catch (err) {
     return handleError(err, res);
@@ -53,7 +67,7 @@ async function logout(req, res) {
     return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid request body', details: parsed.error.flatten() } });
   }
   try {
-    await service.logout(prismaMwq, parsed.data);
+    await service.logout(segmentOf(req), parsed.data);
     return res.status(204).send();
   } catch (err) {
     return handleError(err, res);
@@ -66,7 +80,7 @@ async function refresh(req, res) {
     return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid request body', details: parsed.error.flatten() } });
   }
   try {
-    const result = await service.refresh(prismaMwq, parsed.data, parseMeta(req));
+    const result = await service.refresh(segmentOf(req), parsed.data, parseMeta(req));
     return res.status(200).json(result);
   } catch (err) {
     return handleError(err, res);
@@ -79,7 +93,7 @@ async function forgotPassword(req, res) {
     return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid request body', details: parsed.error.flatten() } });
   }
   try {
-    await service.forgotPassword(prismaMwq, parsed.data, parseMeta(req));
+    await service.forgotPassword(segmentOf(req), parsed.data, parseMeta(req));
     return res.status(204).send();
   } catch (err) {
     return handleError(err, res);
@@ -92,7 +106,7 @@ async function verifyOtp(req, res) {
     return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid request body', details: parsed.error.flatten() } });
   }
   try {
-    const result = await service.verifyOtp(prismaMwq, parsed.data);
+    const result = await service.verifyOtp(segmentOf(req), parsed.data);
     return res.status(200).json(result);
   } catch (err) {
     return handleError(err, res);
@@ -105,7 +119,7 @@ async function resetPassword(req, res) {
     return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid request body', details: parsed.error.flatten() } });
   }
   try {
-    await service.resetPassword(prismaMwq, parsed.data);
+    await service.resetPassword(segmentOf(req), parsed.data);
     return res.status(204).send();
   } catch (err) {
     return handleError(err, res);

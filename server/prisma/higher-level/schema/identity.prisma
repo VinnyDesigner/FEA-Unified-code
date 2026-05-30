@@ -1,0 +1,51 @@
+// identity.prisma (higher-level DB) — User + RefreshToken.
+// Moved verbatim from the module shared.prisma (same @map column names so the
+// existing app code keeps working once it points at prismaHigherLevel). The
+// otps/reports/auditLogs back-relations are intentionally dropped: those tables
+// now live in the module DBs (FK-less). The RefreshToken "Rotation" self-relation
+// is preserved intact.
+
+model User {
+  id            Int           @id @default(autoincrement()) @map("UserID")
+  userName      String        @unique @map("UserName") @db.VarChar(60)
+  email         String        @unique @db.VarChar(120)
+  passwordHash  String        @map("Password") @db.VarChar(255)
+  firstName     String        @map("FirstName") @db.VarChar(80)
+  middleName    String?       @map("MiddleName") @db.VarChar(80)
+  lastName      String        @map("LastName") @db.VarChar(80)
+  phoneNumber   String?       @map("PhoneNumber") @db.VarChar(40)
+  emiratesId    String?       @map("EmiratesId") @db.VarChar(40)
+  role          Role          @default(MWQ_MEMBER) // legacy global role; per-app access lives in UserApplicationAccess
+  accountStatus AccountStatus @default(PENDING)
+  isActive      Boolean       @default(true) @map("IsActive")
+  createdAt     DateTime      @default(now()) @map("CreatedAt") @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @map("UpdatedAt") @db.Timestamptz(6)
+
+  refreshTokens     RefreshToken[]
+  applicationAccess UserApplicationAccess[]
+
+  @@index([accountStatus])
+  @@map("users")
+}
+
+model RefreshToken {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("UserID")
+  tokenHash    String    @map("TokenHash") @db.VarChar(255)
+  familyId     String    @map("FamilyID") @db.Uuid
+  issuedAt     DateTime  @default(now()) @map("IssuedAt") @db.Timestamptz(6)
+  expiresAt    DateTime  @map("ExpiresAt") @db.Timestamptz(6)
+  revokedAt    DateTime? @map("RevokedAt") @db.Timestamptz(6)
+  rotatedToId  Int?      @map("RotatedToID")
+  userAgent    String?   @map("UserAgent") @db.VarChar(255)
+  ipAddress    String?   @map("IpAddress") @db.VarChar(60)
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rotatedTo   RefreshToken?  @relation("Rotation", fields: [rotatedToId], references: [id])
+  rotatedFrom RefreshToken[] @relation("Rotation")
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
