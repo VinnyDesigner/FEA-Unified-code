@@ -3,10 +3,12 @@
 require('dotenv').config();
 const { PrismaClient: PrismaClientMwq } = require('../node_modules/.prisma/client-mwq');
 const { PrismaClient: PrismaClientAqms } = require('../node_modules/.prisma/client-aqms');
+const { PrismaClient: PrismaClientHl } = require('../node_modules/.prisma/client-higher-level');
 const bcrypt = require('bcrypt');
 
 const prismaMwq = new PrismaClientMwq();
 const prismaAqms = new PrismaClientAqms();
+const prismaHl = new PrismaClientHl();
 
 // ─── Config from env ─────────────────────────────────────────────────────────
 const SEED_SENSOR_ROWS     = parseInt(process.env.SEED_SENSOR_ROWS     || '50000', 10);
@@ -53,61 +55,164 @@ async function batchInsert(label, rows, insertFn) {
   }
 }
 
-async function seedUsers(prisma, memberRole) {
+// Seed users + per-application access grants into the higher-level (identity) DB.
+// Identity moved out of the module DBs during the auth split, so users and RBAC
+// grants now live here. The RBAC baseline (applications/roles/permissions) is
+// owned by seed-higher-level.js — run `npm run seed:hl` before this seed.
+//
+// Returns the shared admin plus the two per-app members. Idempotent: users are
+// upserted by email and each grant by its unique (user, application) pair.
+async function seedHigherLevelUsers(prisma) {
   const hash = await bcrypt.hash('ChangeMe123!', BCRYPT_COST);
-  const prefix = memberRole === 'MWQ_MEMBER' ? 'mwq' : 'aqms';
 
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@fea.local' },
-    update: {},
-    create: {
-      userName:      'admin',
-      email:         'admin@fea.local',
-      passwordHash:  hash,
-      firstName:     'System',
-      lastName:      'Admin',
-      role:          'ADMIN',
-      accountStatus: 'ACTIVE',
-    },
-  });
-
-  const member = await prisma.user.upsert({
-    where: { email: `${prefix}.member@fea.local` },
-    update: {},
-    create: {
-      userName:      `${prefix}_member`,
-      email:         `${prefix}.member@fea.local`,
-      passwordHash:  hash,
-      firstName:     prefix.toUpperCase(),
-      lastName:      'Member',
-      role:          memberRole,
-      accountStatus: 'ACTIVE',
-    },
-  });
-
-  // Extra users: PENDING, ACTIVE, SUSPENDED, REJECTED
-  const extraUsers = [
-    { userName: `${prefix}_pending1`,   email: `${prefix}.pending1@fea.local`,   firstName: 'Pending',   lastName: 'UserOne',   role: memberRole, accountStatus: 'PENDING'   },
-    { userName: `${prefix}_pending2`,   email: `${prefix}.pending2@fea.local`,   firstName: 'Pending',   lastName: 'UserTwo',   role: memberRole, accountStatus: 'PENDING'   },
-    { userName: `${prefix}_pending3`,   email: `${prefix}.pending3@fea.local`,   firstName: 'Pending',   lastName: 'UserThree', role: memberRole, accountStatus: 'PENDING'   },
-    { userName: `${prefix}_active2`,    email: `${prefix}.active2@fea.local`,    firstName: 'Active',    lastName: 'UserTwo',   role: memberRole, accountStatus: 'ACTIVE'    },
-    { userName: `${prefix}_active3`,    email: `${prefix}.active3@fea.local`,    firstName: 'Active',    lastName: 'UserThree', role: memberRole, accountStatus: 'ACTIVE'    },
-    { userName: `${prefix}_active4`,    email: `${prefix}.active4@fea.local`,    firstName: 'Active',    lastName: 'UserFour',  role: memberRole, accountStatus: 'ACTIVE'    },
-    { userName: `${prefix}_suspended1`, email: `${prefix}.suspended1@fea.local`, firstName: 'Suspended', lastName: 'UserOne',   role: memberRole, accountStatus: 'SUSPENDED' },
-    { userName: `${prefix}_rejected1`,  email: `${prefix}.rejected1@fea.local`,  firstName: 'Rejected',  lastName: 'UserOne',   role: memberRole, accountStatus: 'REJECTED'  },
-  ];
-
-  const extraCreated = [];
-  for (const u of extraUsers) {
-    const rec = await prisma.user.upsert({
-      where: { email: u.email },
-      update: {},
-      create: { ...u, passwordHash: hash },
-    });
-    extraCreated.push(rec);
+  const apps = await prisma.application.findMany();
+  const roles = await prisma.rbacRole.findMany();
+  const appId = Object.fromEntries(apps.map((a) => [a.code, a.id]));
+  const roleId = Object.fromEntries(roles.map((r) => [r.code, r.id]));
+  if (!appId.MWQ || !appId.AQMS || !roleId.ADMIN || !roleId.MWQ_MEMBER || !roleId.AQMS_MEMBER) {
+    throw new Error('RBAC baseline missing in higher-level DB — run `npm run seed:hl` before `npm run seed`.');
   }
 
-  return { admin, member, extraCreated };
+  // Upsert a user, then assert one access grant per application.
+  async function upsertUser(data, grants) {
+    const user = await prisma.user.upsert({
+      where: { email: data.email },
+      update: {},
+      create: { passwordHash: hash, ...data },
+    });
+    for (const g of grants) {
+      await prisma.userApplicationAccess.upsert({
+        where: { userId_applicationId: { userId: user.id, applicationId: g.applicationId } },
+        update: { roleId: g.roleId, status: g.status },
+        create: { userId: user.id, applicationId: g.applicationId, roleId: g.roleId, status: g.status },
+      });
+    }
+    return user;
+  }
+
+  // ADMIN spans both applications.
+  const admin = await upsertUser(
+    { userName: 'admin', email: 'admin@fea.local', firstName: 'System', lastName: 'Admin', role: 'ADMIN', accountStatus: 'ACTIVE' },
+    [
+      { applicationId: appId.MWQ, roleId: roleId.ADMIN, status: 'ACTIVE' },
+      { applicationId: appId.AQMS, roleId: roleId.ADMIN, status: 'ACTIVE' },
+    ]
+  );
+  const mwqMember = await upsertUser(
+    { userName: 'mwq_member', email: 'mwq.member@fea.local', firstName: 'MWQ', lastName: 'Member', role: 'MWQ_MEMBER', accountStatus: 'ACTIVE' },
+    [{ applicationId: appId.MWQ, roleId: roleId.MWQ_MEMBER, status: 'ACTIVE' }]
+  );
+  const aqmsMember = await upsertUser(
+    { userName: 'aqms_member', email: 'aqms.member@fea.local', firstName: 'AQMS', lastName: 'Member', role: 'AQMS_MEMBER', accountStatus: 'ACTIVE' },
+    [{ applicationId: appId.AQMS, roleId: roleId.AQMS_MEMBER, status: 'ACTIVE' }]
+  );
+
+  // Extra users per app (varied statuses) for the Users-management UI. The grant
+  // status mirrors the account status so the admin grant list shows each state.
+  const extraDefs = [
+    { suffix: 'pending1', status: 'PENDING' },
+    { suffix: 'pending2', status: 'PENDING' },
+    { suffix: 'pending3', status: 'PENDING' },
+    { suffix: 'active2', status: 'ACTIVE' },
+    { suffix: 'active3', status: 'ACTIVE' },
+    { suffix: 'active4', status: 'ACTIVE' },
+    { suffix: 'suspended1', status: 'SUSPENDED' },
+    { suffix: 'rejected1', status: 'REJECTED' },
+  ];
+  let extraCount = 0;
+  for (const [appCode, memberRole] of [['MWQ', 'MWQ_MEMBER'], ['AQMS', 'AQMS_MEMBER']]) {
+    const prefix = appCode.toLowerCase();
+    for (const e of extraDefs) {
+      const label = e.status[0] + e.status.slice(1).toLowerCase();
+      await upsertUser(
+        { userName: `${prefix}_${e.suffix}`, email: `${prefix}.${e.suffix}@fea.local`, firstName: label, lastName: 'User', role: memberRole, accountStatus: e.status },
+        [{ applicationId: appId[appCode], roleId: roleId[memberRole], status: e.status }]
+      );
+      extraCount++;
+    }
+  }
+
+  return { admin, mwqMember, aqmsMember, extraCount };
+}
+
+// Generate real, DOWNLOADABLE AQMS reports by driving the production report
+// service — one per report-type × station for a fixed window. Folded in from the
+// former standalone seed-aqms-reports.js. Unlike the mock report rows (which have
+// empty storagePaths), these produce real Report rows + files under
+// tmp/reports/<id>, so the /data-capture "Generate Report" menu has live
+// downloads. Heavier than the mock rows; runs last. Idempotent: prior typed
+// reports in the window (and their folders) are removed before regenerating.
+async function seedAqmsRealReports(ownerId) {
+  const path = require('node:path');
+  const fs = require('node:fs');
+  const { generate } = require('../src/modules/shared/reports/reports.service');
+  const { REPORT_TYPE_KEYS, getReportType } = require('../src/modules/shared/reports/report-types');
+  const { LOCAL_ROOT } = require('../src/lib/storage');
+
+  const START = new Date('2026-05-21T00:00:00.000Z');
+  const END = new Date('2026-05-28T23:59:59.999Z');
+  const ALL_FORMATS = ['PDF', 'XLSX', 'DOCX'];
+
+  log('Seeding AQMS downloadable reports (via report service)...');
+
+  // The mock rows above were inserted with explicit ids (1..N) which does NOT
+  // advance the SERIAL sequence; bump it so the service's autoincrement create()
+  // does not collide on id=1.
+  await prismaAqms.$executeRawUnsafe(
+    `SELECT setval(pg_get_serial_sequence('reports', 'id'), (SELECT COALESCE(MAX(id), 1) FROM reports))`
+  );
+
+  // Owner is the higher-level ADMIN id (passed in); module DBs no longer hold users.
+  if (!ownerId) { log('  aqms downloadable reports: no owner id — skipped'); return; }
+
+  // Idempotent cleanup: drop prior typed reports for this window + their folders.
+  const prior = await prismaAqms.report.findMany({
+    where: { module: 'AQMS', reportType: { in: REPORT_TYPE_KEYS }, startDate: START },
+    select: { id: true },
+  });
+  for (const { id } of prior) {
+    try { fs.rmSync(path.join(LOCAL_ROOT, String(id)), { recursive: true, force: true }); } catch { /* ignore */ }
+  }
+  if (prior.length) await prismaAqms.report.deleteMany({ where: { id: { in: prior.map((p) => p.id) } } });
+
+  // Pollutant parameter ids that actually have ambient data for a station in window.
+  const pollutantIds = async (stationId) => {
+    const rows = await prismaAqms.$queryRawUnsafe(`
+      SELECT DISTINCT o."ParameterID" pid
+      FROM aqms_ambient_air_quality_observations o
+      JOIN aqms_parameter_masters p ON p."ParameterID" = o."ParameterID"
+      WHERE o."StationID" = $1 AND p."ParameterTypeCode" = 'POLLUTANT'
+        AND o."DateTime" >= $2 AND o."DateTime" <= $3
+      ORDER BY pid`, stationId, START, END);
+    return rows.map((r) => r.pid);
+  };
+
+  const stations = await prismaAqms.aqmsMonitoringSite.findMany({ select: { id: true }, orderBy: { id: 'asc' } });
+  let ready = 0, total = 0;
+  for (const rtKey of REPORT_TYPE_KEYS) {
+    const def = getReportType(rtKey);
+    if (!def || !def.modules.includes('AQMS')) continue;
+    for (const st of stations) {
+      const pids = await pollutantIds(st.id);
+      if (pids.length === 0) continue;
+      total++;
+      const body = { module: 'AQMS', reportType: rtKey, stationIds: [st.id], parameterIds: pids, startDate: START, endDate: END, formats: ALL_FORMATS };
+      try {
+        let report;
+        try {
+          report = await generate(ownerId, body);
+        } catch (e) {
+          // DOCX/PDF have a row cap; fall back to XLSX-only for big windows.
+          if (e.code === 'ROW_LIMIT_EXCEEDED') report = await generate(ownerId, { ...body, formats: ['XLSX'] });
+          else throw e;
+        }
+        if (report.status === 'READY') ready++;
+      } catch (e) {
+        log(`  aqms report FAIL ${rtKey}/station ${st.id}: ${e.code || e.message}`);
+      }
+    }
+  }
+  log(`  aqms downloadable reports: ${ready}/${total} generated`);
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -115,15 +220,15 @@ async function main() {
   log(`Starting seed (SEED_SENSOR_ROWS=${SEED_SENSOR_ROWS}, SEED_DAYS=${SEED_DAYS})`);
 
   // =========================================================================
-  // SHARED: Users — duplicated into BOTH databases
+  // SHARED: Users — live in the higher-level (identity) DB after the auth split.
+  // Module report/notification rows are FK-less, so their userId is just an int
+  // pointing at these HL user ids. ADMIN is a single user spanning both apps.
   // =========================================================================
-  log('Seeding users into MWQ DB...');
-  const { admin: mwqAdmin, member: mwqMember } = await seedUsers(prismaMwq, 'MWQ_MEMBER');
-  log(`  MWQ admin id=${mwqAdmin.id}, mwq_member id=${mwqMember.id}`);
-
-  log('Seeding users into AQMS DB...');
-  const { admin: aqmsAdmin, member: aqmsMember } = await seedUsers(prismaAqms, 'AQMS_MEMBER');
-  log(`  AQMS admin id=${aqmsAdmin.id}, aqms_member id=${aqmsMember.id}`);
+  log('Seeding users into higher-level (identity) DB...');
+  const { admin, mwqMember, aqmsMember, extraCount } = await seedHigherLevelUsers(prismaHl);
+  const mwqAdmin = admin;   // single shared ADMIN identity across both modules
+  const aqmsAdmin = admin;
+  log(`  HL users: admin id=${admin.id}, mwq_member id=${mwqMember.id}, aqms_member id=${aqmsMember.id}, +${extraCount} extra`);
 
   // =========================================================================
   // MWQ: Reference data
@@ -854,6 +959,9 @@ async function main() {
   }
   log(`  aqms reports: ${aqmsReportDefs.length} rows`);
 
+  // Real downloadable AQMS reports (folded in from seed-aqms-reports.js).
+  await seedAqmsRealReports(aqmsAdmin.id);
+
   log(`Seed complete. Sensor rows target: ${SEED_SENSOR_ROWS}.`);
 }
 
@@ -862,4 +970,5 @@ main()
   .finally(async () => {
     await prismaMwq.$disconnect();
     await prismaAqms.$disconnect();
+    await prismaHl.$disconnect();
   });
